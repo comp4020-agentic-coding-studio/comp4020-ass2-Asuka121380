@@ -1,0 +1,229 @@
+import { execFileSync, spawnSync } from "node:child_process";
+import { copyFileSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+import { expectedReflections } from "./check-evidence.ts";
+
+// The expected reflection names derive from the repo name alone — offline,
+// no course calendar. The final repo spans three crits, so any of their names
+// counts; which weeks have entries is the tutor's question.
+describe("expectedReflections", () => {
+  it("names the weekly crit's reflection from the repo prefix", () => {
+    expect(expectedReflections("comp4020-crit1-alice")).toEqual(["crit-1.md"]);
+    expect(expectedReflections("comp4020-crit5-alice")).toEqual(["crit-5.md"]);
+  });
+
+  it("expects none of an assignment repo, whose account is PROCESS.md", () => {
+    expect(expectedReflections("comp4020-ass1-alice")).toEqual([]);
+    expect(expectedReflections("comp4020-ass2-alice")).toEqual([]);
+  });
+
+  it("accepts any of the shared final repo's crit names", () => {
+    expect(expectedReflections("comp4020-final-alice")).toEqual([
+      "crit-8.md",
+      "crit-9.md",
+      "crit-10.md",
+    ]);
+  });
+
+  it("matches nothing for a repo without a course prefix", () => {
+    expect(expectedReflections("template-static")).toBeNull();
+  });
+});
+
+const script = resolve("scripts/check-evidence.ts");
+
+// The starter artwork the Assignment 2 gate hashes, repo-relative.
+const STARTER_IMAGES = [
+  "src/assets/images/card.png",
+  "src/assets/images/hero-home.avif",
+  "src/content/people/idris-fenn.avif",
+  "src/content/people/marisol-quaye.avif",
+];
+const fixtures: string[] = [];
+
+const env = {
+  ...process.env,
+  // in CI this names the repo running the tests, not the fixture
+  GITHUB_REPOSITORY: "",
+  GIT_CONFIG_GLOBAL: "/dev/null",
+  GIT_CONFIG_SYSTEM: "/dev/null",
+};
+
+function fixture(
+  withClaudeMd = true,
+  reflection: string | null = "crit-1.md",
+  repo = "comp4020-crit1-alice",
+): string {
+  const cwd = mkdtempSync(join(tmpdir(), "check-evidence-"));
+  fixtures.push(cwd);
+  mkdirSync(join(cwd, "reflections"));
+  if (reflection) writeFileSync(join(cwd, "reflections", reflection), "# Reflection\n");
+  if (withClaudeMd) writeFileSync(join(cwd, "CLAUDE.md"), "# Working method\n");
+  execFileSync("git", ["init", "-q"], { cwd, env });
+  execFileSync(
+    "git",
+    ["remote", "add", "origin", `https://github.com/comp4020-agentic-coding-studio/${repo}.git`],
+    { cwd, env },
+  );
+  execFileSync(
+    "git",
+    [
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.invalid",
+      "-c",
+      "commit.gpgsign=false",
+      "commit",
+      "--allow-empty",
+      "-m",
+      "fixture",
+      "-q",
+    ],
+    { cwd, env },
+  );
+  const sha = execFileSync("git", ["rev-parse", "HEAD"], {
+    cwd,
+    env,
+    encoding: "utf8",
+  }).trim();
+  writeFileSync(
+    join(cwd, "PROCESS.md"),
+    `# Process\n\nEvidence: [${sha.slice(0, 8)}](https://example.invalid/commit/${sha})\n`,
+  );
+  return cwd;
+}
+
+function assignment2Fixture(starterContent: boolean): string {
+  const cwd = mkdtempSync(join(tmpdir(), "check-evidence-ass2-"));
+  fixtures.push(cwd);
+  mkdirSync(join(cwd, "src"));
+  writeFileSync(join(cwd, "CLAUDE.md"), "# Working method\n");
+  writeFileSync(
+    join(cwd, "src", "index.md"),
+    starterContent ? "<!-- STARTER_CONTENT: replace me -->\n" : "# A finished course\n",
+  );
+  execFileSync("git", ["init", "-q"], { cwd, env });
+  execFileSync(
+    "git",
+    [
+      "remote",
+      "add",
+      "origin",
+      "https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-alice.git",
+    ],
+    { cwd, env },
+  );
+  execFileSync("git", ["add", "src/index.md"], { cwd, env });
+  execFileSync(
+    "git",
+    [
+      "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.invalid",
+      "-c",
+      "commit.gpgsign=false",
+      "commit",
+      "-m",
+      "fixture",
+      "-q",
+    ],
+    { cwd, env },
+  );
+  const sha = execFileSync("git", ["rev-parse", "HEAD"], {
+    cwd,
+    env,
+    encoding: "utf8",
+  }).trim();
+  writeFileSync(
+    join(cwd, "PROCESS.md"),
+    `# Process\n\nEvidence: [${sha.slice(0, 8)}](https://example.invalid/commit/${sha})\n`,
+  );
+  return cwd;
+}
+
+afterEach(() => {
+  for (const cwd of fixtures.splice(0)) rmSync(cwd, { recursive: true });
+});
+
+describe("check:evidence", () => {
+  it("passes with the reflection the repo's name expects", () => {
+    const result = spawnSync(process.execPath, [script], {
+      cwd: fixture(),
+      env,
+      encoding: "utf8",
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain("reflections/crit-1.md");
+  });
+
+  it("rejects a repo whose expected reflection is missing", () => {
+    const result = spawnSync(process.execPath, [script], {
+      cwd: fixture(true, "crit-2.md"),
+      env,
+      encoding: "utf8",
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("the marker reads reflections/crit-1.md");
+  });
+
+  it("asks nothing of an assignment repo's reflections/", () => {
+    const result = spawnSync(process.execPath, [script], {
+      cwd: fixture(true, null, "comp4020-ass1-alice"),
+      env,
+      encoding: "utf8",
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain("none needed");
+  });
+
+  it("rejects a missing CLAUDE.md", () => {
+    const result = spawnSync(process.execPath, [script], {
+      cwd: fixture(false),
+      env,
+      encoding: "utf8",
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("no CLAUDE.md");
+  });
+
+  it("rejects a marked Assignment 2 starter fragment", () => {
+    const result = spawnSync(process.execPath, [script], {
+      cwd: assignment2Fixture(true),
+      env,
+      encoding: "utf8",
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("src/index.md:1");
+    expect(result.stderr).toContain("STARTER_CONTENT");
+  });
+
+  it("accepts Assignment 2 source after its starter markers are removed", () => {
+    const result = spawnSync(process.execPath, [script], {
+      cwd: assignment2Fixture(false),
+      env,
+      encoding: "utf8",
+    });
+    expect(result.status, result.stderr).toBe(0);
+  });
+
+  // Every image the starter ships is gated, not just the home page's, so a
+  // submission can't keep a starter portrait while replacing the prose beside
+  // it. Copied from the working tree, so a re-cut image updates the hash in
+  // check-evidence.ts and this test together or fails here first.
+  it.each(STARTER_IMAGES)("rejects the unchanged starter %s", (image) => {
+    const cwd = assignment2Fixture(false);
+    mkdirSync(join(cwd, dirname(image)), { recursive: true });
+    copyFileSync(resolve(image), join(cwd, image));
+    const result = spawnSync(process.execPath, [script], {
+      cwd,
+      env,
+      encoding: "utf8",
+    });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(`${image} is still the starter image`);
+  });
+});

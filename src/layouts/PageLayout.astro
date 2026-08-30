@@ -1,0 +1,8 @@
+---
+import MdxPageLayout from "astro-theme-university/layouts/MdxPageLayout.astro";
+import { siteConfig } from "../site-config";
+---
+
+<MdxPageLayout siteConfig={siteConfig} {...Astro.props}>
+  <slot />
+</MdxPageLayout>

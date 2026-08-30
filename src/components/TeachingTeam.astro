@@ -1,0 +1,23 @@
+---
+import { getEntries, type CollectionEntry } from "astro:content";
+import { withBase } from "astro-theme-university/url";
+
+interface Props {
+  teachers: CollectionEntry<"sessions">["data"]["teachers"] | CollectionEntry<"lectures">["data"]["teachers"];
+}
+
+const { teachers } = Astro.props;
+// A session or lecture with no `teachers:` renders no team at all.
+const people = teachers ? await getEntries(teachers) : [];
+---
+
+{
+  people.length > 0 && (
+    <section aria-labelledby="teaching-team">
+      <h2 id="teaching-team">Teaching team</h2>
+      <ul>
+        {people.map((person) => <li><a href={withBase(`/people/${person.id}/`)}>{person.data.title}</a> — {person.data.role}</li>)}
+      </ul>
+    </section>
+  )
+}

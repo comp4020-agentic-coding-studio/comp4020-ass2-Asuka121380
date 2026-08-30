@@ -1,0 +1,47 @@
+---
+import { render } from "astro:content";
+import { getPublishedCollection } from "astro-course-university/content";
+import RelatedContent from "astro-course-university/components/RelatedContent.astro";
+import SpecList from "astro-course-university/components/SpecList.astro";
+import Callout from "astro-theme-university/components/Callout.astro";
+import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
+import MarkingModel from "../../components/MarkingModel.astro";
+import { formatCourseDate } from "../../lib/dates";
+import { graphCollections, siteConfig } from "../../site-config";
+
+export async function getStaticPaths() {
+  const assessments = await getPublishedCollection("assessments");
+  return assessments.map((assessment) => ({
+    params: { slug: assessment.id },
+    props: { assessment },
+  }));
+}
+
+const { assessment } = Astro.props;
+const { Content } = await render(assessment);
+---
+
+<ContentLayout
+  title={assessment.data.title}
+  description={assessment.data.description}
+  {...siteConfig}
+>
+  {
+    assessment.data.draft && (
+      <Callout type="warning">
+        <p>
+          <strong>Draft.</strong> This brief is still being finalised and may change.
+        </p>
+      </Callout>
+    )
+  }
+  <p><strong>Due:</strong> {formatCourseDate(assessment.data.due)} · <strong>Weight:</strong> {assessment.data.weight}%</p>
+  <Content />
+  <SpecList spec={assessment.data.spec}>
+    The brief poses the problem and leaves room for a response. The spec is the
+    fixed part: what a marker checks. Some lines can be checked mechanically;
+    the rest call for judgement.
+  </SpecList>
+  {assessment.data.marking && <MarkingModel marking={assessment.data.marking} />}
+  <RelatedContent entry={assessment} collections={graphCollections} />
+</ContentLayout>

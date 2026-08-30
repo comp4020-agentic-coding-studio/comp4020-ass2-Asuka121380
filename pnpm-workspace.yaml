@@ -1,0 +1,8 @@
+allowBuilds:
+  # esbuild (used by Vite, which Astro builds on) needs its postinstall to set
+  # up its native binary.
+  esbuild: true
+  # sharp ships prebuilt @img/sharp-<platform> binaries, so its install script
+  # has nothing to do --- and it breaks when a system libvips is present, where
+  # it tries to compile from source and fails on the missing node-addon-api.
+  sharp: false

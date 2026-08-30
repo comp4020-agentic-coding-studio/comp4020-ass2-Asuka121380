@@ -1,0 +1,13 @@
+/* The deck stylesheet. It is one import on purpose.
+ *
+ * astro-theme-university's deck.css derives every colour it uses from the
+ * same --at-* brand tokens the site's own styles derive from, and
+ * `brandCss: "astro-theme-slop/slop.css"` in astro.config.ts puts the Slop
+ * palette behind those tokens. So a deck already matches the site, and
+ * restating a colour here is how the two start to disagree.
+ *
+ * Deck pages are dark surfaces and they don't load the site's stylesheets ---
+ * only the brand CSS and this file. Add your own rules below the import: a
+ * slide class you reach for (`_class: quote`), a code-heavy layout, a
+ * background. */
+@import url("astro-theme-university/styles/deck.css");

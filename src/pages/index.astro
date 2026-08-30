@@ -1,0 +1,68 @@
+---
+import Card from "astro-theme-university/components/Card.astro";
+import CardGrid from "astro-theme-university/components/CardGrid.astro";
+import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
+import heroImage from "../assets/images/hero-home.avif";
+import { courseMeta } from "../course-config";
+import { sessionLabels, siteConfig } from "../site-config";
+
+// STARTER_CONTENT: replace the hero artwork and its alt text below, then
+// remove this comment.
+---
+
+<ContentLayout
+  title={`${courseMeta.code}: ${courseMeta.title}`}
+  description={courseMeta.description}
+  heroImage={heroImage}
+  heroImageAlt="A lecture theatre reduced to flat gold and black shapes, rows of seats sweeping past the frame, in a two-ink risograph print"
+  {...siteConfig}
+>
+  <ul class="course-tags" aria-label="Course tags">
+    {courseMeta.tags.map((tag) => <li>{tag}</li>)}
+  </ul>
+
+  <!-- STARTER_CONTENT: replace the authored page below, then remove this comment. -->
+  <h2>What you will do</h2>
+  <p>
+    Say what a student spends their time on — the making, reading, arguing or
+    measuring that fills the weeks. Name the artefact they walk out with.
+  </p>
+
+  <h2>Who it is for</h2>
+  <p>
+    Say who this is aimed at and what they need to already know. Be specific
+    enough that someone can rule themselves in or out without emailing you.
+  </p>
+
+  <h2>Where to go next</h2>
+  <CardGrid columns={2}>
+    <Card title={sessionLabels.plural} href="/sessions/">
+      <p>The weekly schedule and what happens in each teaching session.</p>
+    </Card>
+    <Card title="Assessment" href="/assessments/">
+      <p>What is marked, what it is worth, and when it is due.</p>
+    </Card>
+    <Card title="People" href="/people/">
+      <p>Who teaches the course and how to reach them.</p>
+    </Card>
+  </CardGrid>
+</ContentLayout>
+
+<style>
+  .course-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block: 0 2rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .course-tags li {
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    color: var(--at-text-secondary);
+    background: var(--at-bg-alt);
+    font-size: 0.9rem;
+  }
+</style>

@@ -1,0 +1,22 @@
+---
+import { getPublishedCollection } from "astro-course-university/content";
+import Card from "astro-theme-university/components/Card.astro";
+import CardGrid from "astro-theme-university/components/CardGrid.astro";
+import { formatCourseDate } from "../lib/dates";
+
+const sessions = await getPublishedCollection("sessions");
+const visible = sessions.sort((a, b) => a.data.week - b.data.week);
+---
+
+<CardGrid columns={2}>
+  {
+    visible.map((session) => (
+      <Card headingLevel="h2" title={session.data.title} href={`/sessions/${session.id}/`}>
+        {session.data.description && <p>{session.data.description}</p>}
+        <p>
+          <small>Week {session.data.week} · {formatCourseDate(session.data.date)}</small>
+        </p>
+      </Card>
+    ))
+  }
+</CardGrid>

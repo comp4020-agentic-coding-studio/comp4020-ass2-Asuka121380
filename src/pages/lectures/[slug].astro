@@ -1,0 +1,27 @@
+---
+import { render } from "astro:content";
+import { getPublishedCollection } from "astro-course-university/content";
+import RelatedContent from "astro-course-university/components/RelatedContent.astro";
+import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
+import { withBase } from "astro-theme-university/url";
+import TeachingTeam from "../../components/TeachingTeam.astro";
+import { formatCourseDate } from "../../lib/dates";
+import { graphCollections, siteConfig } from "../../site-config";
+
+export async function getStaticPaths() {
+  const lectures = await getPublishedCollection("lectures");
+  return lectures.map((lecture) => ({ params: { slug: lecture.id }, props: { lecture } }));
+}
+
+const { lecture } = Astro.props;
+const { Content } = await render(lecture);
+const title = `Week ${lecture.data.week}: ${lecture.data.title}`;
+---
+
+<ContentLayout title={title} description={lecture.data.description} {...siteConfig}>
+  <p><strong>{formatCourseDate(lecture.data.date)}</strong></p>
+  {lecture.data.slides && <p><a href={withBase(lecture.data.slides)}>Open the slides</a></p>}
+  <Content />
+  <TeachingTeam teachers={lecture.data.teachers} />
+  <RelatedContent entry={lecture} collections={graphCollections} />
+</ContentLayout>
