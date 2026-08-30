@@ -48,7 +48,7 @@ export const slopCourseMetaSchema = z
 // digit to your course's level (and `level` to match); keep the other three.
 // STARTER_CONTENT: replace this course record, then remove this comment.
 export const courseMeta = slopCourseMetaSchema.parse({
-  code: "SLOP1000",
+  code: "SLOP1186",
   title: "Course Title Goes Here",
   session: "Semester 1",
   year: 2027,
