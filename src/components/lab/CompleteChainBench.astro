@@ -1,0 +1,420 @@
+---
+// Week 12 "Try It": the most integrated interaction in the course — one
+// pedalboard-style chain, Pickup through Cabinet, all in signal order. Every
+// stage reuses a topology, curve, or filter formula a previous week already
+// introduced (see chain.ts and engine.ts's CompleteChainGraph); nothing here
+// is a new model. The frequency-response plot reads cumulativeChainMagnitudeResponse,
+// the same linear-stages-only function CompleteChainGraph's static picture
+// would use, so it necessarily leaves distortion out of the picture — a
+// limitation stated in its own caption rather than hidden.
+import AudioDemo from "../AudioDemo.astro";
+import FootswitchGroup from "./FootswitchGroup.astro";
+import Knob from "./Knob.astro";
+import ToggleSwitch from "./ToggleSwitch.astro";
+import { CABINET_PROFILE_ORDER, cabinetProfileParams, type CabinetProfile } from "../../lib/audio/cabinet";
+import { cumulativeChainMagnitudeResponse, type DelayReverbMode, type EQPosition, type PickupPosition } from "../../lib/audio/chain";
+import { logFrequencyAxis } from "../../lib/audio/filters";
+import type { ClippingTopology } from "../../lib/audio/waveshaping";
+
+const DEFAULT_PICKUP: PickupPosition = "bridge";
+const DEFAULT_EQ_HZ = 4000;
+const DEFAULT_EQ_POSITION: EQPosition = "pre";
+const DEFAULT_DRIVE = 3;
+const DEFAULT_TOPOLOGY: ClippingTopology = "asymmetric-soft";
+const DEFAULT_MOD_ON = false;
+const DEFAULT_MOD_DEPTH = 0.4;
+const DEFAULT_DELAY_MODE: DelayReverbMode = "off";
+const DEFAULT_DELAY_AMOUNT = 0.35;
+const DEFAULT_AMP_DRIVE = 3;
+const DEFAULT_AMP_TONE_HZ = 3000;
+const DEFAULT_CABINET: CabinetProfile = "flat";
+
+function isPostEQ(position: EQPosition): boolean {
+  return position === "post";
+}
+
+const MIN_HZ = 80;
+const MAX_HZ = 8000;
+const FREQ_COUNT = 160;
+const MAG_MAX = 1.6;
+
+const PLOT_LEFT = 24;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 10;
+const PLOT_BOTTOM = 96;
+
+function xForFrequency(hz: number): number {
+  const t = (Math.log10(hz) - Math.log10(MIN_HZ)) / (Math.log10(MAX_HZ) - Math.log10(MIN_HZ));
+  return PLOT_LEFT + t * (PLOT_RIGHT - PLOT_LEFT);
+}
+
+function yForMagnitude(mag: number): number {
+  return PLOT_BOTTOM - Math.min(mag, MAG_MAX) * ((PLOT_BOTTOM - PLOT_TOP) / MAG_MAX);
+}
+
+function responsePath(response: ArrayLike<number>): string {
+  let d = "";
+  for (let i = 0; i < response.length; i++) {
+    const x = PLOT_LEFT + (i / (response.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+    const y = yForMagnitude(response[i]);
+    d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+  }
+  return d.trim();
+}
+
+const freqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+const defaultStages = cumulativeChainMagnitudeResponse(freqs, {
+  pickupPosition: DEFAULT_PICKUP,
+  eqCutoffHz: DEFAULT_EQ_HZ,
+  ampToneHz: DEFAULT_AMP_TONE_HZ,
+  cabinetProfile: DEFAULT_CABINET,
+});
+const defaultPath = responsePath(defaultStages[defaultStages.length - 1].response);
+const unityY = yForMagnitude(1);
+const ticks = [100, 300, 1000, 3000];
+
+const pickupOptions = [
+  { value: "neck", label: "Neck" },
+  { value: "bridge", label: "Bridge" },
+];
+const topologyOptions = [
+  { value: "symmetric-soft", label: "Soft" },
+  { value: "asymmetric-soft", label: "Asym" },
+  { value: "hard", label: "Hard" },
+  { value: "fuzz", label: "Fuzz" },
+];
+const delayModeOptions = [
+  { value: "off", label: "Off" },
+  { value: "echo", label: "Echo" },
+  { value: "reverb", label: "Reverb" },
+];
+const cabinetOptions = CABINET_PROFILE_ORDER.map((profile) => ({
+  value: profile,
+  label: cabinetProfileParams(profile).label,
+}));
+---
+
+<div class="chain-bench bench-module" id="chain-bench">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Complete Chain Bench</span>
+    <span class="bench-eyebrow">Player → pickup → EQ → gain → modulation → delay/reverb → amplifier → cabinet</span>
+  </div>
+
+  <div class="lab-stage">
+    <span class="stage-label">Pickup</span>
+    <FootswitchGroup name="chain-pickup" legend="Position" options={pickupOptions} selected={DEFAULT_PICKUP} />
+  </div>
+
+  <div class="lab-stage">
+    <span class="stage-label">Tone / EQ</span>
+    <Knob id="chain-eq" label="Cutoff" min={800} max={8000} step={50} value={DEFAULT_EQ_HZ} unit=" Hz" />
+    <ToggleSwitch id="chain-eq-position" legend="Position" offLabel="Pre-gain" onLabel="Post-gain" checked={isPostEQ(DEFAULT_EQ_POSITION)} />
+  </div>
+
+  <div class="lab-stage">
+    <span class="stage-label">Gain + Clipping</span>
+    <Knob id="chain-drive" label="Drive" min={0.5} max={8} step={0.1} value={DEFAULT_DRIVE} unit="×" />
+    <FootswitchGroup name="chain-topology" legend="Clipping shape" options={topologyOptions} selected={DEFAULT_TOPOLOGY} />
+  </div>
+
+  <div class="lab-stage">
+    <span class="stage-label">Modulation</span>
+    <ToggleSwitch id="chain-mod" legend="Engaged" offLabel="Off" onLabel="On" checked={DEFAULT_MOD_ON} />
+    <Knob id="chain-mod-depth" label="Depth" min={0} max={1} step={0.01} value={DEFAULT_MOD_DEPTH} unit="" />
+  </div>
+
+  <div class="lab-stage">
+    <span class="stage-label">Delay / Reverb</span>
+    <FootswitchGroup name="chain-delay-mode" legend="Mode" options={delayModeOptions} selected={DEFAULT_DELAY_MODE} />
+    <Knob id="chain-delay-amount" label="Amount" min={0} max={1} step={0.01} value={DEFAULT_DELAY_AMOUNT} unit="" />
+  </div>
+
+  <div class="lab-stage">
+    <span class="stage-label">Amplifier</span>
+    <Knob id="chain-amp-drive" label="Drive" min={0.5} max={8} step={0.1} value={DEFAULT_AMP_DRIVE} unit="×" />
+    <Knob id="chain-amp-tone" label="Tone" min={800} max={8000} step={50} value={DEFAULT_AMP_TONE_HZ} unit=" Hz" />
+  </div>
+
+  <div class="lab-stage">
+    <span class="stage-label">Cabinet</span>
+    <FootswitchGroup name="chain-cabinet" legend="Profile" options={cabinetOptions} selected={DEFAULT_CABINET} />
+    <AudioDemo id="chain-audio" label="Play the complete chain" />
+  </div>
+
+  <p id="chain-readout" class="bench-scope-note chain-readout">
+    Bridge pickup, EQ at 4000 Hz pre-gain, asymmetric-soft clipping at 3.0×, modulation off, delay/reverb off,
+    amplifier driving 3.0× with tone at 3000 Hz, flat cabinet.
+  </p>
+
+  <div
+    class="response-plot"
+    role="img"
+    aria-label="Cumulative frequency response of the chain's linear stages — pickup, Tone/EQ, amplifier tone stack, cabinet — updating as the controls change. Distortion, modulation, and delay/reverb are not linear filters and aren't part of this particular picture."
+  >
+    <svg viewBox="0 0 300 116">
+      <line x1={PLOT_LEFT} y1={PLOT_TOP} x2={PLOT_LEFT} y2={PLOT_BOTTOM} class="axis-line" />
+      <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+      <line x1={PLOT_LEFT} y1={unityY} x2={PLOT_RIGHT} y2={unityY} class="unity-line" />
+      <text x={PLOT_RIGHT} y={unityY - 3} class="freq-tick" text-anchor="end">unity gain</text>
+      {ticks.map((hz) => (
+        <>
+          <line x1={xForFrequency(hz)} y1={PLOT_TOP} x2={xForFrequency(hz)} y2={PLOT_BOTTOM} class="tick-line" />
+          <text x={xForFrequency(hz)} y={PLOT_BOTTOM + 10} class="freq-tick" text-anchor="middle">
+            {hz >= 1000 ? `${hz / 1000}k` : hz}
+          </text>
+        </>
+      ))}
+      <path id="chain-response-path" d={defaultPath} class="response-trace" fill="none" />
+    </svg>
+  </div>
+
+  <p class="bench-scope-note">
+    This plot shows only the chain's linear (filter) stages layered together — it can't show what distortion,
+    modulation, or delay/reverb do, since none of those are a single fixed "frequency response". Listen to hear
+    those stages; watch this plot to see how pickup, EQ, amplifier tone, and cabinet combine.
+  </p>
+</div>
+
+<script>
+  import {
+    cabinetProfileParams,
+    type CabinetProfile,
+  } from "../../lib/audio/cabinet";
+  import { cumulativeChainMagnitudeResponse, type DelayReverbMode, type EQPosition, type PickupPosition } from "../../lib/audio/chain";
+  import { CompleteChainGraph } from "../../lib/audio/engine";
+  import { logFrequencyAxis } from "../../lib/audio/filters";
+  import type { ClippingTopology } from "../../lib/audio/waveshaping";
+
+  const root = document.getElementById("chain-bench");
+  if (root) {
+    const pickupRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="chain-pickup"]'));
+    const eqInput = document.getElementById("chain-eq") as HTMLInputElement;
+    const eqPositionInput = document.getElementById("chain-eq-position") as HTMLInputElement;
+    const driveInput = document.getElementById("chain-drive") as HTMLInputElement;
+    const topologyRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="chain-topology"]'));
+    const modInput = document.getElementById("chain-mod") as HTMLInputElement;
+    const modDepthInput = document.getElementById("chain-mod-depth") as HTMLInputElement;
+    const delayModeRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="chain-delay-mode"]'));
+    const delayAmountInput = document.getElementById("chain-delay-amount") as HTMLInputElement;
+    const ampDriveInput = document.getElementById("chain-amp-drive") as HTMLInputElement;
+    const ampToneInput = document.getElementById("chain-amp-tone") as HTMLInputElement;
+    const cabinetRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="chain-cabinet"]'));
+    const responsePathEl = document.getElementById("chain-response-path") as unknown as SVGPathElement;
+    const readout = document.getElementById("chain-readout") as HTMLParagraphElement;
+    const toggle = document.getElementById("chain-audio-toggle") as HTMLButtonElement;
+
+    const MIN_HZ = 80;
+    const MAX_HZ = 8000;
+    const FREQ_COUNT = 160;
+    const MAG_MAX = 1.6;
+    const PLOT_LEFT = 24;
+    const PLOT_RIGHT = 292;
+    const PLOT_TOP = 10;
+    const PLOT_BOTTOM = 96;
+
+    let context: AudioContext | null = null;
+    let graph: CompleteChainGraph | null = null;
+
+    function currentPickup(): PickupPosition {
+      return (pickupRadios.find((r) => r.checked)?.value ?? "bridge") as PickupPosition;
+    }
+    function currentTopology(): ClippingTopology {
+      return (topologyRadios.find((r) => r.checked)?.value ?? "asymmetric-soft") as ClippingTopology;
+    }
+    function currentDelayMode(): DelayReverbMode {
+      return (delayModeRadios.find((r) => r.checked)?.value ?? "off") as DelayReverbMode;
+    }
+    function currentCabinet(): CabinetProfile {
+      return (cabinetRadios.find((r) => r.checked)?.value ?? "flat") as CabinetProfile;
+    }
+    function currentEQPosition(): EQPosition {
+      return eqPositionInput.checked ? "post" : "pre";
+    }
+
+    function currentParams() {
+      return {
+        pickupPosition: currentPickup(),
+        eqCutoffHz: Number(eqInput.value),
+        eqPosition: currentEQPosition(),
+        drive: Number(driveInput.value),
+        topology: currentTopology(),
+        modulationOn: modInput.checked,
+        modulationDepth: Number(modDepthInput.value),
+        delayMode: currentDelayMode(),
+        delayAmount: Number(delayAmountInput.value),
+        ampDrive: Number(ampDriveInput.value),
+        ampToneHz: Number(ampToneInput.value),
+        cabinetProfile: currentCabinet(),
+      };
+    }
+
+    function yForMagnitude(mag: number): number {
+      return PLOT_BOTTOM - Math.min(mag, MAG_MAX) * ((PLOT_BOTTOM - PLOT_TOP) / MAG_MAX);
+    }
+
+    function stopAudio(): void {
+      graph?.stop();
+      graph = null;
+      (window as { setAudioDemoState?: (id: string, playing: boolean) => void }).setAudioDemoState?.("chain-audio", false);
+    }
+
+    function redraw(): void {
+      const p = currentParams();
+
+      const freqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+      const stages = cumulativeChainMagnitudeResponse(freqs, {
+        pickupPosition: p.pickupPosition,
+        eqCutoffHz: p.eqCutoffHz,
+        ampToneHz: p.ampToneHz,
+        cabinetProfile: p.cabinetProfile,
+      });
+      const response = stages[stages.length - 1].response;
+
+      let d = "";
+      for (let i = 0; i < freqs.length; i++) {
+        const x = PLOT_LEFT + (i / (freqs.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+        const y = yForMagnitude(response[i]);
+        d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+      }
+      responsePathEl.setAttribute("d", d.trim());
+
+      readout.textContent =
+        `${p.pickupPosition === "neck" ? "Neck" : "Bridge"} pickup, EQ at ${Math.round(p.eqCutoffHz)} Hz ` +
+        `${p.eqPosition}-gain, ${p.topology} clipping at ${p.drive.toFixed(1)}×, ` +
+        `modulation ${p.modulationOn ? `on (depth ${Math.round(p.modulationDepth * 100)}%)` : "off"}, ` +
+        `delay/reverb ${p.delayMode === "off" ? "off" : `${p.delayMode} (amount ${Math.round(p.delayAmount * 100)}%)`}, ` +
+        `amplifier driving ${p.ampDrive.toFixed(1)}× with tone at ${Math.round(p.ampToneHz)} Hz, ` +
+        `${cabinetProfileParams(p.cabinetProfile).label.toLowerCase()} cabinet.`;
+
+      graph?.setParams(p);
+    }
+
+    toggle.addEventListener("click", () => {
+      if (graph) {
+        stopAudio();
+        return;
+      }
+      context = context ?? new AudioContext();
+      graph = new CompleteChainGraph(context, {
+        ...currentParams(),
+        onEnded: () => {
+          graph = null;
+          (window as { setAudioDemoState?: (id: string, playing: boolean) => void }).setAudioDemoState?.("chain-audio", false);
+        },
+      });
+      graph.start();
+      (window as { setAudioDemoState?: (id: string, playing: boolean) => void }).setAudioDemoState?.("chain-audio", true);
+    });
+
+    [
+      eqInput,
+      eqPositionInput,
+      driveInput,
+      modInput,
+      modDepthInput,
+      delayAmountInput,
+      ampDriveInput,
+      ampToneInput,
+    ].forEach((input) => input.addEventListener("input", redraw));
+    [...pickupRadios, ...topologyRadios, ...delayModeRadios, ...cabinetRadios].forEach((radio) =>
+      radio.addEventListener("change", redraw),
+    );
+
+    redraw();
+  }
+</script>
+
+<style>
+  .chain-bench {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .lab-stage {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1.25rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--at-border);
+  }
+
+  .stage-label {
+    flex: 0 0 8rem;
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text);
+    align-self: center;
+  }
+
+  .chain-readout {
+    text-align: center;
+    font-family: var(--bench-readout, var(--at-font-mono));
+  }
+
+  .response-plot svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .tick-line {
+    stroke: var(--bench-line, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 2 2;
+  }
+
+  .unity-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 1 3;
+  }
+
+  .freq-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .response-trace {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 1.75;
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .lab-stage {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .stage-label {
+      flex: none;
+    }
+  }
+</style>

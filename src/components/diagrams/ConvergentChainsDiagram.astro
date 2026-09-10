@@ -1,0 +1,149 @@
+---
+// Week 12 "See It": two curated chains — CHAIN_RECIPE_A and CHAIN_RECIPE_B —
+// that make opposite individual choices at the pickup, Tone/EQ, and
+// amplifier stages but land on a broadly similar overall shape. Illustrates
+// "multiple valid solutions" without claiming the two are audibly identical.
+import { CHAIN_RECIPE_A, CHAIN_RECIPE_B, cumulativeChainMagnitudeResponse } from "../../lib/audio/chain";
+import { logFrequencyAxis } from "../../lib/audio/filters";
+
+const MIN_HZ = 80;
+const MAX_HZ = 8000;
+const FREQ_COUNT = 160;
+const MAG_MAX = 1.6;
+
+const PLOT_LEFT = 24;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 10;
+const PLOT_BOTTOM = 96;
+
+function xForFrequency(hz: number): number {
+  const t = (Math.log10(hz) - Math.log10(MIN_HZ)) / (Math.log10(MAX_HZ) - Math.log10(MIN_HZ));
+  return PLOT_LEFT + t * (PLOT_RIGHT - PLOT_LEFT);
+}
+
+function yForMagnitude(mag: number): number {
+  return PLOT_BOTTOM - Math.min(mag, MAG_MAX) * ((PLOT_BOTTOM - PLOT_TOP) / MAG_MAX);
+}
+
+function responsePath(response: ArrayLike<number>): string {
+  let d = "";
+  for (let i = 0; i < response.length; i++) {
+    const x = PLOT_LEFT + (i / (response.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+    const y = yForMagnitude(response[i]);
+    d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+  }
+  return d.trim();
+}
+
+const freqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+const recipes = [CHAIN_RECIPE_A, CHAIN_RECIPE_B].map((recipe) => {
+  const stages = cumulativeChainMagnitudeResponse(freqs, {
+    pickupPosition: recipe.pickupPosition,
+    eqCutoffHz: recipe.eqCutoffHz,
+    ampToneHz: recipe.ampToneHz,
+    cabinetProfile: recipe.cabinetProfile,
+  });
+  return { recipe, response: stages[stages.length - 1].response };
+});
+
+const ticks = [100, 300, 1000, 3000];
+const unityY = yForMagnitude(1);
+---
+
+<div
+  class="convergent-chains bench-module"
+  role="img"
+  aria-label="Final frequency response of two chains built from opposite individual stage choices, arriving at a broadly similar overall shape."
+>
+  <svg viewBox="0 0 300 116">
+    <line x1={PLOT_LEFT} y1={PLOT_TOP} x2={PLOT_LEFT} y2={PLOT_BOTTOM} class="axis-line" />
+    <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+    <line x1={PLOT_LEFT} y1={unityY} x2={PLOT_RIGHT} y2={unityY} class="unity-line" />
+    <text x={PLOT_RIGHT} y={unityY - 3} class="freq-tick" text-anchor="end">unity gain</text>
+    {ticks.map((hz) => (
+      <>
+        <line x1={xForFrequency(hz)} y1={PLOT_TOP} x2={xForFrequency(hz)} y2={PLOT_BOTTOM} class="tick-line" />
+        <text x={xForFrequency(hz)} y={PLOT_BOTTOM + 10} class="freq-tick" text-anchor="middle">
+          {hz >= 1000 ? `${hz / 1000}k` : hz}
+        </text>
+      </>
+    ))}
+    {recipes.map((r, i) => (
+      <path d={responsePath(r.response)} class={`response-trace response-trace-${i}`} fill="none" />
+    ))}
+  </svg>
+  <ul class="snapshot-legend">
+    {recipes.map((r, i) => (
+      <li class={`snapshot-legend-${i}`}>{r.recipe.label}</li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .convergent-chains svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .tick-line {
+    stroke: var(--bench-line, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 2 2;
+  }
+
+  .unity-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 1 3;
+  }
+
+  .freq-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .response-trace {
+    stroke-width: 1.75;
+    fill: none;
+  }
+
+  .response-trace-0 {
+    stroke: var(--bench-input-trace, var(--at-accent));
+  }
+
+  .response-trace-1 {
+    stroke: var(--bench-phosphor, var(--at-primary));
+    stroke-dasharray: 4 2;
+  }
+
+  .snapshot-legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+
+  .snapshot-legend li::before {
+    content: "—";
+    margin-inline-end: 0.35rem;
+  }
+
+  .snapshot-legend-0::before {
+    color: var(--bench-input-trace, var(--at-accent));
+  }
+
+  .snapshot-legend-1::before {
+    color: var(--bench-phosphor, var(--at-primary));
+  }
+</style>

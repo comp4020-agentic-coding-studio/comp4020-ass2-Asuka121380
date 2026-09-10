@@ -1,3 +1,13 @@
+import {
+  AMP_MASTER_LEVEL,
+  AMP_POWER_GAIN,
+  delayReverbParamsFromAmount,
+  pickupTiltCutoffHz,
+  type DelayReverbMode,
+  type EQPosition,
+  type PickupPosition,
+} from "./chain";
+import { cabinetProfileParams, type CabinetProfile } from "./cabinet";
 import { renderPluckedString } from "./pluckedString";
 import { buildClippingCurve, type ClippingTopology } from "./waveshaping";
 
@@ -576,5 +586,316 @@ export class AmplifierGraph {
     this.powerDrive.gain.value = powerGain;
     this.powerShaper.curve = asShaperCurve(buildClippingCurve("symmetric-soft", powerGain));
     this.masterGain.gain.value = AMP_BASE_MASTER_GAIN * Math.min(Math.max(masterLevel, 0), 1);
+  }
+}
+
+// Week 12: the whole causal chain as one serial graph, in fixed order —
+// Pickup tilt -> Tone/EQ -> Gain+Clipping -> Modulation -> Delay/Reverb ->
+// Amplifier -> Cabinet -> output. Every stage's nodes reuse the exact same
+// construction as that stage's own week: the clipping shaper is Week 6's
+// buildClippingCurve, the amplifier section mirrors AmplifierGraph above,
+// the cabinet section mirrors cabinet.ts's resonant-highpass/lowpass pair.
+// Modulation and Delay/Reverb are each a dry/wet bypass around their own
+// small subgraph, toggled with a short ramp so switching them on or off
+// mid-playback doesn't click; the Tone/EQ stage's pre/post position and the
+// Delay/Reverb mode are switched by disconnecting and reconnecting a few
+// nodes, which does produce an audible pop — an accepted, realistic stand-in
+// for physically moving a pedal on a board.
+const CHAIN_SOURCE_FREQUENCY = 110;
+const CHAIN_SOURCE_DURATION_SECONDS = 2.4;
+const CHAIN_OUTPUT_GAIN = 0.5;
+const CHAIN_MOD_RATE_HZ = 4;
+const CHAIN_MOD_BASE_DELAY_SECONDS = 0.02;
+const CHAIN_MOD_DEPTH_SCALE = 0.008;
+const CHAIN_MOD_MIX = 0.5;
+const CHAIN_RAMP_SECONDS = 0.015;
+const CHAIN_ECHO_MAX_DELAY_SECONDS = 1;
+const CHAIN_REVERB_RATIOS = [1, 1.37, 1.81, 2.29];
+const CHAIN_REVERB_BASE_DELAY_SECONDS = 0.03;
+const CHAIN_REVERB_ROOM_RANGE_SECONDS = 0.15;
+const CHAIN_REVERB_DAMPING_HZ = 3000;
+const CHAIN_MAX_FEEDBACK_GAIN = 0.88;
+
+export interface CompleteChainOptions {
+  pickupPosition: PickupPosition;
+  eqCutoffHz: number;
+  eqPosition: EQPosition;
+  drive: number;
+  topology: ClippingTopology;
+  modulationOn: boolean;
+  modulationDepth: number;
+  delayMode: DelayReverbMode;
+  delayAmount: number;
+  ampDrive: number;
+  ampToneHz: number;
+  cabinetProfile: CabinetProfile;
+  onEnded?: () => void;
+}
+
+export class CompleteChainGraph {
+  private readonly pickupTilt: BiquadFilterNode;
+  private readonly eqFilter: BiquadFilterNode;
+  private readonly driveGain: GainNode;
+  private readonly shaper: WaveShaperNode;
+
+  private readonly modInput: GainNode;
+  private readonly modDry: GainNode;
+  private readonly modWet: GainNode;
+  private readonly modDelay: DelayNode;
+  private readonly modLfo: OscillatorNode;
+  private readonly modLfoDepth: GainNode;
+  private readonly modOutput: GainNode;
+
+  private readonly delayDry: GainNode;
+  private readonly delayWet: GainNode;
+  private readonly echoDelay: DelayNode;
+  private readonly echoFeedback: GainNode;
+  private readonly echoOut: GainNode;
+  private readonly reverbBranches: Array<{ delay: DelayNode; feedback: GainNode; damping: BiquadFilterNode; ratio: number }>;
+  private readonly reverbOut: GainNode;
+  private readonly delayOutput: GainNode;
+
+  private readonly preampDrive: GainNode;
+  private readonly preampShaper: WaveShaperNode;
+  private readonly toneFilter: BiquadFilterNode;
+  private readonly powerDrive: GainNode;
+  private readonly powerShaper: WaveShaperNode;
+  private readonly masterGain: GainNode;
+
+  private readonly cabinetHighpass: BiquadFilterNode;
+  private readonly cabinetLowpass: BiquadFilterNode;
+  private readonly output: GainNode;
+
+  private eqPosition: EQPosition;
+  private delayMode: DelayReverbMode;
+  private sourceNode: AudioBufferSourceNode | null = null;
+  private started = false;
+
+  constructor(
+    private readonly context: AudioContext,
+    private readonly options: CompleteChainOptions,
+  ) {
+    this.eqPosition = options.eqPosition;
+    this.delayMode = options.delayMode;
+
+    this.pickupTilt = context.createBiquadFilter();
+    this.pickupTilt.type = "lowpass";
+    this.pickupTilt.Q.value = 1 / Math.sqrt(2);
+
+    this.eqFilter = context.createBiquadFilter();
+    this.eqFilter.type = "lowpass";
+    this.eqFilter.Q.value = 1 / Math.sqrt(2);
+
+    this.driveGain = context.createGain();
+    this.shaper = context.createWaveShaper();
+    this.driveGain.connect(this.shaper);
+
+    this.modInput = context.createGain();
+    this.modDry = context.createGain();
+    this.modWet = context.createGain();
+    this.modDelay = context.createDelay(0.05);
+    this.modDelay.delayTime.value = CHAIN_MOD_BASE_DELAY_SECONDS;
+    this.modLfo = context.createOscillator();
+    this.modLfo.type = "sine";
+    this.modLfo.frequency.value = CHAIN_MOD_RATE_HZ;
+    this.modLfoDepth = context.createGain();
+    this.modOutput = context.createGain();
+
+    this.modInput.connect(this.modDry);
+    this.modDry.connect(this.modOutput);
+    this.modInput.connect(this.modDelay);
+    this.modDelay.connect(this.modWet);
+    this.modWet.connect(this.modOutput);
+    this.modLfo.connect(this.modLfoDepth);
+    this.modLfoDepth.connect(this.modDelay.delayTime);
+
+    this.delayDry = context.createGain();
+    this.delayWet = context.createGain();
+    this.echoDelay = context.createDelay(CHAIN_ECHO_MAX_DELAY_SECONDS + 0.05);
+    this.echoFeedback = context.createGain();
+    this.echoOut = context.createGain();
+    this.reverbOut = context.createGain();
+    this.delayOutput = context.createGain();
+
+    this.modOutput.connect(this.delayDry);
+    this.delayDry.connect(this.delayOutput);
+    this.delayWet.connect(this.delayOutput);
+
+    this.modOutput.connect(this.echoDelay);
+    this.echoDelay.connect(this.echoOut);
+    this.echoDelay.connect(this.echoFeedback);
+    this.echoFeedback.connect(this.echoDelay);
+
+    this.reverbBranches = CHAIN_REVERB_RATIOS.map((ratio) => {
+      const delay = context.createDelay(
+        CHAIN_REVERB_BASE_DELAY_SECONDS + CHAIN_REVERB_ROOM_RANGE_SECONDS * Math.max(...CHAIN_REVERB_RATIOS) + 0.05,
+      );
+      const feedback = context.createGain();
+      const damping = context.createBiquadFilter();
+      damping.type = "lowpass";
+      damping.frequency.value = CHAIN_REVERB_DAMPING_HZ;
+      this.modOutput.connect(delay);
+      delay.connect(this.reverbOut);
+      delay.connect(damping);
+      damping.connect(feedback);
+      feedback.connect(delay);
+      return { delay, feedback, damping, ratio };
+    });
+
+    if (this.delayMode === "reverb") this.reverbOut.connect(this.delayWet);
+    else if (this.delayMode === "echo") this.echoOut.connect(this.delayWet);
+
+    this.preampDrive = context.createGain();
+    this.preampShaper = context.createWaveShaper();
+    this.toneFilter = context.createBiquadFilter();
+    this.toneFilter.type = "lowpass";
+    this.toneFilter.Q.value = 1 / Math.sqrt(2);
+    this.powerDrive = context.createGain();
+    this.powerShaper = context.createWaveShaper();
+    this.masterGain = context.createGain();
+
+    this.delayOutput.connect(this.preampDrive);
+    this.preampDrive.connect(this.preampShaper);
+    this.preampShaper.connect(this.toneFilter);
+    this.toneFilter.connect(this.powerDrive);
+    this.powerDrive.connect(this.powerShaper);
+    this.powerShaper.connect(this.masterGain);
+
+    this.cabinetHighpass = context.createBiquadFilter();
+    this.cabinetHighpass.type = "highpass";
+    this.cabinetLowpass = context.createBiquadFilter();
+    this.cabinetLowpass.type = "lowpass";
+
+    this.masterGain.connect(this.cabinetHighpass);
+    this.cabinetHighpass.connect(this.cabinetLowpass);
+
+    this.output = context.createGain();
+    this.output.gain.value = CHAIN_OUTPUT_GAIN;
+    this.cabinetLowpass.connect(this.output);
+    this.output.connect(context.destination);
+
+    this.wireEQPosition(this.eqPosition);
+    this.applyParams(options);
+    this.modLfo.start();
+  }
+
+  private wireEQPosition(position: EQPosition): void {
+    this.pickupTilt.disconnect();
+    this.eqFilter.disconnect();
+    this.shaper.disconnect();
+
+    if (position === "pre") {
+      this.pickupTilt.connect(this.eqFilter);
+      this.eqFilter.connect(this.driveGain);
+      this.shaper.connect(this.modInput);
+    } else {
+      this.pickupTilt.connect(this.driveGain);
+      this.shaper.connect(this.eqFilter);
+      this.eqFilter.connect(this.modInput);
+    }
+  }
+
+  private wireDelayMode(mode: DelayReverbMode): void {
+    this.echoOut.disconnect();
+    this.reverbOut.disconnect();
+    if (mode === "echo") this.echoOut.connect(this.delayWet);
+    else if (mode === "reverb") this.reverbOut.connect(this.delayWet);
+  }
+
+  private applyParams(o: CompleteChainOptions): void {
+    const now = this.context.currentTime;
+
+    this.pickupTilt.frequency.value = pickupTiltCutoffHz(o.pickupPosition);
+    this.eqFilter.frequency.value = o.eqCutoffHz;
+
+    this.driveGain.gain.value = o.drive;
+    this.shaper.curve = asShaperCurve(buildClippingCurve(o.topology, o.drive));
+
+    const modMix = o.modulationOn ? CHAIN_MOD_MIX : 0;
+    this.modDry.gain.setTargetAtTime(1 - modMix, now, CHAIN_RAMP_SECONDS);
+    this.modWet.gain.setTargetAtTime(modMix, now, CHAIN_RAMP_SECONDS);
+    this.modLfoDepth.gain.value = o.modulationDepth * CHAIN_MOD_DEPTH_SCALE;
+
+    const delayParams = delayReverbParamsFromAmount(o.delayAmount);
+    const delayOn = o.delayMode !== "off";
+    const mix = delayOn ? delayParams.mix : 0;
+    this.delayDry.gain.setTargetAtTime(1 - mix, now, CHAIN_RAMP_SECONDS);
+    this.delayWet.gain.setTargetAtTime(mix, now, CHAIN_RAMP_SECONDS);
+    this.echoDelay.delayTime.value = Math.min(delayParams.time, CHAIN_ECHO_MAX_DELAY_SECONDS);
+    this.echoFeedback.gain.value = delayParams.feedback * CHAIN_MAX_FEEDBACK_GAIN;
+    for (const branch of this.reverbBranches) {
+      branch.delay.delayTime.value =
+        branch.ratio * (CHAIN_REVERB_BASE_DELAY_SECONDS + delayParams.time * CHAIN_REVERB_ROOM_RANGE_SECONDS);
+      branch.feedback.gain.value = delayParams.feedback * CHAIN_MAX_FEEDBACK_GAIN;
+    }
+
+    this.preampDrive.gain.value = o.ampDrive;
+    this.preampShaper.curve = asShaperCurve(buildClippingCurve("asymmetric-soft", o.ampDrive));
+    this.toneFilter.frequency.value = o.ampToneHz;
+    this.powerDrive.gain.value = AMP_POWER_GAIN;
+    this.powerShaper.curve = asShaperCurve(buildClippingCurve("symmetric-soft", AMP_POWER_GAIN));
+    this.masterGain.gain.value = AMP_MASTER_LEVEL;
+
+    const cabinet = cabinetProfileParams(o.cabinetProfile);
+    this.cabinetHighpass.frequency.value = cabinet.lowCutoffHz;
+    this.cabinetHighpass.Q.value = cabinet.lowQ;
+    this.cabinetLowpass.frequency.value = cabinet.highCutoffHz;
+    this.cabinetLowpass.Q.value = cabinet.highQ;
+
+    if (o.eqPosition !== this.eqPosition) {
+      this.eqPosition = o.eqPosition;
+      this.wireEQPosition(this.eqPosition);
+    }
+    if (o.delayMode !== this.delayMode) {
+      this.delayMode = o.delayMode;
+      this.wireDelayMode(this.delayMode);
+    }
+  }
+
+  setParams(next: CompleteChainOptions): void {
+    this.applyParams(next);
+  }
+
+  start(): void {
+    if (this.started) return;
+    this.started = true;
+
+    const samples = renderPluckedString({
+      sampleRate: this.context.sampleRate,
+      frequency: CHAIN_SOURCE_FREQUENCY,
+      durationSeconds: CHAIN_SOURCE_DURATION_SECONDS,
+    });
+    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
+    buffer.copyToChannel(Float32Array.from(samples), 0);
+
+    const bufferSource = this.context.createBufferSource();
+    bufferSource.buffer = buffer;
+    bufferSource.connect(this.pickupTilt);
+    bufferSource.onended = () => {
+      if (this.sourceNode === bufferSource) {
+        this.sourceNode = null;
+        this.started = false;
+        this.options.onEnded?.();
+      }
+    };
+    bufferSource.start();
+    this.sourceNode = bufferSource;
+  }
+
+  stop(): void {
+    if (!this.started || !this.sourceNode) return;
+    this.sourceNode.onended = null;
+    try {
+      this.sourceNode.stop();
+    } catch {
+      // Already stopped (e.g. the one-shot pluck just finished on its own).
+    }
+    this.sourceNode = null;
+    this.started = false;
+    try {
+      this.modLfo.stop();
+    } catch {
+      // Already stopped.
+    }
   }
 }

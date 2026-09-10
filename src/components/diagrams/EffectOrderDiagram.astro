@@ -1,0 +1,101 @@
+---
+// Week 12 "See It": the same pluck, the same clipping curve, the same
+// Tone/EQ cutoff — only the order of "EQ" and "clipping" swapped. Reuses
+// chain.ts's effectOrderSpectra, the same function a description of the
+// two chains would compute from, so this is a genuine comparison rather
+// than an illustrative sketch.
+import { effectOrderSpectra } from "../../lib/audio/chain";
+
+interface Props {
+  eqCutoffHz: number;
+  fundamentalHz?: number;
+}
+
+const { eqCutoffHz, fundamentalHz = 110 } = Astro.props;
+
+const { preEQSpectrum, postEQSpectrum } = effectOrderSpectra(fundamentalHz, eqCutoffHz, "asymmetric-soft", 6);
+
+const PLOT_LEFT = 20;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 14;
+const ROW_HEIGHT = 46;
+const ROW_GAP = 18;
+
+function barsFor(spectrum: ArrayLike<number>, top: number) {
+  const slotWidth = (PLOT_RIGHT - PLOT_LEFT) / spectrum.length;
+  const barWidth = slotWidth * 0.6;
+  return Array.from(spectrum, (m, i) => {
+    const h = Math.min(Math.max(m, 0), 1) * ROW_HEIGHT;
+    const x = PLOT_LEFT + i * slotWidth + (slotWidth - barWidth) / 2;
+    const y = top + ROW_HEIGHT - h;
+    return { x, y, width: barWidth, height: h };
+  });
+}
+
+const preTop = PLOT_TOP;
+const postTop = PLOT_TOP + ROW_HEIGHT + ROW_GAP;
+const preBars = barsFor(preEQSpectrum, preTop);
+const postBars = barsFor(postEQSpectrum, postTop);
+const viewHeight = postTop + ROW_HEIGHT + 14;
+---
+
+<figure class="effect-order bench-module">
+  <svg
+    viewBox={`0 0 300 ${viewHeight}`}
+    role="img"
+    aria-label="Two harmonic-amplitude spectra from the same plucked-string source and the same clipping curve: EQ applied before clipping produces one spectrum, EQ applied after clipping produces a different spectrum."
+  >
+    <text x={PLOT_LEFT} y={preTop - 4} class="row-label">EQ → clipping</text>
+    {preBars.map((b) => (
+      <rect x={b.x} y={b.y} width={b.width} height={b.height} class="bar bar-pre" />
+    ))}
+    <line x1={PLOT_LEFT} y1={preTop + ROW_HEIGHT} x2={PLOT_RIGHT} y2={preTop + ROW_HEIGHT} class="axis-line" />
+
+    <text x={PLOT_LEFT} y={postTop - 4} class="row-label">Clipping → EQ</text>
+    {postBars.map((b) => (
+      <rect x={b.x} y={b.y} width={b.width} height={b.height} class="bar bar-post" />
+    ))}
+    <line x1={PLOT_LEFT} y1={postTop + ROW_HEIGHT} x2={PLOT_RIGHT} y2={postTop + ROW_HEIGHT} class="axis-line" />
+  </svg>
+  <figcaption>
+    Same pluck, same clipping curve, same EQ cutoff — only the order swapped. EQ before clipping
+    reshapes what the nonlinearity has to work with; EQ after clipping only reweights harmonics the
+    nonlinearity already created. The two harmonic spectra differ.
+  </figcaption>
+</figure>
+
+<style>
+  .effect-order svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .row-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 7px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    fill: var(--at-text-secondary);
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .bar-pre {
+    fill: var(--bench-input-trace, var(--at-accent));
+  }
+
+  .bar-post {
+    fill: var(--bench-phosphor, var(--at-primary));
+  }
+
+  figcaption {
+    margin-top: 0.6rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    line-height: 1.4;
+  }
+</style>

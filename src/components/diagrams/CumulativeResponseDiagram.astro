@@ -1,0 +1,166 @@
+---
+// Week 12 "See It": the linear part of the complete chain's frequency
+// response, built up one stage at a time — pickup tilt, then Tone/EQ, then
+// the amplifier's tone stack, then the cabinet — each trace layering on top
+// of the last. Reuses chain.ts's cumulativeChainMagnitudeResponse, the same
+// function CompleteChainBench reads for its own readout.
+import { cumulativeChainMagnitudeResponse } from "../../lib/audio/chain";
+import { logFrequencyAxis } from "../../lib/audio/filters";
+import type { CabinetProfile } from "../../lib/audio/cabinet";
+import type { PickupPosition } from "../../lib/audio/chain";
+
+interface Props {
+  pickupPosition: PickupPosition;
+  eqCutoffHz: number;
+  ampToneHz: number;
+  cabinetProfile: CabinetProfile;
+}
+
+const { pickupPosition, eqCutoffHz, ampToneHz, cabinetProfile } = Astro.props;
+
+const MIN_HZ = 80;
+const MAX_HZ = 8000;
+const FREQ_COUNT = 160;
+const MAG_MAX = 1.6;
+
+const PLOT_LEFT = 24;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 10;
+const PLOT_BOTTOM = 96;
+
+function xForFrequency(hz: number): number {
+  const t = (Math.log10(hz) - Math.log10(MIN_HZ)) / (Math.log10(MAX_HZ) - Math.log10(MIN_HZ));
+  return PLOT_LEFT + t * (PLOT_RIGHT - PLOT_LEFT);
+}
+
+function yForMagnitude(mag: number): number {
+  return PLOT_BOTTOM - Math.min(mag, MAG_MAX) * ((PLOT_BOTTOM - PLOT_TOP) / MAG_MAX);
+}
+
+function responsePath(response: ArrayLike<number>): string {
+  let d = "";
+  for (let i = 0; i < response.length; i++) {
+    const x = PLOT_LEFT + (i / (response.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+    const y = yForMagnitude(response[i]);
+    d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+  }
+  return d.trim();
+}
+
+const freqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+const stages = cumulativeChainMagnitudeResponse(freqs, { pickupPosition, eqCutoffHz, ampToneHz, cabinetProfile });
+
+const ticks = [100, 300, 1000, 3000];
+const unityY = yForMagnitude(1);
+---
+
+<div
+  class="cumulative-response bench-module"
+  role="img"
+  aria-label="Frequency response building up stage by stage from pickup tilt, through Tone/EQ, through the amplifier's tone stack, to the cabinet."
+>
+  <svg viewBox="0 0 300 116">
+    <line x1={PLOT_LEFT} y1={PLOT_TOP} x2={PLOT_LEFT} y2={PLOT_BOTTOM} class="axis-line" />
+    <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+    <line x1={PLOT_LEFT} y1={unityY} x2={PLOT_RIGHT} y2={unityY} class="unity-line" />
+    <text x={PLOT_RIGHT} y={unityY - 3} class="freq-tick" text-anchor="end">unity gain</text>
+    {ticks.map((hz) => (
+      <>
+        <line x1={xForFrequency(hz)} y1={PLOT_TOP} x2={xForFrequency(hz)} y2={PLOT_BOTTOM} class="tick-line" />
+        <text x={xForFrequency(hz)} y={PLOT_BOTTOM + 10} class="freq-tick" text-anchor="middle">
+          {hz >= 1000 ? `${hz / 1000}k` : hz}
+        </text>
+      </>
+    ))}
+    {stages.map((stage, i) => (
+      <path d={responsePath(stage.response)} class={`response-trace response-trace-${i}`} fill="none" />
+    ))}
+  </svg>
+  <ul class="snapshot-legend">
+    {stages.map((stage, i) => (
+      <li class={`snapshot-legend-${i}`}>{stage.label}</li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .cumulative-response svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .tick-line {
+    stroke: var(--bench-line, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 2 2;
+  }
+
+  .unity-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 1 3;
+  }
+
+  .freq-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .response-trace {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 1.75;
+  }
+
+  .response-trace-0 {
+    opacity: 0.3;
+    stroke-dasharray: 3 2;
+  }
+
+  .response-trace-1 {
+    opacity: 0.55;
+  }
+
+  .response-trace-2 {
+    opacity: 0.78;
+  }
+
+  .response-trace-3 {
+    opacity: 1;
+  }
+
+  .snapshot-legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+
+  .snapshot-legend li::before {
+    content: "—";
+    margin-inline-end: 0.35rem;
+    color: var(--bench-phosphor, var(--at-accent));
+  }
+
+  .snapshot-legend-0::before {
+    opacity: 0.3;
+  }
+
+  .snapshot-legend-1::before {
+    opacity: 0.55;
+  }
+
+  .snapshot-legend-2::before {
+    opacity: 0.78;
+  }
+</style>
