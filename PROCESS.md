@@ -155,6 +155,61 @@ trimmed for the word count — that curation happens once, at submission time.
   at those widths is still worth doing before treating the responsive
   fixes as fully verified.
 
+- [`02b7610`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/02b761082449abf4ac09d73689bd441f441508a6) —
+  Milestone A: built Weeks 1-4 as full lecture pages, on the user's explicit
+  instruction to treat Week 6's "Bench & Booth" identity as the permanent
+  reference design for the whole 12-week course and build the remaining
+  weeks in staged milestones without waiting for approval between every
+  page. Generalised the Week-6-only components that needed it —
+  `BenchFrame` (`week`/`topic` props drive the "SLOP2186 · WK0N · TOPIC"
+  status strip), `SignalChainDiagram` (`stages`/`ariaLabel` props instead of
+  a hardcoded 5-stage pedal chain), `CausalChainStrip` (`steps` prop) — each
+  defaulted to Week 6's original values so `week-06.mdx` needed no changes.
+  Built each week's own diagrams and interactive labs: `WaveformFamilyLab`
+  (Week 1: sine/square/sawtooth at a shared 220Hz fundamental, showing pitch
+  vs timbre); `StandingWaveDiagram` + `StringBench` (Week 2: standing-wave
+  modes and f1 = 1/(2L)*sqrt(T/mu), adjustable length/tension/pick position);
+  `PickupDiagram` + `CoilComparisonDiagram` + `PickupBench` (Week 3: pickup
+  induction and single-coil vs humbucker, position-dependent harmonic
+  sampling reusing Week 2's mode shapes); `PotentiometerDiagram` +
+  `ToneControlBench` (Week 4: volume/tone pots as an RC low-pass,
+  f_c = 1/(2*pi*R*C), with cable capacitance folded in as a stated
+  simplification). Added `src/lib/audio/filters.ts` (cutoff frequency,
+  single-pole magnitude response, log-spaced frequency axis) and extended
+  `analysis.ts` with square/sawtooth/harmonic-series waveform generators and
+  the standard triangular-pluck and point-sampling harmonic-weight formulas
+  (Fletcher & Rossing, *The Physics of Musical Instruments* — textbook
+  results, not measurements of any real instrument), so the same functions
+  drive both the static diagrams and the live labs' audio. Replaced the
+  starter placeholder `week-01.md`/`week-02.md` with real `.mdx` content and
+  authored `week-03.mdx`/`week-04.mdx` from scratch, each keeping the
+  established core-question → theory → bench → theory → bench → theory
+  shape, a week-specific `CausalChainStrip`, a `TakeawaysList`, and explicit
+  "connection to last week / where this goes next" prose. Followed the
+  curriculum's own scope limits throughout: Week 3 avoids subjective
+  "warm"/"bright" language for neck-vs-bridge position and skips wiring
+  detail on humbuckers; Week 4 states plainly that combining the tone
+  capacitor and cable capacitance into one RC stage is a simplification.
+  Why: this is Milestone A of the user's five-stage plan (A: Weeks 1-4, B:
+  Weeks 5/7/8, C: Weeks 9-12, D: assessments/course pages, E: whole-site QA)
+  building out the full course under the now-approved permanent design.
+  Checked: `pnpm check` (typecheck, build incl. axe accessibility pass,
+  internal link checker, deck-structure check, 5/5 vitest tests) green
+  end-to-end. Hit one dev-server-only anomaly along the way: a long-running
+  `astro dev` process (started before this milestone's files existed in
+  final form) 404'd on `/lectures/week-01/` and `/lectures/week-02/` while
+  correctly serving `/lectures/week-03/` and `/lectures/week-04/`, even
+  though a from-scratch `pnpm check` build succeeded for all four routes —
+  restarting the dev server (`astro dev stop` then a fresh `pnpm dev`)
+  resolved it immediately, confirming it was stale content-collection
+  watcher state from the `week-01.md`/`week-02.md` delete-then-`.mdx`-
+  recreate pattern, not a content or code defect. After the restart,
+  curled all four routes (200 each), confirmed each page's heading
+  structure and every lab/diagram's expected DOM ids
+  (`waveform-lab`, `string-bench`, `pickup-bench`, `tone-control-bench`,
+  and their audio-toggle buttons) render, and checked the dev server log
+  for console errors or unhandled rejections on these pages — none found.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
