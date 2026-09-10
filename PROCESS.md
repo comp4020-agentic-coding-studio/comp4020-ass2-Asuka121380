@@ -442,6 +442,78 @@ trimmed for the word count — that curation happens once, at submission time.
   both marked viewports is still worth doing before treating this
   fully verified.
 
+- [`aab7bc1`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/aab7bc1) —
+  built Week 12, "Engineering the Complete Tone", the course's
+  integrating final week: no new physics or DSP, just reasoning
+  backwards from a target sound through every stage Weeks 1-11
+  covered. New `src/lib/audio/chain.ts` holds the shared pure
+  functions: `cumulativeChainMagnitudeResponse` layers pickup tilt,
+  Tone/EQ, the amplifier's tone stack, and the cabinet multiplicatively
+  (noting linear-filter cascades commute in order); `effectOrderSpectra`
+  runs the same pluck and the same clipping curve through EQ-then-
+  clipping and clipping-then-EQ to produce two genuinely different
+  harmonic spectra; `CHAIN_RECIPE_A`/`CHAIN_RECIPE_B` are two curated
+  parameter sets that make opposite individual choices (bridge pickup +
+  dark EQ/amp vs. neck pickup + bright EQ/amp) but converge on a
+  similar overall final response, illustrating "multiple valid
+  solutions" without claiming the two sound identical. Three new
+  static diagrams (`EffectOrderDiagram`, `CumulativeResponseDiagram`,
+  `ConvergentChainsDiagram`) each read straight from those functions,
+  so the static pictures and the live lab always describe the same
+  numbers. The live lab, `CompleteChainBench`, wires all seven stages
+  (pickup, Tone/EQ with pre/post position, gain+clipping, modulation,
+  delay/reverb, amplifier, cabinet) into one serial Web Audio graph —
+  `CompleteChainGraph` in `engine.ts` — that reuses only the underlying
+  node-construction and parameter math from each stage's own week (not
+  the Graph classes themselves, since each owns its own destination
+  connection unsuited to mid-chain insertion); modulation and
+  delay/reverb bypass via crossfaded dry/wet gain pairs to avoid
+  clicks, while EQ position and delay/reverb mode switch by live
+  disconnect/reconnect, an accepted audible "pop" that stands in for
+  physically reordering pedals on a board. The curriculum's own
+  explicit permission ("the implementation can be simplified... rather
+  than perfectly emulate guitar equipment") governs every simplification
+  here. Why: completing Milestone C (Weeks 9-12), the last week of
+  that milestone, without waiting for approval between individual
+  pages, per standing user direction. Checked: `pnpm check` initially
+  failed twice. First, a TypeScript `ts(2367)` "no overlap" error on
+  `checked={DEFAULT_EQ_POSITION === "post"}` in `CompleteChainBench.astro`
+  — the same recurring literal-narrowing false positive fixed in
+  Week 11 — fixed the same way, with a typed helper (`isPostEQ(position:
+  EQPosition)`). Second, after that typecheck passed, the build-time
+  axe accessibility pass failed on `/lectures/week-12/` with an
+  `aria-allowed-role` violation; comparing `EffectOrderDiagram.astro`
+  against the already-passing `GainStagingDiagram.astro` showed the
+  bug: `role="img"` had been placed on the outer `<figure>` element
+  rather than the inner `<svg>`, and `<figure>` doesn't accept an
+  arbitrary explicit role the way a plain `<div>` or `<svg>` does;
+  moved the role and aria-label onto the `<svg>` to match the
+  established pattern, and the axe check passed clean on the next run.
+  Also caught and fixed, while checking: `CumulativeResponseDiagram`
+  had been imported into `week-12.mdx` but never placed in the page
+  body — inserted it into "The complete causal chain" section with the
+  same defaults (`bridge`/4000 Hz/3000 Hz/`flat`) `CompleteChainBench`
+  itself defaults to. After both fixes, `pnpm check` ran fully green:
+  typecheck (0 errors), build with axe accessibility and internal
+  link/base-path checks passing, deck compile, 5/5 vitest tests. Ran
+  the dev server and fetched the Week 12 page directly: 200 status,
+  every expected control id present for all seven lab stages (pickup,
+  EQ knob/position toggle, drive knob/topology footswitches, modulation
+  toggle/depth knob, delay-mode footswitches/amount knob, amp
+  drive/tone knobs, cabinet footswitches), plus `chain-readout` and
+  `chain-response-path`; no `autoplay` attribute anywhere; the three
+  new diagrams' SVG paths all contain real, distinct computed data
+  (confirmed the cumulative-response diagram's four opacity-graded
+  traces and the convergent-chains diagram's two traces are genuinely
+  different curves, not placeholders). No browser-automation tool was
+  available in this environment, so live interaction — dragging each
+  knob, switching topology/delay-mode/cabinet mid-playback, toggling
+  modulation and EQ position and confirming the audible "pop" on
+  reorder is limited to that switch, watching the response curve
+  redraw live — was not directly exercised; a manual pass in a real
+  browser at both marked viewports is still worth doing before treating
+  this fully verified. This completes Milestone C (Weeks 9-12).
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
