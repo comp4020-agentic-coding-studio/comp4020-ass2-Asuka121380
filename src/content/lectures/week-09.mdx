@@ -1,0 +1,221 @@
+---
+title: "Delay, Reverb and Space"
+description:
+  How feeding a delayed signal back into itself creates echoes, comb
+  filtering, and the illusion of physical space
+week: 9
+date: 2027-04-26
+teachers:
+  - marisol-quaye
+---
+
+import BenchFrame from "../../components/lab/BenchFrame.astro";
+import BenchBand from "../../components/lab/BenchBand.astro";
+import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
+import FeedbackLoopDiagram from "../../components/diagrams/FeedbackLoopDiagram.astro";
+import FeedbackCombDiagram from "../../components/diagrams/FeedbackCombDiagram.astro";
+import ReflectionEnvelopeDiagram from "../../components/diagrams/ReflectionEnvelopeDiagram.astro";
+import DelayLab from "../../components/lab/DelayLab.astro";
+import SignalChainStrip from "../../components/SignalChainStrip.astro";
+import TakeawaysList from "../../components/TakeawaysList.astro";
+
+<BenchFrame week={9} topic="DELAY & REVERB">
+
+<BenchBand mode="theory" label="ANALYSIS DESK">
+
+## How can delayed copies of a signal create the perception of echo, distance, and acoustic space?
+
+<p class="bench-prose">
+Week 8 used a very short, modulated delay purely as an interference effect —
+chorus and flanging never let the delayed copy repeat. This week removes
+that restriction: instead of a single delayed copy, the delay's own output
+is fed back into itself, producing a whole decaying series of repeats. The
+same idea, scaled up and made irregular rather than periodic, is also the
+basic mechanism behind simulating reverberant space.
+</p>
+
+<div class="bench-callout bench-prose">
+
+By the end of this week you should be able to: explain a delay line and
+wet/dry mix; explain feedback as "the delayed output returned to the delay's
+own input at a gain below one"; explain why that produces a series of
+decaying echoes rather than runaway growth; connect feedback delay to comb
+filtering; distinguish direct sound, early reflections, and a dense
+reverberant tail; and describe algorithmic reverb and convolution reverb
+conceptually, without the underlying mathematics.
+
+</div>
+
+<CausalChainStrip
+  steps={["Delay line", "Feedback loop (gain < 1)", "Decaying repeats", "Wet/dry mix"]}
+/>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+## The delay line, and what feedback adds to it
+
+<p class="bench-prose">
+A **delay line** simply outputs whatever it received some fixed time ago. On
+its own, mixing a delay's output back with the dry signal (wet/dry mix)
+gives a single, one-time repeat — useful, but not yet an echo you can hear
+trailing off. **Feedback** changes that: a fraction of the delay's own
+output, always less than one, is returned to feed the delay's input again.
+Each time round the loop the signal is quieter than the time before, so the
+result is a whole series of repeats that gets progressively softer — an
+echo, rather than one repeat or an ever-growing runaway signal.
+</p>
+
+<div class="bench-annotated">
+  <FeedbackLoopDiagram />
+  <p class="bench-prose">
+  Everything about how many audible repeats there are, and how quickly they
+  fade, comes from this one loop: a longer delay time spaces the repeats
+  further apart in time; a feedback gain closer to one keeps each repeat
+  louder relative to the last, so the echo trails off more slowly.
+  </p>
+</div>
+
+## Comb filtering, revisited
+
+<p class="bench-prose">
+Week 8 showed that summing a dry signal with *one* delayed copy produces a
+comb filter — evenly spaced peaks and notches in the frequency response.
+Feeding that delayed copy back into the delay, rather than summing it just
+once, keeps recirculating it: the same peak and notch spacing survives (it's
+still set entirely by the delay time), but more feedback means more energy
+recirculates before it decays, which sharpens the same pattern into taller
+peaks and deeper notches at a *fixed* delay time — no sweeping LFO required,
+just how much feedback there is.
+</p>
+
+<div class="bench-annotated">
+  <FeedbackCombDiagram />
+  <p class="bench-prose">
+  Both traces use the same 4-millisecond delay; only the feedback amount
+  differs. Compare this to Week 8's flanger response — the mechanism (dry
+  plus delayed copy, interfering) is the same, it's just recirculated here
+  instead of summed once.
+  </p>
+</div>
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Natural reverb: not one echo, but thousands
+
+<p class="bench-prose">
+A real acoustic space doesn't return one clean echo — it returns an
+enormous number of them, arriving from every surface a sound bounces off.
+That series has a recognisable structure in three parts: the **direct
+sound** arriving first with no delay; a handful of **early reflections**
+— the first, individually distinguishable bounces off nearby surfaces; and
+then a **dense, decaying tail** as the reflections multiply faster than
+they can be told apart and blur into a continuous, fading wash. **Room
+size** governs how far apart the early reflections and the whole tail are
+spread in time — a bigger room means a longer gap before anything comes
+back; **decay** governs how quickly the tail's energy dies away, largely
+set by how absorptive the room's surfaces are.
+</p>
+
+<div class="bench-annotated">
+  <ReflectionEnvelopeDiagram
+    roomSize={0.25}
+    decay={0.2}
+    label="Small, dry room: reflections close together, tail dies out quickly"
+    ariaLabel="Amplitude over time for a small, dry room: early reflections arrive close together, followed by a short decaying tail."
+  />
+  <ReflectionEnvelopeDiagram
+    roomSize={0.9}
+    decay={0.9}
+    label="Large hall: reflections spread out, long decaying tail"
+    ariaLabel="Amplitude over time for a large hall: early reflections spread further apart, followed by a long decaying tail."
+  />
+</div>
+
+## Building reverb without measuring a real room
+
+<p class="bench-prose">
+**Algorithmic reverb** builds this same direct/early/dense-tail shape out of
+electronic building blocks rather than a physical space: conceptually, a
+small network of feedback delays of different, unrelated lengths, summed
+together. Because the lengths are unrelated to one another, their repeats
+don't line up into an audible periodic pattern the way a single feedback
+delay's do — the combined result sounds like a dense, continuous decay
+instead of a comb-filtered echo. This is a deliberate engineering
+approximation of a room's behaviour, not a claim about any specific real
+algorithm or product.
+</p>
+
+<p class="bench-prose">
+A different approach, **convolution reverb**, starts from an **impulse
+response** — a recording of how a specific real (or synthetic) space
+responds to a single, instantaneous test click. That response already
+contains the space's own direct sound, early reflections, and decay tail,
+captured directly rather than approximated. Playing a new signal through
+that space's convolution reverb means combining every sample of the new
+signal with the entire impulse response, at every point in time — a
+much heavier calculation than a handful of feedback delays, which is why
+this is presented here conceptually rather than worked through
+mathematically.
+</p>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+<CausalChainStrip compact />
+
+## Try it: echo and reverb, from the same feedback-delay idea
+
+<p class="bench-prose">
+Switch between Echo and Reverb. Time/Feedback/Mix always control the same
+underlying thing — how long the loop is, how much comes back round it, and
+how much wet signal is mixed in — but in Echo mode that's one delay line and
+a single feedback loop, while in Reverb mode it's several such loops at
+short, unrelated lengths summed together. The panel below draws exactly
+that: a regular train of repeats for Echo, an irregular scatter of early
+reflections and a decaying tail for Reverb.
+</p>
+
+<DelayLab />
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Key takeaways
+
+<TakeawaysList
+  items={[
+    "A delay line outputs the signal from some fixed time in the past; wet/dry mix blends that delayed copy back with the original.",
+    "Feedback returns a fraction (always less than one) of the delay's own output to its input, producing a series of decaying repeats instead of one repeat or unbounded growth.",
+    "Recirculating a delayed copy through feedback sharpens the same comb-filter peak/notch spacing Week 8 introduced, at a fixed delay time, rather than needing an LFO sweep.",
+    "Natural reverb has a recognisable shape: direct sound, a handful of early reflections, then a dense decaying tail; room size spaces events out in time, decay sets how fast the tail dies away.",
+    "Algorithmic reverb approximates that shape with a small network of unrelated-length feedback delays; convolution reverb instead applies a measured impulse response directly.",
+  ]}
+/>
+
+## Where this sits in the signal chain
+
+<SignalChainStrip current="Delay / Reverb" />
+
+## Connection to Week 8, and where this goes next
+
+<p class="bench-prose">
+Week 8 used very short modulated delays purely for interference — chorus,
+flanging, vibrato. This week expanded delay into a general mechanism for
+echo and spatial processing: the same delay line, but recirculated through
+feedback and, for reverb, run in parallel at multiple unrelated lengths.
+Everything covered from gain staging through delay and reverb has happened
+before the signal is ever amplified. Week 10 takes that same signal into the
+next real stage of the guitar chain: the amplifier.
+</p>
+
+<CausalChainStrip compact />
+
+</BenchBand>
+
+</BenchFrame>

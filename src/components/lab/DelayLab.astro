@@ -1,0 +1,254 @@
+---
+// Week 9 "Try It": one DelayGraph, two modes. Echo mode is a single delay
+// line with one feedback loop; reverb mode sums several such loops at
+// short, unrelated lengths. Time/Feedback/Mix stay the same three knobs in
+// both modes (same convention as ModulationLab's shared Rate/Depth/Mix) —
+// only what they mean changes: seconds-of-delay and loop-feedback for
+// echo, room-size and decay for reverb. The live panel below renders
+// exactly the events `synthesiseReflections`/`synthesiseEchoTrain` compute
+// for the current knob values, so the picture and the sound are read from
+// the same numbers.
+import AudioDemo from "../AudioDemo.astro";
+import FootswitchGroup from "./FootswitchGroup.astro";
+import Knob from "./Knob.astro";
+
+const DEFAULT_MODE = "echo";
+const DEFAULT_TIME = 0.3;
+const DEFAULT_FEEDBACK = 0.45;
+const DEFAULT_MIX = 0.4;
+
+const modeOptions = [
+  { value: "echo", label: "Echo" },
+  { value: "reverb", label: "Reverb" },
+];
+
+const PLOT_LEFT = 24;
+const PLOT_RIGHT = 292;
+const PLOT_BOTTOM = 88;
+const TICKS = [0, 0.5, 1, 1.5];
+---
+
+<div class="delay-lab bench-module" id="delay-lab">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Delay/Reverb Bench</span>
+    <FootswitchGroup name="delay-mode" legend="Mode" options={modeOptions} selected={DEFAULT_MODE} />
+  </div>
+
+  <div class="lab-controls">
+    <Knob id="delay-time" label="Time / Room Size" min={0} max={1} step={0.01} value={DEFAULT_TIME} unit="" />
+    <Knob id="delay-feedback" label="Feedback / Decay" min={0} max={1} step={0.01} value={DEFAULT_FEEDBACK} unit="" />
+    <Knob id="delay-mix" label="Mix" min={0} max={1} step={0.01} value={DEFAULT_MIX} unit="" />
+    <AudioDemo id="delay-audio" label="Play through effect" />
+  </div>
+
+  <p id="delay-readout" class="bench-scope-note delay-readout">Echo — 300 ms delay, 45% feedback, 40% mix.</p>
+
+  <div class="envelope-plot" role="img" aria-label="The current mode's amplitude-over-time envelope: a direct arrival followed by either a regularly-spaced echo train or an irregular, decaying scatter of reflections.">
+    <svg viewBox="0 0 300 100">
+      <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+      {TICKS.map((t) => (
+        <text x={PLOT_LEFT + (t / 1.8) * (PLOT_RIGHT - PLOT_LEFT)} y={PLOT_BOTTOM + 10} class="time-tick" text-anchor="middle">{t}s</text>
+      ))}
+      <g id="delay-stems"></g>
+    </svg>
+  </div>
+
+  <p class="bench-scope-note">Time/Feedback/Mix always control the same thing — how long the loop is, how much comes back round it, and how much of the wet signal is mixed in — but which physical picture they describe changes with the mode.</p>
+</div>
+
+<script>
+  import { DelayGraph, type DelayMode } from "../../lib/audio/engine";
+  import { synthesiseEchoTrain, synthesiseReflections, type ReflectionEvent } from "../../lib/audio/delay";
+
+  const ECHO_MIN_DELAY_SECONDS = 0.02;
+  const ECHO_MAX_DELAY_SECONDS = 1;
+  const PLOT_LEFT = 24;
+  const PLOT_RIGHT = 292;
+  const PLOT_TOP = 12;
+  const PLOT_BOTTOM = 88;
+  const MAX_TIME_SECONDS = 1.8;
+
+  function xForTime(t: number): number {
+    return PLOT_LEFT + (Math.min(t, MAX_TIME_SECONDS) / MAX_TIME_SECONDS) * (PLOT_RIGHT - PLOT_LEFT);
+  }
+
+  function yForAmplitude(a: number): number {
+    return PLOT_BOTTOM - Math.min(Math.abs(a), 1) * (PLOT_BOTTOM - PLOT_TOP);
+  }
+
+  const root = document.getElementById("delay-lab");
+  if (root) {
+    const modeRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="delay-mode"]'));
+    const timeInput = document.getElementById("delay-time") as HTMLInputElement;
+    const feedbackInput = document.getElementById("delay-feedback") as HTMLInputElement;
+    const mixInput = document.getElementById("delay-mix") as HTMLInputElement;
+    const toggle = document.getElementById("delay-audio-toggle") as HTMLButtonElement;
+    const readout = document.getElementById("delay-readout") as HTMLParagraphElement;
+    const stemsGroup = document.getElementById("delay-stems") as unknown as SVGGElement;
+
+    let context: AudioContext | null = null;
+    let graph: DelayGraph | null = null;
+
+    function currentMode(): DelayMode {
+      return (modeRadios.find((radio) => radio.checked)?.value ?? "echo") as DelayMode;
+    }
+
+    function engineTimeValue(): number {
+      const knobValue = Number(timeInput.value);
+      if (currentMode() === "echo") {
+        return ECHO_MIN_DELAY_SECONDS + knobValue * (ECHO_MAX_DELAY_SECONDS - ECHO_MIN_DELAY_SECONDS);
+      }
+      return knobValue;
+    }
+
+    function renderStems(events: ReflectionEvent[]): void {
+      stemsGroup.replaceChildren();
+      events.forEach((event, i) => {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        const x = xForTime(event.timeSeconds);
+        line.setAttribute("x1", String(x));
+        line.setAttribute("x2", String(x));
+        line.setAttribute("y1", String(PLOT_BOTTOM));
+        line.setAttribute("y2", String(yForAmplitude(event.amplitude)));
+        line.setAttribute("class", i === 0 ? "direct-stem" : "reflection-stem");
+        stemsGroup.appendChild(line);
+      });
+    }
+
+    function updateReadout(): void {
+      const knobTime = Number(timeInput.value);
+      const knobFeedback = Number(feedbackInput.value);
+      const mix = Math.round(Number(mixInput.value) * 100);
+      if (currentMode() === "echo") {
+        const delayMs = Math.round(engineTimeValue() * 1000);
+        readout.textContent = `Echo — ${delayMs} ms delay, ${Math.round(knobFeedback * 100)}% feedback, ${mix}% mix.`;
+        renderStems(synthesiseEchoTrain(engineTimeValue(), knobFeedback));
+      } else {
+        readout.textContent = `Reverb — room size ${knobTime.toFixed(2)}, decay ${knobFeedback.toFixed(2)}, ${mix}% mix.`;
+        renderStems(synthesiseReflections(knobTime, knobFeedback));
+      }
+    }
+
+    function stopAudio(): void {
+      graph?.stop();
+      graph = null;
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("delay-audio", false);
+    }
+
+    function startAudio(): void {
+      context = context ?? new AudioContext();
+      graph = new DelayGraph(context, {
+        mode: currentMode(),
+        time: engineTimeValue(),
+        feedback: Number(feedbackInput.value),
+        mix: Number(mixInput.value),
+        onEnded: () => {
+          graph = null;
+          (
+            window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+          ).setAudioDemoState?.("delay-audio", false);
+        },
+      });
+      graph.start();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("delay-audio", true);
+    }
+
+    modeRadios.forEach((radio) =>
+      radio.addEventListener("change", () => {
+        const wasPlaying = graph !== null;
+        if (wasPlaying) stopAudio();
+        updateReadout();
+        if (wasPlaying) startAudio();
+      }),
+    );
+
+    [timeInput, feedbackInput, mixInput].forEach((input) =>
+      input.addEventListener("input", () => {
+        graph?.setParams(engineTimeValue(), Number(feedbackInput.value), Number(mixInput.value));
+        updateReadout();
+      }),
+    );
+
+    toggle.addEventListener("click", () => {
+      if (graph) {
+        stopAudio();
+        return;
+      }
+      startAudio();
+    });
+
+    updateReadout();
+  }
+</script>
+
+<style>
+  .delay-lab {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .lab-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.75rem;
+  }
+
+  .delay-readout {
+    text-align: center;
+    font-family: var(--bench-readout, var(--at-font-mono));
+  }
+
+  .envelope-plot svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .time-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  :global(.direct-stem) {
+    stroke: var(--bench-input-trace, var(--at-accent));
+    stroke-width: 2;
+  }
+
+  :global(.reflection-stem) {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 1.25;
+    opacity: 0.85;
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+</style>

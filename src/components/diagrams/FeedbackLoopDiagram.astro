@@ -1,0 +1,98 @@
+---
+// The delay feedback loop as a block diagram: a signal enters a delay
+// line, leaves toward the output, and a fraction `g` (< 1) of that same
+// delayed output is fed back into the delay's own input. Because g is
+// less than one, each pass round the loop is quieter than the last, which
+// is why feedback delay produces a finite series of decaying echoes rather
+// than a signal that grows without bound.
+---
+
+<figure class="feedback-loop bench-module">
+  <svg viewBox="0 0 300 150" role="img" aria-label="Block diagram: Input feeds a Delay line, whose output goes to Output; a fraction g, less than one, of that delayed output is fed back into the delay's own input, producing repeated, decaying echoes.">
+    <rect x="14" y="14" width="62" height="34" class="block-box" />
+    <text x="45" y="35" class="block-label" text-anchor="middle">Input</text>
+
+    <rect x="119" y="14" width="62" height="34" class="block-box block-box-accent" />
+    <text x="150" y="35" class="block-label" text-anchor="middle">Delay</text>
+
+    <rect x="224" y="14" width="62" height="34" class="block-box" />
+    <text x="255" y="35" class="block-label" text-anchor="middle">Output</text>
+
+    <line x1="76" y1="31" x2="112" y2="31" class="signal-line" />
+    <path d="M 105 26 L 113 31 L 105 36" fill="none" class="signal-line" />
+    <line x1="181" y1="31" x2="217" y2="31" class="signal-line" />
+    <path d="M 210 26 L 218 31 L 210 36" fill="none" class="signal-line" />
+
+    <rect x="119" y="100" width="62" height="28" class="block-box block-box-gain" />
+    <text x="150" y="116" class="block-label" text-anchor="middle">× g</text>
+    <text x="150" y="126" class="block-sublabel" text-anchor="middle">g &lt; 1</text>
+
+    <line x1="170" y1="48" x2="170" y2="100" class="feedback-line" />
+    <path d="M 165 92 L 170 100 L 175 92" fill="none" class="feedback-line" />
+    <line x1="130" y1="100" x2="130" y2="48" class="feedback-line" />
+    <path d="M 125 56 L 130 48 L 135 56" fill="none" class="feedback-line" />
+  </svg>
+  <figcaption>
+    A fraction <code>g</code> of the delay's own output is returned to its input. Because <code>g &lt; 1</code>, every pass round the loop is quieter than the last — the source of the repeated, decaying echoes.
+  </figcaption>
+</figure>
+
+<style>
+  .feedback-loop svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .block-box {
+    fill: var(--at-bg);
+    stroke: var(--at-border);
+    stroke-width: 1.5;
+  }
+
+  .block-box-accent {
+    stroke: var(--bench-phosphor, var(--at-accent));
+  }
+
+  .block-box-gain {
+    fill: var(--at-bg-alt);
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-dasharray: 3 2;
+  }
+
+  .block-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    fill: var(--at-heading);
+  }
+
+  .block-sublabel {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 8px;
+    fill: var(--at-text-secondary);
+  }
+
+  .signal-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1.5;
+  }
+
+  .feedback-line {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 1.5;
+  }
+
+  figcaption {
+    margin-top: 0.6rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    line-height: 1.4;
+  }
+
+  figcaption code {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    color: var(--at-text);
+  }
+</style>

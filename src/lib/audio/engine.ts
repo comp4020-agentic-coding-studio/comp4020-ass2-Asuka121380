@@ -321,3 +321,156 @@ export class ModulationGraph {
     for (const param of this.target.params) param.value = restValue;
   }
 }
+
+// Week 9: delay as a general mechanism, in two modes built from the same
+// dry/wet-mixed feedback-delay idea. "echo" is one delay line with one
+// feedback loop — a single, controllable repeat. "reverb" sums several
+// such loops at short, deliberately unrelated delay times, each loop
+// damped by a lowpass filter in its feedback path (so, like a real space,
+// later repeats have lost some high frequency content) — framed generically
+// as "a small network of feedback delays of different lengths, summed
+// together", not as a specific named algorithm.
+export type DelayMode = "echo" | "reverb";
+
+const DELAY_SOURCE_FREQUENCY = 110;
+const DELAY_SOURCE_DURATION_SECONDS = 1.1;
+const DELAY_OUTPUT_GAIN = 0.5;
+const ECHO_MAX_DELAY_SECONDS = 1;
+const MAX_FEEDBACK_GAIN = 0.88;
+const REVERB_BRANCH_RATIOS = [1, 1.37, 1.81, 2.29];
+const REVERB_BASE_DELAY_SECONDS = 0.03;
+const REVERB_ROOM_DELAY_RANGE_SECONDS = 0.15;
+const REVERB_DAMPING_HZ = 3000;
+
+export interface DelayGraphOptions {
+  mode: DelayMode;
+  /** echo: delay time in seconds (0-ECHO_MAX_DELAY_SECONDS). reverb: room size, 0-1. */
+  time: number;
+  /** echo: feedback, 0-1. reverb: decay, 0-1. */
+  feedback: number;
+  mix: number;
+  onEnded?: () => void;
+}
+
+interface ReverbBranch {
+  delay: DelayNode;
+  feedback: GainNode;
+  ratio: number;
+}
+
+export class DelayGraph {
+  private readonly output: GainNode;
+  private readonly dryGain: GainNode;
+  private readonly wetGain: GainNode;
+  private readonly input: GainNode;
+  private readonly mode: DelayMode;
+  private echoDelay: DelayNode | null = null;
+  private echoFeedback: GainNode | null = null;
+  private reverbBranches: ReverbBranch[] = [];
+  private source: AudioBufferSourceNode | null = null;
+  private started = false;
+
+  constructor(
+    private readonly context: AudioContext,
+    private readonly options: DelayGraphOptions,
+  ) {
+    this.mode = options.mode;
+
+    this.output = context.createGain();
+    this.output.gain.value = DELAY_OUTPUT_GAIN;
+    this.output.connect(context.destination);
+
+    this.dryGain = context.createGain();
+    this.wetGain = context.createGain();
+    this.dryGain.connect(this.output);
+    this.wetGain.connect(this.output);
+
+    this.input = context.createGain();
+    this.input.gain.value = 1;
+    this.input.connect(this.dryGain);
+
+    if (this.mode === "echo") {
+      const delay = context.createDelay(ECHO_MAX_DELAY_SECONDS + 0.05);
+      const feedback = context.createGain();
+      this.input.connect(delay);
+      delay.connect(this.wetGain);
+      delay.connect(feedback);
+      feedback.connect(delay);
+      this.echoDelay = delay;
+      this.echoFeedback = feedback;
+    } else {
+      const maxRatio = Math.max(...REVERB_BRANCH_RATIOS);
+      for (const ratio of REVERB_BRANCH_RATIOS) {
+        const delay = context.createDelay(REVERB_BASE_DELAY_SECONDS + REVERB_ROOM_DELAY_RANGE_SECONDS * maxRatio + 0.05);
+        const feedback = context.createGain();
+        const damping = context.createBiquadFilter();
+        damping.type = "lowpass";
+        damping.frequency.value = REVERB_DAMPING_HZ;
+        this.input.connect(delay);
+        delay.connect(this.wetGain);
+        delay.connect(damping);
+        damping.connect(feedback);
+        feedback.connect(delay);
+        this.reverbBranches.push({ delay, feedback, ratio });
+      }
+    }
+
+    this.setParams(options.time, options.feedback, options.mix);
+  }
+
+  start(): void {
+    if (this.started) return;
+    this.started = true;
+
+    const samples = renderPluckedString({
+      sampleRate: this.context.sampleRate,
+      frequency: DELAY_SOURCE_FREQUENCY,
+      durationSeconds: DELAY_SOURCE_DURATION_SECONDS,
+    });
+    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
+    buffer.copyToChannel(Float32Array.from(samples), 0);
+
+    const bufferSource = this.context.createBufferSource();
+    bufferSource.buffer = buffer;
+    bufferSource.connect(this.input);
+    bufferSource.onended = () => {
+      if (this.source === bufferSource) {
+        this.source = null;
+        this.started = false;
+        this.options.onEnded?.();
+      }
+    };
+    bufferSource.start();
+    this.source = bufferSource;
+  }
+
+  stop(): void {
+    if (!this.started || !this.source) return;
+    this.source.onended = null;
+    try {
+      this.source.stop();
+    } catch {
+      // Already stopped (e.g. the one-shot pluck just finished on its own).
+    }
+    this.source = null;
+    this.started = false;
+  }
+
+  setParams(time: number, feedback: number, mix: number): void {
+    this.dryGain.gain.value = 1 - mix;
+    this.wetGain.gain.value = mix;
+
+    if (this.mode === "echo" && this.echoDelay && this.echoFeedback) {
+      this.echoDelay.delayTime.value = Math.min(Math.max(time, 0), ECHO_MAX_DELAY_SECONDS);
+      this.echoFeedback.gain.value = Math.min(Math.max(feedback, 0), 1) * MAX_FEEDBACK_GAIN;
+      return;
+    }
+
+    const roomSize = Math.min(Math.max(time, 0), 1);
+    const decay = Math.min(Math.max(feedback, 0), 1);
+    for (const branch of this.reverbBranches) {
+      branch.delay.delayTime.value = branch.ratio * (REVERB_BASE_DELAY_SECONDS + roomSize * REVERB_ROOM_DELAY_RANGE_SECONDS);
+      branch.feedback.gain.value = decay * MAX_FEEDBACK_GAIN;
+    }
+  }
+}
