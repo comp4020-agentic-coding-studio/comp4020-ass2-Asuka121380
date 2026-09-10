@@ -1,0 +1,142 @@
+---
+title: "Inside overdrive, distortion and fuzz"
+description:
+  Why circuits that all clip the same input waveform can still sound
+  distinct from one another
+week: 6
+date: 2027-03-29
+teachers:
+  - marisol-quaye
+slides: /decks/week-06/
+---
+
+import ClippingLab from "../../components/ClippingLab.astro";
+import SignalChainStrip from "../../components/SignalChainStrip.astro";
+import TakeawaysList from "../../components/TakeawaysList.astro";
+
+## Why does clipping sound different from circuit to circuit?
+
+Week 5 showed that clipping a sine wave adds harmonic content that wasn't
+there before. But two circuits that both "clip the signal" don't necessarily
+clip it the same way — and the shape of the clip determines which new
+harmonics appear.
+
+By the end of this week you should be able to:
+
+- identify the main stages of a simplified distortion pedal;
+- explain how a gain stage and a clipping stage divide the work;
+- distinguish symmetric from asymmetric clipping, and connect the difference
+  to a change in harmonic content;
+- compare clipping applied inside a feedback loop with clipping applied
+  directly to the signal, conceptually;
+- explain why overdrive, distortion and fuzz are better understood as
+  different *kinds* of nonlinearity than as different *amounts* of the same
+  effect.
+
+## Inside a simplified pedal
+
+A distortion pedal can be reduced to four stages:
+
+```text
+Input
+  ↓
+Gain stage
+  ↓
+Clipping stage
+  ↓
+Tone filter
+  ↓
+Output
+```
+
+The **gain stage** (built from an op-amp, a practical building block for
+amplification — its internal transistor detail isn't needed here) raises the
+signal past the level the next stage can pass without limiting it. The more
+gain applied here, the harder the following stage clips.
+
+The **clipping stage** is where Week 5's abstract "clipping function" becomes
+a real circuit. **Diodes** are the usual nonlinear element: a diode conducts
+more readily in one direction than the other, and arranged across a signal
+path, that behaviour imposes a soft limit on the waveform. That's a
+conceptual model of what a diode does to this signal, not a full account of
+semiconductor physics.
+
+### Symmetric versus asymmetric clipping
+
+If the positive and negative halves of the waveform are limited the same
+way, the clipping is **symmetric** — the output stays close to odd-symmetric,
+which mostly reinforces odd harmonics already present in the input.
+
+If the two halves are limited *differently*, the clipping is **asymmetric**
+— breaking that symmetry introduces harmonics that a symmetric curve
+wouldn't produce, changing the harmonic *balance*, not just the harmonic
+*count*.
+
+### Where the clipping element sits
+
+The same diode idea can appear in different places in a circuit:
+
+- **clipping to ground** — the nonlinear element sits directly across the
+  signal, limiting its swing once it reaches a threshold;
+- **feedback-loop clipping** — the nonlinear element sits inside an
+  amplifier's feedback path instead, which shapes the transfer curve
+  differently even though the underlying diode behaviour is the same.
+
+Two different circuit contexts for the same component produce two different
+input-output curves — which is one reason two "distortion" circuits built
+from similar parts can still sound different.
+
+### Fuzz is not just "more distortion"
+
+Fuzz circuits often push further than a single diode pair: additional gain
+stages, transistor behaviour, and stronger waveshaping than simple diode
+clipping. There isn't one fuzz topology — it's a family of stronger, often
+less predictable, nonlinear transformations, not a single extra notch on a
+"how distorted" dial.
+
+Any claim more specific than this — about a particular named pedal, a
+specific transistor type, or a historical circuit's exact component values —
+needs a real source, and none is asserted here.
+
+## The pedal laboratory
+
+The lab below builds one simplified clipping stage at a time. Choose a
+topology, set the gain going into it, and the waveform and spectrum update
+to match — press play to hear the same transformation.
+
+<ClippingLab />
+
+Notice that the input is always the same clean sine wave. Everything that
+changes — the output waveform's shape, the new harmonics in its spectrum,
+and what it sounds like — is entirely a consequence of the clipping topology
+and how hard it's driven.
+
+## Key takeaways
+
+<TakeawaysList
+  items={[
+    "A distortion pedal separates “how hard to drive the signal” (the gain stage) from “how to limit it” (the clipping stage).",
+    "Symmetric clipping mostly reinforces existing odd harmonics; asymmetric clipping introduces a different harmonic balance.",
+    "The same nonlinear element produces a different transfer curve depending on where it sits in the circuit — directly across the signal, or inside a feedback path.",
+    "Fuzz is a family of stronger, more varied nonlinear transformations, not a fixed amount more of the same clipping.",
+    "Overdrive, distortion and fuzz are distinguished by the shape of the nonlinearity, not by a single intensity scale.",
+  ]}
+/>
+
+## Where this sits in the signal chain
+
+<SignalChainStrip current="Gain" />
+
+## Connection to Week 5, and where this goes next
+
+Week 5 introduced clipping as a mathematical transformation: an input-output
+curve that stops being a straight line once the signal exceeds a system's
+headroom. This week implemented that transformation with real circuit
+elements — gain stages, diodes, and the different contexts a nonlinear
+element can sit in.
+
+Clipping's real effect, from the last section, is to generate additional
+harmonic content that wasn't in the original signal. The next step in the
+signal chain is to ask what happens to that new, wider spectrum once it
+reaches a filter — which selectively keeps, removes, or emphasises parts of
+it rather than passing all of it through unchanged.

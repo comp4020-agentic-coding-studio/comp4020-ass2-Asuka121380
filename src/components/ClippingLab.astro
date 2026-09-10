@@ -1,0 +1,155 @@
+---
+import AudioDemo from "./AudioDemo.astro";
+import ParamSlider from "./ParamSlider.astro";
+import Spectrum from "./Spectrum.astro";
+import Waveform from "./Waveform.astro";
+import { applyCurve, magnitudeSpectrum, sineCycle } from "../lib/audio/analysis";
+import { buildClippingCurve } from "../lib/audio/waveshaping";
+
+const DEFAULT_TOPOLOGY = "symmetric-soft";
+const DEFAULT_DRIVE = 3;
+
+const input = sineCycle(256);
+const curve = buildClippingCurve(DEFAULT_TOPOLOGY, DEFAULT_DRIVE);
+const output = applyCurve(input, curve);
+const spectrum = magnitudeSpectrum(output);
+---
+
+<div class="clipping-lab" id="clipping-lab">
+  <div class="controls">
+    <div class="param-slider">
+      <label for="clipping-topology">Clipping topology</label>
+      <select id="clipping-topology">
+        <option value="symmetric-soft" selected>Symmetric soft clipping</option>
+        <option value="asymmetric-soft">Asymmetric soft clipping</option>
+        <option value="hard">Hard clipping</option>
+        <option value="fuzz">Fuzz-style saturation</option>
+      </select>
+    </div>
+    <ParamSlider id="clipping-drive" label="Gain into the clipping stage" min={1} max={12} step={0.5} value={DEFAULT_DRIVE} unit="×" />
+  </div>
+
+  <div class="displays">
+    <Waveform id="clipping-input-waveform" label="Input (clean sine)" samples={Array.from(input)} strokeVar="--at-border" />
+    <Waveform id="clipping-output-waveform" label="Output (after clipping)" samples={Array.from(output)} />
+    <Spectrum id="clipping-output-spectrum" label="Output spectrum" magnitudes={Array.from(spectrum)} />
+  </div>
+
+  <AudioDemo id="clipping-audio" label="Hear this clipping stage" />
+</div>
+
+<script>
+  import { applyCurve, magnitudeSpectrum, sineCycle } from "../lib/audio/analysis";
+  import { ClippingGraph } from "../lib/audio/engine";
+  import { buildClippingCurve, type ClippingTopology } from "../lib/audio/waveshaping";
+  import { drawSpectrum } from "../lib/draw/spectrum";
+  import { drawWaveform } from "../lib/draw/waveform";
+
+  const root = document.getElementById("clipping-lab");
+  if (root) {
+    const topologySelect = document.getElementById("clipping-topology") as HTMLSelectElement;
+    const driveSlider = document.getElementById("clipping-drive") as HTMLInputElement;
+    const driveValue = document.getElementById("clipping-drive-value");
+    const outputCanvas = document.getElementById("clipping-output-waveform") as HTMLCanvasElement;
+    const spectrumCanvas = document.getElementById(
+      "clipping-output-spectrum",
+    ) as HTMLCanvasElement;
+    const toggle = document.getElementById("clipping-audio-toggle") as HTMLButtonElement;
+
+    const accent =
+      getComputedStyle(document.documentElement).getPropertyValue("--at-accent").trim() ||
+      "#e2b13c";
+    const input = sineCycle(256);
+    let graph: ClippingGraph | null = null;
+
+    function redraw(): void {
+      const topology = topologySelect.value as ClippingTopology;
+      const drive = Number(driveSlider.value);
+      if (driveValue) driveValue.textContent = `${drive}×`;
+
+      const curve = buildClippingCurve(topology, drive);
+      const output = applyCurve(input, curve);
+      const spectrum = magnitudeSpectrum(output);
+
+      const outputCtx = outputCanvas.getContext("2d");
+      if (outputCtx) drawWaveform(outputCtx, output, { stroke: accent, background: "transparent" });
+
+      const spectrumCtx = spectrumCanvas.getContext("2d");
+      if (spectrumCtx)
+        drawSpectrum(spectrumCtx, spectrum, { fill: accent, background: "transparent" });
+
+      graph?.setCurve(topology, drive);
+    }
+
+    topologySelect.addEventListener("change", redraw);
+    driveSlider.addEventListener("input", redraw);
+
+    toggle.addEventListener("click", () => {
+      if (graph) {
+        graph.stop();
+        graph = null;
+        (window as { setAudioDemoState?: (id: string, playing: boolean) => void }).setAudioDemoState?.(
+          "clipping-audio",
+          false,
+        );
+        return;
+      }
+      const context = new AudioContext();
+      graph = new ClippingGraph(context, {
+        frequency: 220,
+        topology: topologySelect.value as ClippingTopology,
+        drive: Number(driveSlider.value),
+      });
+      graph.start();
+      (window as { setAudioDemoState?: (id: string, playing: boolean) => void }).setAudioDemoState?.(
+        "clipping-audio",
+        true,
+      );
+    });
+  }
+</script>
+
+<style>
+  .clipping-lab {
+    margin-block: 2rem;
+    padding: 1.25rem;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg-alt);
+  }
+
+  .controls {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 1.5rem;
+  }
+
+  .param-slider label {
+    display: block;
+    font-size: var(--at-font-size-sm);
+    margin-bottom: 0.3rem;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.4rem;
+    font: inherit;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg);
+    color: inherit;
+  }
+
+  .displays {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  @media (max-width: 640px) {
+    .controls {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

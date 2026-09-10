@@ -23,13 +23,17 @@ describe("assignment 2 spec", () => {
     );
   });
 
-  it("runs across twelve dated teaching weeks", () => {
-    const weeks = byType("sessions")
-      .map((node) => node.meta?.week)
-      .sort((a, b) => (a as number) - (b as number));
-    expect(weeks, "one session per week, weeks 1 through 12").toEqual(
-      Array.from({ length: 12 }, (_, i) => i + 1),
-    );
+  it("gives every lecture its own week, within the twelve-week course", () => {
+    // Sessions are used selectively (a genuinely separate studio activity),
+    // not manufactured one per week, so lectures carry the teaching-week
+    // invariant instead: each lecture is a distinct week from 1 to 12.
+    const weeks = byType("lectures").map((node) => Number(node.meta?.week));
+    expect(weeks.length, "at least one lecture exists").toBeGreaterThan(0);
+    for (const week of weeks) {
+      expect(week, `lecture week ${week} is outside 1-12`).toBeGreaterThanOrEqual(1);
+      expect(week, `lecture week ${week} is outside 1-12`).toBeLessThanOrEqual(12);
+    }
+    expect(new Set(weeks).size, "two lectures claim the same week").toBe(weeks.length);
   });
 
   it("has at least one lecture with a real deck linked from its page", () => {

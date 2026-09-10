@@ -1,0 +1,42 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+  step?: number;
+  value: number;
+  unit?: string;
+}
+
+const { id, label, min, max, step = (max - min) / 100, value, unit = "" } = Astro.props;
+---
+
+<div class="param-slider">
+  <label for={id}>
+    {label} <output id={`${id}-value`} for={id}>{value}{unit}</output>
+  </label>
+  <input type="range" id={id} min={min} max={max} step={step} value={value} />
+</div>
+
+<style>
+  .param-slider {
+    margin-block: 0.75rem;
+  }
+
+  label {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--at-font-size-sm);
+    margin-bottom: 0.3rem;
+  }
+
+  output {
+    font-family: var(--at-font-mono);
+    color: var(--at-accent);
+  }
+
+  input[type="range"] {
+    width: 100%;
+  }
+</style>

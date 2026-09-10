@@ -1,0 +1,25 @@
+---
+interface Props {
+  items: string[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="takeaways">
+  {items.map((item) => <li>{item}</li>)}
+</ul>
+
+<style>
+  .takeaways {
+    padding-left: 1.25rem;
+  }
+
+  .takeaways li {
+    margin-block: 0.4rem;
+  }
+
+  .takeaways li::marker {
+    color: var(--at-accent);
+  }
+</style>

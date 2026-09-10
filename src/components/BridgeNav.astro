@@ -1,0 +1,56 @@
+---
+interface Props {
+  previous?: { href: string; label: string };
+  next?: { href: string; label: string };
+}
+
+const { previous, next } = Astro.props;
+---
+
+{
+  (previous || next) && (
+    <nav class="bridge-nav" aria-label="Adjacent weeks">
+      <div>
+        {previous && (
+          <a href={previous.href} rel="prev">
+            <span>← Where we left off</span>
+            {previous.label}
+          </a>
+        )}
+      </div>
+      <div class="next">
+        {next && (
+          <a href={next.href} rel="next">
+            <span>Where this is going →</span>
+            {next.label}
+          </a>
+        )}
+      </div>
+    </nav>
+  )
+}
+
+<style>
+  .bridge-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block: 2rem;
+    padding-block: 1rem;
+    border-top: 1px solid var(--at-border);
+  }
+
+  .bridge-nav .next {
+    text-align: right;
+  }
+
+  .bridge-nav a {
+    display: block;
+  }
+
+  .bridge-nav span {
+    display: block;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+</style>

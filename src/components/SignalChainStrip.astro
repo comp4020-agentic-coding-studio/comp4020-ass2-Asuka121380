@@ -1,0 +1,71 @@
+---
+interface Props {
+  current: string;
+}
+
+const STAGES = [
+  "Player",
+  "String",
+  "Pickup",
+  "Circuit",
+  "Gain",
+  "Filter",
+  "Amplifier",
+  "Speaker",
+  "Air",
+  "Perception",
+];
+
+const { current } = Astro.props;
+---
+
+<nav class="signal-chain" aria-label="Position in the guitar signal chain">
+  <ol>
+    {
+      STAGES.map((stage) => (
+        <li aria-current={stage === current ? "true" : undefined}>{stage}</li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .signal-chain {
+    margin-block: 2rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg-alt);
+    overflow-x: auto;
+  }
+
+  .signal-chain ol {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    white-space: nowrap;
+  }
+
+  .signal-chain li {
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    color: var(--at-text-secondary);
+  }
+
+  .signal-chain li:not(:last-child)::after {
+    content: "→";
+    margin-inline-start: 0.4rem;
+    color: var(--at-border);
+  }
+
+  .signal-chain li[aria-current="true"] {
+    color: var(--at-bg);
+    background: var(--at-accent);
+    font-weight: 600;
+  }
+</style>

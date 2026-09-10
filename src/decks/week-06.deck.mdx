@@ -1,0 +1,174 @@
+---
+title: "Week 6: Inside overdrive, distortion and fuzz"
+description: How the same clipping idea from Week 5 gets built out of real electronic stages, and why that produces several distinct-sounding families rather than one continuum
+---
+
+{/* _class: impact */}
+
+# Why does clipping sound different from circuit to circuit?
+
+Same input. Same idea — limit the signal. Different results.
+
+---
+
+## Review: linear amplification
+
+```text
+y(t) = G · x(t)
+```
+
+Amplitude changes. Waveform shape does not.
+
+---
+
+## Review: clipping
+
+Push a signal past a system's headroom and the output stops following
+`G · x(t)`.
+
+The waveform is reshaped — and a reshaped waveform has a different
+spectrum.
+
+---
+
+## A simplified distortion pedal
+
+```text
+Input
+  ↓
+Gain stage
+  ↓
+Clipping stage
+  ↓
+Tone filter
+  ↓
+Output
+```
+
+Four stages. Today is about the middle two.
+
+---
+
+## The gain stage
+
+An op-amp stage raises the signal past the level the next stage can pass
+cleanly.
+
+More gain here means the clipping stage has more to clip.
+
+---
+
+## Diodes as nonlinear elements
+
+A diode conducts more readily in one direction than the other.
+
+Used across a signal path, that asymmetry becomes a soft limit — a
+conceptual model, not a full semiconductor account.
+
+---
+
+## Symmetric clipping
+
+Positive and negative halves of the waveform are limited the same way.
+
+The result stays close to odd-symmetric — a clue to which harmonics
+appear next.
+
+---
+
+## Asymmetric clipping
+
+Positive and negative halves are limited *differently*.
+
+Breaking the symmetry changes which new harmonics appear, not just how
+many.
+
+---
+
+## Feedback-loop clipping
+
+Put the nonlinear element inside an amplifier's feedback path, rather
+than directly across the signal.
+
+Same limiting idea, different circuit context — and a different
+transfer curve.
+
+---
+
+## Clipping to ground
+
+Put the nonlinear element straight across the signal, shunting
+excess swing to ground once it's reached.
+
+Compare this transfer curve with the feedback case.
+
+---
+
+{/* _class: centered */}
+
+## Comparing transfer curves
+
+Four circuit ideas. Four input → output curves.
+
+The curve *is* the circuit's clipping behaviour, stripped of everything
+else.
+
+---
+
+## Comparing waveforms
+
+Same input sine, four curves applied.
+
+Symmetric curves keep the waveform's odd symmetry; asymmetric ones
+don't.
+
+---
+
+## Comparing spectra
+
+Every clipped waveform gains harmonics absent from the clean sine.
+
+Which harmonics, and how strong, depends on which curve produced the
+waveform.
+
+---
+
+## What makes fuzz different?
+
+Fuzz circuits often push nonlinearity further than a single diode pair —
+extra gain stages, transistor behaviour, more aggressive shaping.
+
+Not one topology. A family of stronger, often less predictable,
+nonlinear transformations.
+
+---
+
+{/* _class: centered */}
+
+## Interactive example
+
+Open the clipping laboratory on this week's page.
+
+Change topology and gain. Watch the waveform and spectrum change
+together. Listen.
+
+---
+
+## Main conclusions
+
+- Clipping is nonlinearity; circuits differ in *where* and *how* they
+  apply it.
+- Symmetric vs. asymmetric clipping changes which harmonics appear.
+- "Overdrive," "distortion" and "fuzz" name different *amounts and kinds*
+  of nonlinearity, not points on one dial.
+
+---
+
+{/* _class: banner */}
+
+## Transition to filtering and EQ
+
+Clipping just added harmonic content across the spectrum.
+
+Next week: how the rest of the signal chain selectively keeps, removes,
+or emphasises parts of that spectrum.

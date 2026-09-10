@@ -1,0 +1,75 @@
+---
+// A standard play/stop control for a "Hear It" demo. It renders the button
+// and status text; the page's own script starts/stops its Web Audio graph
+// and calls `setAudioDemoState(id, playing)` to keep this control in sync.
+interface Props {
+  id: string;
+  label: string;
+}
+
+const { id, label } = Astro.props;
+---
+
+<div class="audio-demo" data-audio-demo={id}>
+  <button type="button" id={`${id}-toggle`} aria-pressed="false">
+    <span class="play-icon" aria-hidden="true">▶</span>
+    <span class="stop-icon" aria-hidden="true">■</span>
+    {label}
+  </button>
+  <p class="hint">Audio never plays automatically — press play to hear it, press again to stop.</p>
+</div>
+
+<script>
+  declare global {
+    interface Window {
+      setAudioDemoState?: (id: string, playing: boolean) => void;
+    }
+  }
+
+  window.setAudioDemoState = (id: string, playing: boolean) => {
+    const button = document.getElementById(`${id}-toggle`);
+    button?.setAttribute("aria-pressed", String(playing));
+  };
+</script>
+
+<style>
+  .audio-demo {
+    margin-block: 1rem;
+  }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg-alt);
+    color: var(--at-heading);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  button .stop-icon {
+    display: none;
+  }
+
+  button[aria-pressed="true"] .play-icon {
+    display: none;
+  }
+
+  button[aria-pressed="true"] .stop-icon {
+    display: inline;
+  }
+
+  button[aria-pressed="true"] {
+    background: var(--at-accent);
+    color: var(--at-bg);
+  }
+
+  .hint {
+    margin-top: 0.35rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+</style>

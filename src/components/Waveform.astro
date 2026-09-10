@@ -1,0 +1,46 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  samples: number[];
+  strokeVar?: string;
+}
+
+const { id, label, samples, strokeVar = "--at-accent" } = Astro.props;
+---
+
+<figure class="waveform">
+  <canvas id={id} width="480" height="120" role="img" aria-label={label}></canvas>
+  <figcaption>{label}</figcaption>
+</figure>
+
+<script define:vars={{ id, samples, strokeVar }}>
+  import("../lib/draw/waveform.ts").then(({ drawWaveform }) => {
+    const canvas = document.getElementById(id);
+    const ctx = canvas?.getContext("2d");
+    if (!ctx) return;
+    const stroke = getComputedStyle(document.documentElement).getPropertyValue(strokeVar).trim();
+    drawWaveform(ctx, samples, { stroke: stroke || "#e2b13c", background: "transparent" });
+  });
+</script>
+
+<style>
+  .waveform {
+    margin: 0;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg-alt);
+  }
+
+  figcaption {
+    margin-top: 0.35rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+</style>
