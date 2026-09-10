@@ -210,6 +210,62 @@ trimmed for the word count — that curation happens once, at submission time.
   and their audio-toggle buttons) render, and checked the dev server log
   for console errors or unhandled rejections on these pages — none found.
 
+- [`183c542`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/183c542) —
+  Milestone B: built Weeks 5, 7, and 8 as full lecture pages (Week 6 was
+  already done). Week 5 covers gain staging and headroom; Week 7 covers
+  filters and frequency response (low-pass/high-pass/band behaviour,
+  cutoff, resonance/Q), adding `FilterBench.astro` and the
+  `highpassResonantMagnitudeResponse`/`logFrequencyAxis` helpers to
+  `src/lib/audio/filters.ts`; Week 8 covers modulation (LFO as a control
+  signal, tremolo, vibrato, chorus, flanger, phaser, interference,
+  shared rate/depth parameters). Week 8 needed a real rewrite of
+  `ModulationGraph` in `engine.ts`: the working-but-messy first version
+  had five ad-hoc per-effect switch branches and several redundant
+  fields (an `AudioParam` field only assigned inside some branches,
+  risking a `strictPropertyInitialization` failure, plus an unused
+  variable silenced with `void`). Replaced all of it with a single
+  `ModulationTarget` descriptor — `{ wetInput, params, baseValue,
+  depthScale, centered }` — built once per effect by `buildTarget()`, so
+  `setParams` reduces to one shared formula (`swing = depth *
+  depthScale`; rest value centred on `baseValue` or offset below it for
+  tremolo) applied uniformly to every effect's parameter(s). Added a
+  `Modulation` stage to `SignalChainStrip` between `Filter` and
+  `Amplifier` (confirmed via `grep` that no `spec/*.ts` test depends on
+  the exact stage list, so this was safe), three new diagram components
+  (`LfoWaveformDiagram`, `DryWetPairDiagram`, `NotchResponseDiagram`,
+  the last driven by the same `combFilterMagnitudeResponse`/
+  `phaserMagnitudeResponse` functions in the new `src/lib/audio/
+  modulation.ts`), and the `ModulationLab` interactive (effect
+  footswitches; rate/depth/mix knobs; a live target-parameter readout
+  that runs its own `requestAnimationFrame` phase accumulator rather
+  than polling `AudioParam` values, deliberately mirroring — not
+  importing — `engine.ts`'s own base/depthScale/centered numbers per
+  effect, the same mirrored-constants pattern already used between
+  `FilterBench.astro`'s frontmatter and its script). Why: this is
+  Milestone B of the user's five-stage plan (A: Weeks 1-4, B: Weeks
+  5/7/8, C: Weeks 9-12, D: assessments/course pages, E: whole-site QA),
+  continuing to build out the full course under the now-permanent
+  "Bench & Booth" design without waiting for approval between
+  individual pages, per explicit user direction. Checked: `pnpm check`
+  green end-to-end (typecheck, build incl. axe accessibility pass and
+  internal link/base-path checker, 5/5 vitest tests) — this caught a
+  real MDX authoring bug on the first attempt (a stray `</p>` closing
+  tag with no matching open tag inside `week-08.mdx`'s objectives
+  callout, which broke the MDX parser; fixed by matching the plain-
+  markdown-inside-a-div pattern already used the same way in
+  `week-07.mdx`). Ran the dev server and fetched all three pages
+  directly: all return 200, every expected control id (knobs,
+  footswitches, audio-toggle buttons, the modulation target-plot
+  label/track/marker elements) is present in the rendered HTML, no
+  `autoplay` attribute appears anywhere, and the dev server log shows
+  no errors serving any of the three routes. No browser-automation tool
+  was available in this environment, so live interaction — dragging
+  knobs, pressing play, switching Week 8's effect mid-playback and
+  confirming a clean stop/restart, watching the marker actually sweep,
+  checking the browser console — was not directly exercised; a manual
+  pass in a real browser at both marked viewports is still worth doing
+  before treating this fully verified.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
