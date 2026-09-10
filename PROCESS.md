@@ -611,6 +611,56 @@ trimmed for the word count — that curation happens once, at submission time.
   fail on — that needs an actual generated image asset, not text, so it's
   left for a later pass rather than rushed here. This completes Milestone D.
 
+- [`ef9c73e`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/ef9c73e) —
+  Milestone E (whole-site QA) starts from `pnpm check:evidence`, the actual
+  submission gate `README.md` points at, rather than an unstructured review
+  pass. Read `scripts/check-evidence.ts` in full first rather than guessing
+  its behaviour: for this repo's `comp4020-ass2-*` name it additionally
+  requires no tracked `STARTER_CONTENT` marker, that the four listed starter
+  images no longer match their known SHA-256 hashes, that `PROCESS.md` has no
+  leftover template marker comment, and that every commit-hash-shaped
+  citation in `PROCESS.md` resolves to a real commit. A first run found all
+  four image checks failing (the exact assets flagged and deferred at the
+  end of Milestone D above), plus the leftover template marker comment and
+  two unresolvable example citations (`a1b2c3d`, `a1b2c3d...e4f5a6b`) still
+  sitting in this
+  file's own unmodified "What I built"/"How I got here" boilerplate — the
+  Development Log below was already real and untouched, but the section
+  above it never had been. Fixed the text issues first: rewrote both
+  sections with a real description of the site and a real curated account of
+  the build, citing actual commits already in this log (`61ed2d7`, `3f45616`,
+  `0075aa7`, `02b7610`, `183c542`, `126a4d5`, `fd7dcf6`, `e90169b`, `aab7bc1`,
+  `e7641ce`) instead of the placeholder examples. For the four images: no
+  raster CLI tool (`magick`/`convert`/`rsvg-convert`/`inkscape`) is on PATH in
+  this environment, but `sharp` is already an installed dependency (Astro
+  uses it internally for image optimisation, visible in the build log), so it
+  was usable directly from a Node script without adding anything new. Probed
+  each file's actual required dimensions/format with a `sharp` metadata
+  script rather than guessing (`card.png` 1200×630 PNG; `hero-home.avif`
+  2560×1086; the two people portraits 800×800, both AVIF), and read
+  `astro-theme-slop`'s `slop.css` and `tokens.css` for the site's real brand
+  hues (`--at-primary` gold `#b97d1c`, `--at-secondary` bronze `#8a5c13`) and
+  confirmed the theme's actual background is that gold hue tinted almost to
+  white via `oklch()`, rather than inventing a palette. Generated all four
+  images as flat-shape SVG illustrations (a raked lecture-theatre seating fan
+  for the hero, two stylised bust portraits — one front-facing, one
+  three-quarter — and a title card with the course code/name and a
+  decaying-waveform motif) on a warm cream ground, matching the "flat gold
+  and black shapes... two-ink risograph print" language already present in
+  each image's existing, real alt text, then rasterised each to its exact
+  required size via `sharp`, per CLAUDE.md's stated preference for
+  course-generated visual material over stock or external imagery. Checked:
+  rendered each generated PNG to inspect it directly before installing it
+  (caught and fixed an initial version of the hero where the vanishing point
+  left most of the frame empty cream instead of reading as raked seating);
+  confirmed by hash that each new file differs from the starter image it
+  replaced; re-ran `pnpm check:evidence` and confirmed it now passes clean
+  (only two checks print, both `✓`, exit 0); re-ran full `pnpm check` and
+  confirmed it stayed green (typecheck, 28-page build with axe/link checks,
+  2-deck compile, 5/5 vitest); fetched the homepage and both people pages
+  from the dev server directly and confirmed all returned 200 after the
+  asset swap.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
