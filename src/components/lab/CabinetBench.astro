@@ -1,0 +1,347 @@
+---
+// Week 11 "Try It": a simplified virtual cabinet. Cabinet response picks
+// one of the conceptual profiles from cabinet.ts (each a resonant
+// high-pass cascaded with a resonant low-pass); microphone position and
+// distance apply a further, simple low-pass on top. The plotted curve and
+// the live filter chain both read the exact same cabinet.ts functions, so
+// the picture and the sound describe the same numbers. This is a
+// deliberately simplified, conceptual model — not a physically accurate
+// speaker, cabinet, or microphone simulation.
+import AudioDemo from "../AudioDemo.astro";
+import FootswitchGroup from "./FootswitchGroup.astro";
+import Knob from "./Knob.astro";
+import ToggleSwitch from "./ToggleSwitch.astro";
+import {
+  CABINET_PROFILE_ORDER,
+  cabinetProfileParams,
+  virtualCabinetMagnitudeResponse,
+  type CabinetProfile,
+  type MicPosition,
+} from "../../lib/audio/cabinet";
+import { logFrequencyAxis } from "../../lib/audio/filters";
+
+const DEFAULT_PROFILE: CabinetProfile = "bright";
+const DEFAULT_POSITION: MicPosition = "center";
+const DEFAULT_DISTANCE = 15;
+
+function isEdgePosition(position: MicPosition): boolean {
+  return position === "edge";
+}
+
+const MIN_HZ = 80;
+const MAX_HZ = 6000;
+const FREQ_COUNT = 160;
+const MAG_MAX = 3;
+
+const PLOT_LEFT = 24;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 10;
+const PLOT_BOTTOM = 96;
+
+function xForFrequency(hz: number): number {
+  const t = (Math.log10(hz) - Math.log10(MIN_HZ)) / (Math.log10(MAX_HZ) - Math.log10(MIN_HZ));
+  return PLOT_LEFT + t * (PLOT_RIGHT - PLOT_LEFT);
+}
+
+function yForMagnitude(mag: number): number {
+  return PLOT_BOTTOM - Math.min(mag, MAG_MAX) * ((PLOT_BOTTOM - PLOT_TOP) / MAG_MAX);
+}
+
+function responsePath(response: ArrayLike<number>): string {
+  let d = "";
+  for (let i = 0; i < response.length; i++) {
+    const x = PLOT_LEFT + (i / (response.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+    const y = yForMagnitude(response[i]);
+    d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+  }
+  return d.trim();
+}
+
+const freqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+const defaultResponse = virtualCabinetMagnitudeResponse(freqs, DEFAULT_PROFILE, DEFAULT_POSITION, DEFAULT_DISTANCE);
+const defaultPath = responsePath(defaultResponse);
+const unityY = yForMagnitude(1);
+const ticks = [100, 300, 1000, 3000];
+
+const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
+  value: profile,
+  label: cabinetProfileParams(profile).label,
+}));
+---
+
+<div class="cabinet-bench bench-module" id="cabinet-bench">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Virtual Cabinet Bench</span>
+    <FootswitchGroup name="cabinet-profile" legend="Cabinet response" options={profileOptions} selected={DEFAULT_PROFILE} />
+  </div>
+
+  <div class="lab-controls">
+    <ToggleSwitch
+      id="cabinet-mic-position"
+      legend="Microphone position"
+      offLabel="Center (on-axis)"
+      onLabel="Edge (off-axis)"
+      checked={isEdgePosition(DEFAULT_POSITION)}
+    />
+    <Knob id="cabinet-mic-distance" label="Mic distance" min={2} max={60} step={1} value={DEFAULT_DISTANCE} unit=" cm" />
+    <AudioDemo id="cabinet-audio" label="Play through virtual cabinet" />
+  </div>
+
+  <p id="cabinet-readout" class="bench-scope-note cabinet-readout">
+    Bright small speaker, mic on-axis (center), 15 cm away.
+  </p>
+
+  <div
+    class="response-plot"
+    role="img"
+    aria-label="Combined frequency response of the selected cabinet profile and microphone position/distance, from 80 Hz to 6 kHz, updating as the controls change."
+  >
+    <svg viewBox="0 0 300 116">
+      <line x1={PLOT_LEFT} y1={PLOT_TOP} x2={PLOT_LEFT} y2={PLOT_BOTTOM} class="axis-line" />
+      <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+      <line x1={PLOT_LEFT} y1={unityY} x2={PLOT_RIGHT} y2={unityY} class="unity-line" />
+      <text x={PLOT_RIGHT} y={unityY - 3} class="freq-tick" text-anchor="end">unity gain</text>
+      {ticks.map((hz) => (
+        <>
+          <line x1={xForFrequency(hz)} y1={PLOT_TOP} x2={xForFrequency(hz)} y2={PLOT_BOTTOM} class="tick-line" />
+          <text x={xForFrequency(hz)} y={PLOT_BOTTOM + 10} class="freq-tick" text-anchor="middle">
+            {hz >= 1000 ? `${hz / 1000}k` : hz}
+          </text>
+        </>
+      ))}
+      <path id="cabinet-response-path" d={defaultPath} class="response-trace" fill="none" />
+    </svg>
+  </div>
+
+  <p class="bench-scope-note">A conceptual model, not a physical simulation: the cabinet profile is a resonant high-pass cascaded with a resonant low-pass, and microphone position/distance apply one further low-pass on top. Real speakers, cabinets, and microphones each have far more particular behaviour than this — the point here is only that all three reshape frequency content before a signal is heard.</p>
+</div>
+
+<script>
+  import {
+    cabinetProfileParams,
+    micCutoffHz,
+    virtualCabinetMagnitudeResponse,
+    type CabinetProfile,
+    type MicPosition,
+  } from "../../lib/audio/cabinet";
+  import { logFrequencyAxis } from "../../lib/audio/filters";
+  import { renderPluckedString } from "../../lib/audio/pluckedString";
+
+  const root = document.getElementById("cabinet-bench");
+  if (root) {
+    const profileRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="cabinet-profile"]'));
+    const positionInput = document.getElementById("cabinet-mic-position") as HTMLInputElement;
+    const distanceInput = document.getElementById("cabinet-mic-distance") as HTMLInputElement;
+    const responsePathEl = document.getElementById("cabinet-response-path") as unknown as SVGPathElement;
+    const readout = document.getElementById("cabinet-readout") as HTMLParagraphElement;
+    const toggle = document.getElementById("cabinet-audio-toggle") as HTMLButtonElement;
+
+    const MIN_HZ = 80;
+    const MAX_HZ = 6000;
+    const FREQ_COUNT = 160;
+    const MAG_MAX = 3;
+    const PLOT_LEFT = 24;
+    const PLOT_RIGHT = 292;
+    const PLOT_TOP = 10;
+    const PLOT_BOTTOM = 96;
+    const OUTPUT_GAIN = 0.3;
+    const SOURCE_FREQUENCY = 110;
+
+    let context: AudioContext | null = null;
+    let source: AudioBufferSourceNode | null = null;
+    let lowShelfFilter: BiquadFilterNode | null = null;
+    let highShelfFilter: BiquadFilterNode | null = null;
+    let micFilter: BiquadFilterNode | null = null;
+
+    function currentProfile(): CabinetProfile {
+      return (profileRadios.find((radio) => radio.checked)?.value ?? "bright") as CabinetProfile;
+    }
+
+    function currentPosition(): MicPosition {
+      return positionInput.checked ? "edge" : "center";
+    }
+
+    function yForMagnitude(mag: number): number {
+      return PLOT_BOTTOM - Math.min(mag, MAG_MAX) * ((PLOT_BOTTOM - PLOT_TOP) / MAG_MAX);
+    }
+
+    function stopAudio(): void {
+      source?.stop();
+      source = null;
+      lowShelfFilter = null;
+      highShelfFilter = null;
+      micFilter = null;
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("cabinet-audio", false);
+    }
+
+    function redraw(): void {
+      const profile = currentProfile();
+      const position = currentPosition();
+      const distance = Number(distanceInput.value);
+      const params = cabinetProfileParams(profile);
+
+      const freqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+      const response = virtualCabinetMagnitudeResponse(freqs, profile, position, distance);
+
+      let d = "";
+      for (let i = 0; i < freqs.length; i++) {
+        const x = PLOT_LEFT + (i / (freqs.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+        const y = yForMagnitude(response[i]);
+        d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+      }
+      responsePathEl.setAttribute("d", d.trim());
+
+      readout.textContent = `${params.label}, mic ${position === "edge" ? "off-axis (edge)" : "on-axis (center)"}, ${Math.round(distance)} cm away.`;
+
+      if (lowShelfFilter && highShelfFilter && micFilter) {
+        lowShelfFilter.frequency.value = params.lowCutoffHz;
+        lowShelfFilter.Q.value = params.lowQ;
+        highShelfFilter.frequency.value = params.highCutoffHz;
+        highShelfFilter.Q.value = params.highQ;
+        micFilter.frequency.value = micCutoffHz(position, distance);
+      }
+    }
+
+    toggle.addEventListener("click", () => {
+      if (source) {
+        stopAudio();
+        return;
+      }
+      context = context ?? new AudioContext();
+      const samples = renderPluckedString({
+        sampleRate: context.sampleRate,
+        frequency: SOURCE_FREQUENCY,
+        durationSeconds: 1.6,
+      });
+      const buffer = context.createBuffer(1, samples.length, context.sampleRate);
+      buffer.copyToChannel(Float32Array.from(samples), 0);
+
+      const profile = currentProfile();
+      const position = currentPosition();
+      const distance = Number(distanceInput.value);
+      const params = cabinetProfileParams(profile);
+
+      highShelfFilter = context.createBiquadFilter();
+      highShelfFilter.type = "highpass";
+      highShelfFilter.frequency.value = params.lowCutoffHz;
+      highShelfFilter.Q.value = params.lowQ;
+
+      lowShelfFilter = context.createBiquadFilter();
+      lowShelfFilter.type = "lowpass";
+      lowShelfFilter.frequency.value = params.highCutoffHz;
+      lowShelfFilter.Q.value = params.highQ;
+
+      micFilter = context.createBiquadFilter();
+      micFilter.type = "lowpass";
+      micFilter.frequency.value = micCutoffHz(position, distance);
+      micFilter.Q.value = 1 / Math.sqrt(2);
+
+      const gain = context.createGain();
+      gain.gain.value = OUTPUT_GAIN;
+
+      source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(highShelfFilter);
+      highShelfFilter.connect(lowShelfFilter);
+      lowShelfFilter.connect(micFilter);
+      micFilter.connect(gain);
+      gain.connect(context.destination);
+      source.onended = () => {
+        source = null;
+        lowShelfFilter = null;
+        highShelfFilter = null;
+        micFilter = null;
+        (
+          window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+        ).setAudioDemoState?.("cabinet-audio", false);
+      };
+      source.start();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("cabinet-audio", true);
+    });
+
+    profileRadios.forEach((radio) => radio.addEventListener("change", redraw));
+    positionInput.addEventListener("change", redraw);
+    distanceInput.addEventListener("input", redraw);
+
+    redraw();
+  }
+</script>
+
+<style>
+  .cabinet-bench {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .lab-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 1.75rem;
+  }
+
+  .cabinet-readout {
+    text-align: center;
+    font-family: var(--bench-readout, var(--at-font-mono));
+  }
+
+  .response-plot svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .tick-line {
+    stroke: var(--bench-line, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 2 2;
+  }
+
+  .unity-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 1 3;
+  }
+
+  .freq-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .response-trace {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 1.75;
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+</style>

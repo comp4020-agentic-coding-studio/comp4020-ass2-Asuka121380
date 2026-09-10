@@ -1,0 +1,227 @@
+---
+title: "Speaker, Cabinet and Air"
+description:
+  Why the same amplifier can sound dramatically different through different
+  speakers and cabinets — the last physical stage before sound reaches the air
+week: 11
+date: 2027-05-10
+teachers:
+  - idris-fenn
+---
+
+import BenchFrame from "../../components/lab/BenchFrame.astro";
+import BenchBand from "../../components/lab/BenchBand.astro";
+import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
+import LoudspeakerDiagram from "../../components/diagrams/LoudspeakerDiagram.astro";
+import CabinetDiagram from "../../components/diagrams/CabinetDiagram.astro";
+import CabinetResponseDiagram from "../../components/diagrams/CabinetResponseDiagram.astro";
+import CabinetBench from "../../components/lab/CabinetBench.astro";
+import SignalChainStrip from "../../components/SignalChainStrip.astro";
+import TakeawaysList from "../../components/TakeawaysList.astro";
+
+<BenchFrame week={11} topic="SPEAKER, CABINET AND AIR">
+
+<BenchBand mode="theory" label="ANALYSIS DESK">
+
+## Why can the same amplifier sound dramatically different through different speakers and cabinets?
+
+<p class="bench-prose">
+Week 10 followed the signal to the amplifier's electrical output. That output
+still isn't sound — it's a voltage across a speaker terminal. Turning that
+voltage into acoustic pressure in the air is its own physical process, with
+its own way of reshaping the signal, and it's the last stage in the chain
+before a listener (or a microphone) hears anything at all.
+</p>
+
+<div class="bench-callout bench-prose">
+
+By the end of this week you should be able to: explain how a loudspeaker
+converts an electrical signal into mechanical motion; explain why guitar
+speakers are deliberately not flat, transparent transducers; describe
+resonance conceptually as part of why a speaker's response isn't flat;
+compare open-back and closed-back cabinets conceptually; explain, briefly,
+that radiated sound depends on frequency and direction; explain that
+microphone type, position, angle, and distance all affect a recorded tone;
+and connect a cabinet's impulse response back to Week 9's delay/reverb ideas.
+
+</div>
+
+<CausalChainStrip
+  steps={["Voice coil + magnet: force", "Cone: mechanical motion", "Cabinet: shapes radiation", "Mic position: shapes what's captured"]}
+/>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+## Loudspeaker transduction: electrical signal to mechanical motion
+
+<p class="bench-prose">
+A loudspeaker's voice coil sits inside a fixed magnetic field. Current from
+the amplifier flows through the coil, and a current-carrying conductor in a
+magnetic field experiences a force — so the coil, attached to the cone,
+moves. Reverse the current's direction and the force reverses too. The
+amplifier's electrical signal is therefore converted directly into the
+cone's back-and-forth mechanical motion, and that motion is what pushes on
+the surrounding air.
+</p>
+
+<div class="bench-annotated">
+  <LoudspeakerDiagram />
+</div>
+
+## Why guitar speakers aren't flat
+
+<p class="bench-prose">
+A studio monitor is designed to reproduce a signal as transparently as
+possible across the audible range. A guitar speaker is not designed that
+way, and isn't trying to be: its cone, surround, and magnet structure have
+their own mechanical resonances, and its frequency response rolls off and
+peaks in ways a "flat" transducer deliberately avoids. That coloration isn't
+a flaw to be corrected — for a guitar amplifier, it's a major, expected part
+of the final tone.
+</p>
+
+<div class="bench-annotated">
+  <CabinetResponseDiagram />
+  <p class="bench-prose">
+  A **bright** small speaker rolls off early at the low end but extends
+  further at the top; a **darker** cabinet rolls off the highs much sooner;
+  a **resonant** cabinet peaks near both ends instead of rolling off
+  smoothly. None of these is "correct" — they're different, deliberate
+  colorations, the same way different clipping topologies in Week 6 were
+  different, deliberate distortions rather than one being more accurate
+  than another.
+  </p>
+</div>
+
+## Resonance
+
+<p class="bench-prose">
+A speaker cone, its surround, and the air trapped inside a cabinet all have
+natural mechanical or acoustic resonances — frequencies at which they
+respond more readily than others, the same general idea Week 7 introduced
+for electrical filters, just realised here mechanically and acoustically
+instead of electrically. A resonance shows up as a peak in the frequency
+response, the same kind of peak a high-Q resonant filter produces. This
+course treats resonance here only conceptually — not as detailed mechanical
+or room acoustics.
+</p>
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Cabinet design: open-back, closed-back, and what's inside
+
+<p class="bench-prose">
+The box a speaker is mounted in matters too. An **open-back** cabinet leaves
+the rear of the cone exposed, so sound radiates from both the front and the
+back; a **closed-back** cabinet seals the rear, so only the front radiates.
+The cabinet's internal volume, and how many speakers share it, also shape
+the result. This course doesn't require advanced enclosure-design theory —
+only that the enclosure is a deliberate design choice, not incidental
+packaging.
+</p>
+
+<div class="bench-annotated">
+  <CabinetDiagram />
+</div>
+
+## Radiation
+
+<p class="bench-prose">
+How sound radiates from a cone also depends on frequency: lower frequencies
+tend to radiate in most directions fairly evenly, while higher frequencies
+become more directional, radiating more narrowly along the speaker's axis.
+That's one reason a guitar cabinet can sound different depending on where,
+relative to the speaker, a listener (or a microphone) stands — briefly
+introduced here, not developed into a full acoustics treatment.
+</p>
+
+## Microphones: type, position, angle, distance
+
+<p class="bench-prose">
+When a cabinet is recorded rather than heard directly in the room, a
+microphone becomes part of the signal path too. Different microphone types
+respond differently; where a microphone is placed relative to the cone
+(on-axis versus off-axis, near the center versus near the edge), the angle
+it's aimed at, and the distance from the cabinet, all affect what's actually
+captured. This course introduces that these factors matter conceptually — it
+does not turn into a recording-engineering course, and doesn't claim any one
+placement is universally "correct."
+</p>
+
+## Cabinet impulse responses
+
+<p class="bench-prose">
+Week 9 introduced the impulse response as a way to describe a linear
+system's behaviour: excite it with a single impulse, and its output over
+time tells you everything about how it will treat any input. A recorded
+speaker-cabinet-microphone combination has its own impulse response too — it
+captures, in one linear description, the combined effect of the speaker,
+the cabinet, the microphone, and its position, all at once. That's exactly
+why a "cabinet impulse response" is a genuinely useful, reusable recording:
+convolving a signal with it (Week 9's convolution reverb, again) applies
+that whole combined coloration in one step.
+</p>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+<CausalChainStrip compact />
+
+## Try it: a simplified virtual cabinet
+
+<p class="bench-prose">
+Switch between cabinet response profiles and watch the frequency-response
+curve change shape — a bright, small-speaker-like curve, a darker cabinet
+that rolls off sooner, a resonant cabinet with peaks near both ends. Then
+move the microphone from center to edge, and further away, and watch a
+second, gentler rolloff stack on top of whichever cabinet profile is
+selected. This is a conceptual model, explicitly not a physically accurate
+speaker, cabinet, or microphone simulation.
+</p>
+
+<CabinetBench />
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Key takeaways
+
+<TakeawaysList
+  items={[
+    "A loudspeaker's voice coil sits in a magnet's field; current through it creates a force, converting the amplifier's electrical signal directly into the cone's mechanical motion.",
+    "Guitar speakers are deliberately not flat, transparent transducers — their frequency-response coloration is a major, expected part of guitar tone, not a flaw.",
+    "Resonance in a cone, surround, or cabinet volume shows up as a peak in frequency response, the mechanical/acoustic counterpart to a high-Q electrical filter.",
+    "Open-back cabinets radiate from both the front and back of the cone; closed-back cabinets radiate only from the front; internal volume and speaker count also matter — none of this requires advanced enclosure engineering to understand conceptually.",
+    "Radiated sound depends on frequency and direction, and microphone type, position, angle, and distance all further shape what a recording captures.",
+    "A cabinet impulse response captures the combined linear behaviour of speaker, cabinet, microphone, and position in one reusable recording — directly connecting back to Week 9's impulse-response and convolution ideas.",
+  ]}
+/>
+
+## Where this sits in the signal chain
+
+<SignalChainStrip current="Speaker" />
+
+## Connection to Week 10, and where this goes next
+
+<p class="bench-prose">
+Week 10 ended at the electrical power output of the amplifier. This week
+converted that signal into acoustic sound: a loudspeaker's mechanical
+motion, shaped further by the cabinet it sits in and, when recorded, by a
+microphone's position. The complete physical signal path — string, pickup,
+circuit, effects, amplifier, speaker, cabinet, air — is now established.
+Week 12 returns to the original question this course opened with, and asks
+how to reason backwards from a desired sound to a deliberately engineered
+signal chain across all of it.
+</p>
+
+<CausalChainStrip compact />
+
+</BenchBand>
+
+</BenchFrame>

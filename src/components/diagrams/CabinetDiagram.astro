@@ -1,0 +1,145 @@
+---
+// Week 11 "See It": two conceptual sketches. First, an open-back cabinet
+// (a gap in the rear panel, so sound radiates from both the front and the
+// back of the speaker) compared with a closed-back cabinet (fully
+// enclosed, radiating only from the front). Second, two microphone
+// positions in front of the same cone. Simplified boxed sketches, not
+// real enclosure-design or acoustic-radiation diagrams — this course
+// doesn't require advanced enclosure engineering or recording-engineering
+// detail.
+---
+
+<div class="cabinet-diagrams">
+  <figure class="cabinet-card bench-module">
+    <svg viewBox="0 0 300 100" role="img" aria-label="Open-back cabinet, with a gap in the rear panel so sound radiates from both the front and the back of the speaker, compared with a closed-back cabinet, fully enclosed so sound radiates only from the front.">
+      <g>
+        <path d="M 10 20 L 10 80 M 10 20 L 70 20 M 10 80 L 70 80" class="panel" fill="none" />
+        <path d="M 70 20 L 70 38 M 70 62 L 70 80" class="panel" fill="none" />
+        <circle cx="40" cy="50" r="14" class="speaker" />
+        <circle cx="40" cy="50" r="6" class="speaker-cap" />
+        <path d="M 78 44 Q 88 50 78 56" class="wave" fill="none" />
+        <path d="M -4 44 Q -12 50 -4 56" class="wave" fill="none" />
+        <text x="40" y="95" class="cabinet-tick" text-anchor="middle">open back</text>
+      </g>
+      <g transform="translate(160, 0)">
+        <rect x="10" y="20" width="60" height="60" class="panel" fill="none" />
+        <circle cx="40" cy="50" r="14" class="speaker" />
+        <circle cx="40" cy="50" r="6" class="speaker-cap" />
+        <path d="M 78 44 Q 88 50 78 56" class="wave" fill="none" />
+        <text x="40" y="95" class="cabinet-tick" text-anchor="middle">closed back</text>
+      </g>
+    </svg>
+    <figcaption>
+      <span class="cabinet-label">Open-back vs closed-back</span>
+      <span class="cabinet-description">An open-back cabinet lets sound radiate from the rear of the cone as well as the front; a closed-back cabinet seals the rear, so only the front radiates. That difference in enclosure, along with the cabinet's internal volume and how many speakers share it, shapes what reaches the listener.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="cabinet-card bench-module">
+    <svg viewBox="0 0 200 100" role="img" aria-label="Front view of a speaker cone with two possible microphone positions: one directly in front, on-axis with the center of the cone, and one off to the side, off-axis near the cone's edge.">
+      <circle cx="100" cy="50" r="34" class="speaker" />
+      <circle cx="100" cy="50" r="24" class="speaker-ring" fill="none" />
+      <circle cx="100" cy="50" r="10" class="speaker-cap" />
+      <g>
+        <circle cx="100" cy="6" r="4" class="mic" />
+        <line x1="100" y1="10" x2="100" y2="16" class="mic-stand" />
+        <text x="100" y="96" class="cabinet-tick" text-anchor="middle">on-axis (center)</text>
+      </g>
+      <g>
+        <circle cx="150" cy="24" r="4" class="mic" />
+        <line x1="150" y1="28" x2="134" y2="38" class="mic-stand" />
+      </g>
+      <text x="150" y="12" class="cabinet-tick" text-anchor="middle">off-axis (edge)</text>
+    </svg>
+    <figcaption>
+      <span class="cabinet-label">Microphone position</span>
+      <span class="cabinet-description">A microphone placed on-axis, near the cone's center, and one placed off-axis, nearer the cone's edge, don't pick up quite the same thing — position, angle, and distance are all part of what a recording captures, alongside the speaker and cabinet themselves.</span>
+    </figcaption>
+  </figure>
+</div>
+
+<style>
+  .cabinet-diagrams {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1rem;
+  }
+
+  .cabinet-card {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .cabinet-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .panel {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1.5;
+  }
+
+  .speaker {
+    fill: var(--at-bg-alt);
+    stroke: var(--at-accent);
+    stroke-width: 1.5;
+  }
+
+  .speaker-ring {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+    opacity: 0.6;
+  }
+
+  .speaker-cap {
+    fill: var(--bench-phosphor, var(--at-accent));
+    opacity: 0.7;
+  }
+
+  .wave {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+    opacity: 0.6;
+  }
+
+  .mic {
+    fill: var(--at-bg);
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 1.5;
+  }
+
+  .mic-stand {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .cabinet-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 7px;
+    fill: var(--at-text-secondary);
+  }
+
+  figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .cabinet-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--at-text);
+  }
+
+  .cabinet-description {
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    line-height: 1.35;
+  }
+</style>

@@ -1,0 +1,161 @@
+---
+// Week 11 "See It": representative frequency-response curves for a flat
+// (unfiltered) reference alongside three cabinet profiles — bright, dark,
+// resonant — showing that a speaker/cabinet is a deliberate coloration,
+// not a transparent studio-monitor-style response. Reuses cabinet.ts's
+// cabinetMagnitudeResponse, the same function the live CabinetBench lab
+// reads, so this static picture and the lab always describe the same
+// curves.
+import { CABINET_PROFILE_ORDER, cabinetMagnitudeResponse, cabinetProfileParams } from "../../lib/audio/cabinet";
+import { logFrequencyAxis } from "../../lib/audio/filters";
+
+const MIN_HZ = 80;
+const MAX_HZ = 6000;
+const FREQ_COUNT = 160;
+const MAG_MAX = 3;
+
+const PLOT_LEFT = 24;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 10;
+const PLOT_BOTTOM = 96;
+
+function xForFrequency(hz: number): number {
+  const t = (Math.log10(hz) - Math.log10(MIN_HZ)) / (Math.log10(MAX_HZ) - Math.log10(MIN_HZ));
+  return PLOT_LEFT + t * (PLOT_RIGHT - PLOT_LEFT);
+}
+
+function yForMagnitude(mag: number): number {
+  return PLOT_BOTTOM - Math.min(mag, MAG_MAX) * ((PLOT_BOTTOM - PLOT_TOP) / MAG_MAX);
+}
+
+function responsePath(response: ArrayLike<number>): string {
+  let d = "";
+  for (let i = 0; i < response.length; i++) {
+    const x = PLOT_LEFT + (i / (response.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+    const y = yForMagnitude(response[i]);
+    d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+  }
+  return d.trim();
+}
+
+const freqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+const profiles = CABINET_PROFILE_ORDER.map((profile) => ({
+  profile,
+  label: cabinetProfileParams(profile).label,
+  response: cabinetMagnitudeResponse(freqs, profile),
+}));
+
+const ticks = [100, 300, 1000, 3000];
+const unityY = yForMagnitude(1);
+---
+
+<div
+  class="cabinet-response bench-module"
+  role="img"
+  aria-label="Frequency response from 80 Hz to 6 kHz for a flat unfiltered reference alongside three cabinet profiles: a bright small speaker, a darker cabinet, and a resonant cabinet with peaks near its low and high rolloff points."
+>
+  <svg viewBox="0 0 300 116">
+    <line x1={PLOT_LEFT} y1={PLOT_TOP} x2={PLOT_LEFT} y2={PLOT_BOTTOM} class="axis-line" />
+    <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+    <line x1={PLOT_LEFT} y1={unityY} x2={PLOT_RIGHT} y2={unityY} class="unity-line" />
+    <text x={PLOT_RIGHT} y={unityY - 3} class="freq-tick" text-anchor="end">unity gain</text>
+    {ticks.map((hz) => (
+      <>
+        <line x1={xForFrequency(hz)} y1={PLOT_TOP} x2={xForFrequency(hz)} y2={PLOT_BOTTOM} class="tick-line" />
+        <text x={xForFrequency(hz)} y={PLOT_BOTTOM + 10} class="freq-tick" text-anchor="middle">
+          {hz >= 1000 ? `${hz / 1000}k` : hz}
+        </text>
+      </>
+    ))}
+    {profiles.map((p, i) => (
+      <path d={responsePath(p.response)} class={`response-trace response-trace-${i}`} fill="none" />
+    ))}
+  </svg>
+  <ul class="snapshot-legend">
+    {profiles.map((p, i) => (
+      <li class={`snapshot-legend-${i}`}>{p.label}</li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .cabinet-response svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .tick-line {
+    stroke: var(--bench-line, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 2 2;
+  }
+
+  .unity-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 1 3;
+  }
+
+  .freq-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .response-trace {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 1.75;
+  }
+
+  .response-trace-0 {
+    opacity: 0.35;
+    stroke-dasharray: 3 2;
+  }
+
+  .response-trace-1 {
+    opacity: 0.6;
+  }
+
+  .response-trace-2 {
+    opacity: 0.8;
+  }
+
+  .response-trace-3 {
+    opacity: 1;
+  }
+
+  .snapshot-legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+
+  .snapshot-legend li::before {
+    content: "—";
+    margin-inline-end: 0.35rem;
+    color: var(--bench-phosphor, var(--at-accent));
+  }
+
+  .snapshot-legend-0::before {
+    opacity: 0.35;
+  }
+
+  .snapshot-legend-1::before {
+    opacity: 0.6;
+  }
+
+  .snapshot-legend-2::before {
+    opacity: 0.8;
+  }
+</style>
