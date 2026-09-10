@@ -383,6 +383,65 @@ trimmed for the word count — that curation happens once, at submission time.
   directly exercised; a manual pass in a real browser at both marked
   viewports is still worth doing before treating this fully verified.
 
+- [`e90169b`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/e90169b) —
+  built Week 11, "Speaker, Cabinet and Air": the last physical stage
+  before the amplifier's electrical output becomes acoustic sound.
+  New `src/lib/audio/cabinet.ts` models a speaker/cabinet's frequency
+  response as a resonant high-pass (low-frequency rolloff, with a
+  resonance bump) cascaded with a resonant low-pass (high-frequency
+  rolloff), built entirely from Week 7's existing
+  `highpassResonantMagnitudeResponse`/`lowpassResonantMagnitudeResponse`
+  primitives rather than new DSP, plus a simple further lowpass for
+  microphone position/distance — explicitly commented as a teaching
+  approximation, not a measured response of any real speaker,
+  cabinet, or microphone. Four named profiles (flat reference, bright
+  small speaker, darker cabinet, resonant cabinet) are read identically
+  by a new static `CabinetResponseDiagram` (reusing
+  `NotchResponseDiagram`'s exact log-frequency plot layout) and by the
+  new `CabinetBench` live lab, so the static picture and the live
+  simulator describe the same numbers. `CabinetBench` exposes a
+  cabinet-profile footswitch group, a center/edge microphone-position
+  toggle, and a mic-distance knob, driving a three-`BiquadFilterNode`
+  chain over the existing Karplus-Strong plucked string
+  (`pluckedString.ts`). Two new static diagrams,
+  `LoudspeakerDiagram` (voice coil/magnet/cone transduction, and a
+  two-frame sketch of current direction setting motion direction) and
+  `CabinetDiagram` (open-back vs closed-back radiation, and on-axis vs
+  off-axis microphone position), both followed `PickupDiagram`'s
+  multi-part labelled cross-section convention, with `role="img"` on
+  the inner `<svg>` rather than the outer `<figure>` per the
+  accessibility convention Week 9 already established. `SignalChainStrip`
+  needed no change — its `STAGES` array already included `"Speaker"`.
+  Resonance, radiation, and microphone theory stayed prose-only, no
+  diagrams or simulations, per the curriculum's own explicit scope
+  cautions against requiring advanced enclosure-engineering detail or
+  turning the week into a recording-engineering course. Why:
+  continuing Milestone C (Weeks 9-12) without waiting for approval
+  between individual pages, per standing user direction. Checked:
+  `pnpm check` green end-to-end (typecheck, build incl. axe
+  accessibility pass and internal link/base-path checker, 5/5 vitest
+  tests) — this caught one real issue on the first attempt, a
+  TypeScript `ts(2367)` "no overlap" error on
+  `checked={DEFAULT_POSITION === "edge"}` in `CabinetBench.astro`
+  (TypeScript's control-flow narrowing treats a never-reassigned
+  `const` as its literal initializer type at a direct comparison site,
+  even with a wider explicit type annotation); fixed by comparing
+  inside a small typed helper function (`isEdgePosition(position:
+  MicPosition)`) instead of comparing the const directly, which keeps
+  the parameter's declared union type intact. Ran the dev server and
+  fetched the Week 11 page directly: 200 status, every expected
+  control id (`cabinet-bench`, the `cabinet-profile` footswitch group,
+  `cabinet-mic-position` toggle, `cabinet-mic-distance` knob,
+  `cabinet-audio-toggle`, `cabinet-readout`, `cabinet-response-path`)
+  present in the rendered HTML, no `autoplay` attribute anywhere, no
+  errors in the dev server log. No browser-automation tool was
+  available in this environment, so live interaction — dragging the
+  knob, switching cabinet profile and mic position mid-playback and
+  confirming a clean stop/restart, watching the response curve redraw
+  — was not directly exercised; a manual pass in a real browser at
+  both marked viewports is still worth doing before treating this
+  fully verified.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
