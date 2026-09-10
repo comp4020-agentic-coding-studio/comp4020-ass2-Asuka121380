@@ -64,6 +64,43 @@ trimmed for the word count — that curation happens once, at submission time.
   teaching weeks`) is the pre-existing, expected red from only 2 of 12
   placeholder sessions existing so far, unrelated to this change.
 
+- [`3f45616`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/3f45616) —
+  set the real course identity in `src/course-config.ts` (SLOP2186, "The
+  Science of Guitar Tone", description and tags) and built the first
+  teaching-week milestone: a Week 6 lecture page (`src/content/lectures/week-06.mdx`)
+  on why circuits that all "clip" a signal can still sound different
+  (gain stage → diode clipping stage → symmetric/asymmetric →
+  clipping-to-ground vs feedback-loop clipping → fuzz as a family of
+  stronger nonlinearities, not one more notch on a dial), a matching
+  slide deck (`src/decks/week-06.deck.mdx`), and a live "See It / Hear
+  It / Try It" pedal laboratory (`ClippingLab.astro`) with reusable
+  supporting components (`Waveform`, `Spectrum`, `ParamSlider`,
+  `AudioDemo`, `SignalChainStrip`, `TakeawaysList`, `BridgeNav`) and a
+  small audio/DSP library (`src/lib/audio/waveshaping.ts`,
+  `analysis.ts`, `engine.ts`; `src/lib/draw/waveform.ts`,
+  `spectrum.ts`). Why: per the curriculum reference (§8), Week 6 is the
+  first week whose "Suggested Interaction" is substantial enough to be
+  a good first milestone, and the user explicitly approved it as such.
+  The diagrams and the live Web Audio playback are both derived from
+  the same `buildClippingCurve` function, so what the page shows and
+  what it plays always describe the same transformation. Per explicit
+  user direction, no `sessions/week-06` page was created — the lecture
+  page carries both theory and practice — so `spec/assignment-2.test.ts`
+  was rewritten to check week uniqueness/range on the `lectures`
+  collection instead of requiring twelve paired `sessions` entries.
+  Checked: `pnpm check` (typecheck + build + tests) passes cleanly —
+  0 type errors, the build's axe accessibility pass and internal
+  link/base-path checker both report clean, `week-06.deck.mdx` compiles
+  with no structural violations, and all 5 spec tests pass. Also ran
+  the dev server and fetched the built page directly to confirm the lab
+  markup renders at `/lectures/week-06/`, and traced the client script
+  in `ClippingLab.astro` to confirm the `AudioContext` is only ever
+  created inside the play button's click handler (no autoplay). I did
+  not have a browser-automation tool available in this environment to
+  click through the live interaction myself, so a manual look in a
+  real browser is still worth doing before treating this as fully
+  verified.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
