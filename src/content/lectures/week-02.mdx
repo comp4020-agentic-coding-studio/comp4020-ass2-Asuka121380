@@ -1,0 +1,146 @@
+---
+title: "The Vibrating String"
+description:
+  Standing waves, harmonics, and how picking position becomes an early kind
+  of tone shaping
+week: 2
+date: 2027-03-01
+teachers:
+  - idris-fenn
+---
+
+import BenchFrame from "../../components/lab/BenchFrame.astro";
+import BenchBand from "../../components/lab/BenchBand.astro";
+import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
+import StandingWaveDiagram from "../../components/diagrams/StandingWaveDiagram.astro";
+import StringBench from "../../components/lab/StringBench.astro";
+import SignalChainStrip from "../../components/SignalChainStrip.astro";
+import TakeawaysList from "../../components/TakeawaysList.astro";
+
+<BenchFrame week={2} topic="THE STRING">
+
+<BenchBand mode="theory" label="ANALYSIS DESK">
+
+## What determines the frequencies produced by a guitar string before electronics become involved?
+
+<p class="bench-prose">
+Week 1 introduced harmonics as an abstract fact about waveforms. Before any
+pickup or circuit gets involved, a plucked string is already producing a
+fundamental and a series of harmonics on top of it — purely as a matter of
+how a string fixed at both ends is allowed to vibrate.
+</p>
+
+<div class="bench-callout bench-prose">
+
+By the end of this week you should be able to: describe standing waves on a
+fixed string intuitively; distinguish the fundamental frequency from its
+harmonics; explain how length and tension affect fundamental frequency;
+relate fretting to a length change, including the twelfth-fret octave; and
+explain how picking position changes which harmonics a pluck excites.
+
+</div>
+
+<CausalChainStrip
+  steps={["Length & tension", "Standing wave modes", "Harmonic frequencies", "Perceived pitch"]}
+/>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+## Standing waves and the fundamental
+
+<div class="bench-annotated">
+  <StandingWaveDiagram />
+  <p class="bench-prose">
+  A string fixed at both ends can only vibrate in a limited set of shapes —
+  **standing waves** — each with fixed points (**nodes**) that never move and
+  points of maximum motion (**antinodes**) between them. The lowest of these,
+  the **fundamental**, sets the pitch you hear; the higher modes are its
+  **harmonics**. For an idealised string, fₙ = n·f₁ — each harmonic sits at
+  an exact whole-number multiple of the fundamental. Real strings aren't
+  perfectly ideal, so this relationship holds closely but not exactly.
+  </p>
+</div>
+
+<p class="bench-prose">
+The fundamental itself follows f₁ = 1/(2L) · √(T/μ), where L is the
+vibrating length, T is tension, and μ is the string's mass per unit length.
+Shortening the string, tightening it, or using a lighter string all raise
+the fundamental. Fretting a string is exactly a length change — the twelfth
+fret halves the vibrating length, which (holding tension and mass per length
+fixed) doubles the fundamental frequency: an octave up.
+</p>
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Picking position: an early kind of tone shaping
+
+<p class="bench-prose">
+Where a string is plucked doesn't change *which* frequencies are available —
+those are set by length and tension — but it changes how strongly each mode
+gets excited. Picking near the middle of the string favours the fundamental
+and suppresses harmonics that have a node there; picking close to the bridge
+excites a richer set of higher harmonics. This is an early example of
+spectral tone shaping that happens before any electronics are involved at
+all. The spectrum also isn't static after the pluck — it keeps evolving
+through the note's attack and decay, a detail this week only flags rather
+than develops.
+</p>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+<CausalChainStrip compact />
+
+## Try it: a virtual string
+
+<p class="bench-prose">
+Adjust the string's length and tension below and watch the computed
+fundamental frequency change exactly according to f₁ = 1/(2L)·√(T/μ).
+Picking position updates the waveform shape and harmonic-content display
+using the same idealised standing-wave physics — an approximate,
+illustrative model of how strongly a pluck at that position excites each
+harmonic, not a measurement of any real instrument.
+</p>
+
+<StringBench />
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Key takeaways
+
+<TakeawaysList
+  items={[
+    "A string fixed at both ends vibrates only in a limited set of standing-wave modes, with fixed nodes and moving antinodes.",
+    "The lowest mode is the fundamental; for an idealised string, the higher modes (harmonics) sit at whole-number multiples of it.",
+    "Fundamental frequency depends on length, tension, and mass per unit length: f₁ = 1/(2L)·√(T/μ).",
+    "Fretting shortens the vibrating length; the twelfth fret halves it, giving an octave.",
+    "Picking position changes which harmonics a pluck excites most strongly — tone shaping before any electronics.",
+  ]}
+/>
+
+## Where this sits in the signal chain
+
+<SignalChainStrip current="String" />
+
+## Connection to Week 1, and where this goes next
+
+<p class="bench-prose">
+Week 1 introduced harmonics abstractly, comparing waveforms that already
+existed. This week explained their mechanical origin: standing waves on a
+fixed string. But a vibrating string alone only produces mechanical motion —
+nothing electrical yet. Week 3 explains how a magnetic pickup turns that
+motion into the voltage the rest of the signal chain actually works with.
+</p>
+
+<CausalChainStrip compact />
+
+</BenchBand>
+
+</BenchFrame>

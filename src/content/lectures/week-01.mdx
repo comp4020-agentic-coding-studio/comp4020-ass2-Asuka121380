@@ -1,0 +1,165 @@
+---
+title: "What Is Guitar Tone?"
+description:
+  Pitch, loudness, and timbre — and why two guitars can share a note but
+  never sound the same
+week: 1
+date: 2027-02-22
+teachers:
+  - marisol-quaye
+---
+
+import BenchFrame from "../../components/lab/BenchFrame.astro";
+import BenchBand from "../../components/lab/BenchBand.astro";
+import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
+import SignalChainDiagram from "../../components/diagrams/SignalChainDiagram.astro";
+import WaveformFamilyLab from "../../components/lab/WaveformFamilyLab.astro";
+import SignalChainStrip from "../../components/SignalChainStrip.astro";
+import TakeawaysList from "../../components/TakeawaysList.astro";
+
+export const chainStages = [
+  { label: "String", caption: "mechanical vibration begins" },
+  { label: "Pickup", caption: "converts motion to a voltage" },
+  { label: "Electronics", caption: "volume and tone circuitry shape it first" },
+  { label: "Pedals", caption: "optional further shaping" },
+  { label: "Amplifier", caption: "boosts and reshapes the signal again" },
+  { label: "Speaker", caption: "turns the signal back into sound" },
+  { label: "Room", caption: "the sound propagates and reflects" },
+  { label: "Listener", caption: "perceives the result" },
+];
+
+<BenchFrame week={1} topic="TONE">
+
+<BenchBand mode="theory" label="ANALYSIS DESK">
+
+## What do we actually mean when we say that two guitars have different "tone"?
+
+<p class="bench-prose">
+"Tone" gets used loosely — warm, bright, aggressive, muddy. This course
+treats it as an engineering question instead: two signals can share a pitch
+and a loudness and still sound completely different, and that difference has
+a name, a cause, and a measurable signature. This week sets up the vocabulary
+and the signal chain that the rest of the course keeps returning to.
+</p>
+
+<div class="bench-callout bench-prose">
+
+By the end of this week you should be able to: distinguish pitch, loudness,
+and timbre as separate properties of a sound; recognise that different
+waveforms can share a fundamental frequency; read a signal in both the time
+domain and the frequency domain; identify the stages of the guitar signal
+chain; and explain why tone is the product of a whole system, not any single
+component.
+
+</div>
+
+<CausalChainStrip
+  steps={["Physical mechanism", "Signal transformation", "Waveform / spectral consequence", "Audible consequence"]}
+/>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+## Pitch, loudness, and timbre
+
+<p class="bench-prose">
+Three separate properties get bundled together in casual listening. **Pitch**
+is how high or low a note sounds, and corresponds to the fundamental
+frequency of the vibration. **Loudness** is how intense the sound is,
+corresponding to amplitude. **Timbre** is everything else — the property
+that lets you tell a guitar apart from a violin playing the identical pitch
+at the identical loudness.
+</p>
+
+<div class="bench-callout">
+
+Timbre is shaped by several contributors at once: the balance of harmonics in
+the spectrum, transient behaviour at the start of a note (attack), how the
+sound dies away (decay), modulation over time, nonlinear distortion,
+resonances in the instrument and signal chain, and other temporal effects.
+No single number captures it — it is the composite of all of these.
+
+</div>
+
+## Time domain and frequency domain
+
+<p class="bench-prose">
+The same sound can be described two ways. A **time-domain** view — a
+waveform — plots amplitude against time and shows how a signal literally
+moves. A **frequency-domain** view — a spectrum — plots how much energy sits
+at each frequency, and shows what that motion is built from. Neither view is
+more "real" than the other; they're two readings of the same signal, and
+this course moves between them constantly.
+</p>
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## The guitar signal chain
+
+<div class="bench-annotated">
+  <SignalChainDiagram stages={chainStages} />
+  <p class="bench-prose">
+  From the string's first vibration to the sound reaching a listener's ear,
+  a guitar's tone passes through every one of these stages — and every stage
+  can change it. That's why tone is a property of the whole system: the same
+  string and pickup can sound different behind a different set of
+  electronics, pedals, amplifier, speaker, or room, and each week of this
+  course studies one stage of this chain in more depth.
+  </p>
+</div>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+<CausalChainStrip compact />
+
+## Hear it: same pitch, three timbres
+
+<p class="bench-prose">
+Sine, square, and sawtooth waves below all play at exactly the same 220 Hz
+fundamental — the same pitch. Switch between them and look at the waveform
+and spectrum as you listen: the difference you hear is entirely timbre, built
+from a different balance of harmonics above that shared fundamental.
+</p>
+
+<WaveformFamilyLab />
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Key takeaways
+
+<TakeawaysList
+  items={[
+    "Pitch (frequency), loudness (amplitude), and timbre (everything else) are separate properties of a sound.",
+    "Different waveforms can share a fundamental frequency and still sound completely different — that difference is timbre.",
+    "The time domain (waveform) and frequency domain (spectrum) are two views of the same signal, not two different signals.",
+    "The guitar signal chain runs string → pickup → electronics → pedals → amplifier → speaker → room → listener, and every stage can shape tone.",
+    "Tone is a property of the whole system, not any single link in that chain.",
+  ]}
+/>
+
+## Where this sits in the signal chain
+
+<SignalChainStrip current="Player" />
+
+## Connection to previous material, and where this goes next
+
+<p class="bench-prose">
+This week has no previous material to connect to — it's the conceptual
+starting point for the course. It introduced harmonics and spectra in the
+abstract, comparing waveforms that already existed. Week 2 asks where those
+harmonics physically come from in the first place: what happens, mechanically,
+when a guitar string vibrates.
+</p>
+
+<CausalChainStrip compact />
+
+</BenchBand>
+
+</BenchFrame>

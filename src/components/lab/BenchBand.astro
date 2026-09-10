@@ -82,9 +82,10 @@ const { mode, label } = Astro.props;
   }
 
   /* Theory ("analysis desk") bands: warm measurement-paper rather than
-     pure white, using the same square grid geometry (32px) the bench
-     bands draw their scan-grid at, so the two registers share visible
-     DNA instead of one being a plain page and the other a diagram. */
+     pure white. The texture is a sparse dot matrix rather than a full
+     grid — quieter underfoot for reading — sharing its 64px spacing with
+     the bench bands' grid below so the two registers still read as the
+     same measurement geometry, just two different marks on it. */
   .bench-band--theory {
     --at-bg: var(--bench-paper-bg);
     --at-bg-alt: var(--bench-paper-bg-raised);
@@ -99,11 +100,18 @@ const { mode, label } = Astro.props;
     --bench-grid: var(--bench-paper-line);
 
     background-color: var(--bench-paper-bg);
-    background-image:
-      linear-gradient(var(--bench-paper-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--bench-paper-line) 1px, transparent 1px);
-    background-size: 32px 32px;
+    background-image: radial-gradient(var(--bench-paper-dot) 1px, transparent 1.5px);
+    background-size: 64px 64px;
     color: var(--bench-paper-text);
+  }
+
+  /* Fades the dot matrix out directly behind the reading column, so the
+     texture is visible when the page is taken in as a whole but almost
+     gone where the eye is actually reading — a soft radial fade rather
+     than a hard card edge, contained to this box so wide breakouts
+     (e.g. the causal-chain strip) still sit on the full texture. */
+  .bench-band--theory .bench-band-inner {
+    background-image: radial-gradient(ellipse at center, var(--bench-paper-bg) 45%, transparent 92%);
   }
 
   /* A theory band immediately following a bench band fades in from the
@@ -114,10 +122,9 @@ const { mode, label } = Astro.props;
   .bench-band--bench + .bench-band--theory {
     background-image:
       linear-gradient(to bottom, var(--bench-panel-bg), transparent 4rem),
-      linear-gradient(var(--bench-paper-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--bench-paper-line) 1px, transparent 1px);
-    background-size: 100% 4rem, 32px 32px, 32px 32px;
-    background-repeat: no-repeat, repeat, repeat;
+      radial-gradient(var(--bench-paper-dot) 1px, transparent 1.5px);
+    background-size: 100% 4rem, 64px 64px;
+    background-repeat: no-repeat, repeat;
   }
 
   .bench-band--bench {
@@ -136,11 +143,17 @@ const { mode, label } = Astro.props;
     --at-accent: var(--bench-phosphor);
     --bench-grid: var(--bench-scan);
 
+    /* Same grid geometry as before, spaced out (64px, fewer lines) and
+       quieter (--bench-scan-band rather than --bench-scan) so the bench
+       band still reads as an oscilloscope graticule without competing
+       with the text drawn over it. Modules/diagrams keep their own,
+       denser grid (--bench-grid, unchanged) so they still stand out
+       against this calmer backdrop. */
     background-color: var(--bench-panel-bg);
     background-image:
-      linear-gradient(var(--bench-scan) 1px, transparent 1px),
-      linear-gradient(90deg, var(--bench-scan) 1px, transparent 1px);
-    background-size: 32px 32px;
+      linear-gradient(var(--bench-scan-band) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bench-scan-band) 1px, transparent 1px);
+    background-size: 64px 64px;
     color: var(--bench-panel-text);
     box-shadow: inset 0 1px 0 var(--bench-line), inset 0 -1px 0 var(--bench-line);
   }
@@ -151,9 +164,9 @@ const { mode, label } = Astro.props;
   .bench-band--theory + .bench-band--bench {
     background-image:
       linear-gradient(to bottom, var(--bench-paper-bg), transparent 4rem),
-      linear-gradient(var(--bench-scan) 1px, transparent 1px),
-      linear-gradient(90deg, var(--bench-scan) 1px, transparent 1px);
-    background-size: 100% 4rem, 32px 32px, 32px 32px;
+      linear-gradient(var(--bench-scan-band) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bench-scan-band) 1px, transparent 1px);
+    background-size: 100% 4rem, 64px 64px, 64px 64px;
     background-repeat: no-repeat, repeat, repeat;
   }
 </style>

@@ -1,22 +1,33 @@
 ---
-// The 4-stage pedal block diagram: Input -> Gain -> Clipping -> Tone filter
-// -> Output, as connected modules with a flowing signal-path line. Replaces
-// a `text` code block with a real generated diagram of the same idea.
+// A generic connected-modules block diagram with a flowing signal-path
+// line between stages. Originally built for Week 6's 4-stage pedal block
+// (Input -> Gain -> Clipping -> Tone filter -> Output); `stages` defaults
+// to that exact sequence so the existing call site needs no changes, while
+// any week can pass its own sequence (e.g. the full guitar signal chain,
+// or a passive circuit's stages).
 interface Stage {
   label: string;
   caption: string;
 }
 
-const stages: Stage[] = [
+interface Props {
+  stages?: Stage[];
+  ariaLabel?: string;
+}
+
+const defaultStages: Stage[] = [
   { label: "Input", caption: "string signal" },
   { label: "Gain", caption: "amplifies toward the clipping threshold" },
   { label: "Clipping", caption: "the nonlinear element" },
   { label: "Tone filter", caption: "shapes the new harmonics" },
   { label: "Output", caption: "to the rest of the rig" },
 ];
+
+const { stages = defaultStages, ariaLabel } = Astro.props;
+const label = ariaLabel ?? `Signal chain: ${stages.map((s) => s.label).join(", then ")}.`;
 ---
 
-<div class="signal-chain bench-module" role="img" aria-label="Signal chain: Input, then Gain, then Clipping, then Tone filter, then Output.">
+<div class="signal-chain bench-module" role="img" aria-label={label}>
   {stages.map((stage, index) => (
     <>
       <div class="chain-stage">

@@ -1,0 +1,213 @@
+---
+// Week 2 "Try It": a virtual string. Length and tension drive the
+// idealised f1 = (1/2L)*sqrt(T/mu) formula from SLOP2186.md directly, so
+// the frequency readout is exact for the values shown, not a fitted curve.
+// Picking position drives the harmonic-weight formula instead (see
+// analysis.ts's pluckHarmonicWeights) — it changes what you SEE (the
+// harmonic bars and waveform shape), not what plays, which stays a fixed
+// Karplus-Strong pluck at the computed pitch. Real picking position does
+// audibly change timbre too, but modelling that live would mean inventing
+// an un-sourced position-dependent synthesis rule; the static visual
+// carries that idea honestly instead.
+import AudioDemo from "../AudioDemo.astro";
+import Spectrum from "../Spectrum.astro";
+import Waveform from "../Waveform.astro";
+import Knob from "./Knob.astro";
+import { harmonicSeriesCycle, pluckHarmonicWeights } from "../../lib/audio/analysis";
+
+const DEFAULT_LENGTH_CM = 64.8;
+const DEFAULT_TENSION_N = 75;
+const DEFAULT_POSITION = 0.15;
+
+const defaultWeights = pluckHarmonicWeights(DEFAULT_POSITION);
+const defaultCycle = harmonicSeriesCycle(defaultWeights);
+---
+
+<div class="string-bench bench-module" id="string-bench">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 String Bench</span>
+    <span class="bench-eyebrow">Illustrative parameters for a typical steel string — not a measured instrument</span>
+  </div>
+
+  <div class="lab-controls">
+    <Knob id="string-length" label="Vibrating length" min={40} max={65} step={0.5} value={DEFAULT_LENGTH_CM} unit=" cm" />
+    <Knob id="string-tension" label="Tension" min={40} max={100} step={1} value={DEFAULT_TENSION_N} unit=" N" />
+    <Knob id="string-position" label="Picking position" min={0.05} max={0.5} step={0.01} value={DEFAULT_POSITION} unit=" × L" />
+  </div>
+
+  <p class="frequency-readout">Fundamental: <output id="string-frequency">112.9</output> Hz</p>
+
+  <div class="displays">
+    <Waveform id="string-waveform" label="Resulting waveform shape" samples={Array.from(defaultCycle)} strokeVar="--bench-phosphor" />
+    <Spectrum id="string-spectrum" label="Relative harmonic content" magnitudes={Array.from(defaultWeights)} fillVar="--bench-phosphor" />
+  </div>
+
+  <AudioDemo id="string-audio" label="Play pluck" />
+  <p class="bench-scope-note">Length and tension change the pitch you hear. Picking position changes only the diagrams above — the live pluck doesn't model its effect on timbre.</p>
+</div>
+
+<script>
+  import { harmonicSeriesCycle, pluckHarmonicWeights } from "../../lib/audio/analysis";
+  import { renderPluckedString } from "../../lib/audio/pluckedString";
+  import { drawSpectrum } from "../../lib/draw/spectrum";
+  import { drawWaveform } from "../../lib/draw/waveform";
+
+  const root = document.getElementById("string-bench");
+  if (root) {
+    const lengthInput = document.getElementById("string-length") as HTMLInputElement;
+    const tensionInput = document.getElementById("string-tension") as HTMLInputElement;
+    const positionInput = document.getElementById("string-position") as HTMLInputElement;
+    const frequencyOutput = document.getElementById("string-frequency");
+    const waveformCanvas = document.getElementById("string-waveform") as HTMLCanvasElement;
+    const spectrumCanvas = document.getElementById("string-spectrum") as HTMLCanvasElement;
+    const toggle = document.getElementById("string-audio-toggle") as HTMLButtonElement;
+
+    const styles = getComputedStyle(root);
+    const trace = styles.getPropertyValue("--bench-phosphor").trim() || "#e2b13c";
+    const gridColor = styles.getPropertyValue("--bench-line").trim();
+    const labelColor = styles.getPropertyValue("--bench-panel-text-secondary").trim();
+
+    // A representative linear density for a wound steel guitar string —
+    // illustrative, not a measured product spec.
+    const LINEAR_DENSITY_KG_PER_M = 0.0035;
+    const OUTPUT_GAIN = 0.35;
+
+    let context: AudioContext | null = null;
+    let source: AudioBufferSourceNode | null = null;
+
+    function fundamentalHz(): number {
+      const lengthM = Number(lengthInput.value) / 100;
+      const tensionN = Number(tensionInput.value);
+      return (1 / (2 * lengthM)) * Math.sqrt(tensionN / LINEAR_DENSITY_KG_PER_M);
+    }
+
+    function stopAudio(): void {
+      source?.stop();
+      source = null;
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("string-audio", false);
+    }
+
+    function redraw(): void {
+      const frequency = fundamentalHz();
+      if (frequencyOutput) frequencyOutput.textContent = frequency.toFixed(1);
+
+      const position = Number(positionInput.value);
+      const weights = pluckHarmonicWeights(position);
+      const cycle = harmonicSeriesCycle(weights);
+
+      const waveformCtx = waveformCanvas.getContext("2d");
+      if (waveformCtx)
+        drawWaveform(waveformCtx, cycle, {
+          stroke: trace,
+          background: "transparent",
+          gridColor,
+          labelColor,
+        });
+
+      const spectrumCtx = spectrumCanvas.getContext("2d");
+      if (spectrumCtx)
+        drawSpectrum(spectrumCtx, weights, {
+          fill: trace,
+          background: "transparent",
+          gridColor,
+          labelColor,
+        });
+    }
+
+    [lengthInput, tensionInput, positionInput].forEach((input) =>
+      input.addEventListener("input", redraw),
+    );
+
+    toggle.addEventListener("click", () => {
+      if (source) {
+        stopAudio();
+        return;
+      }
+      context = context ?? new AudioContext();
+      const samples = renderPluckedString({
+        sampleRate: context.sampleRate,
+        frequency: fundamentalHz(),
+        durationSeconds: 1.4,
+      });
+      const buffer = context.createBuffer(1, samples.length, context.sampleRate);
+      buffer.copyToChannel(Float32Array.from(samples), 0);
+
+      const gain = context.createGain();
+      gain.gain.value = OUTPUT_GAIN;
+
+      source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(gain);
+      gain.connect(context.destination);
+      source.onended = () => {
+        source = null;
+        (
+          window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+        ).setAudioDemoState?.("string-audio", false);
+      };
+      source.start();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("string-audio", true);
+    });
+
+    redraw();
+  }
+</script>
+
+<style>
+  .string-bench {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .lab-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.75rem;
+  }
+
+  .frequency-readout {
+    text-align: center;
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-lg, 1.1rem);
+    color: var(--at-heading);
+    margin: 0;
+  }
+
+  .displays {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .displays {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

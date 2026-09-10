@@ -1,0 +1,206 @@
+---
+// Week 3 "Try It": drag a virtual pickup along the string (position 0 =
+// bridge, 0.5 = exact middle) and watch its harmonic sensitivity change,
+// via analysis.ts's pickupHarmonicWeights — the same standing-wave mode
+// shape as Week 2's StringBench, applied to sensing rather than exciting.
+// The Neck/Bridge footswitches snap the knob to a representative position
+// AND switch a simple two-preset fixed-EQ audio approximation — per
+// SLOP2186.md, "the purpose is conceptual comparison, not accurate
+// emulation," so audio stays a fixed two-preset approximation rather than a
+// continuously filtered signal.
+import AudioDemo from "../AudioDemo.astro";
+import Spectrum from "../Spectrum.astro";
+import Waveform from "../Waveform.astro";
+import FootswitchGroup from "./FootswitchGroup.astro";
+import Knob from "./Knob.astro";
+import { harmonicSeriesCycle, pickupHarmonicWeights } from "../../lib/audio/analysis";
+
+const NECK_POSITION = 0.32;
+const BRIDGE_POSITION = 0.08;
+const DEFAULT_POSITION = NECK_POSITION;
+
+const presetOptions = [
+  { value: "neck", label: "Neck" },
+  { value: "bridge", label: "Bridge" },
+];
+
+const defaultWeights = pickupHarmonicWeights(DEFAULT_POSITION);
+const defaultCycle = harmonicSeriesCycle(defaultWeights);
+---
+
+<div class="pickup-bench bench-module" id="pickup-bench" data-neck-position={NECK_POSITION} data-bridge-position={BRIDGE_POSITION}>
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Pickup Bench</span>
+    <FootswitchGroup name="pickup-preset" legend="Preset" options={presetOptions} selected="neck" />
+  </div>
+
+  <Knob id="pickup-position" label="Pickup position (0 = bridge, 0.5 = middle)" min={0.03} max={0.5} step={0.01} value={DEFAULT_POSITION} unit=" × L" />
+
+  <div class="displays">
+    <Waveform id="pickup-waveform" label="Sensed waveform shape" samples={Array.from(defaultCycle)} strokeVar="--bench-phosphor" />
+    <Spectrum id="pickup-spectrum" label="Relative harmonic sensitivity" magnitudes={Array.from(defaultWeights)} fillVar="--bench-phosphor" />
+  </div>
+
+  <AudioDemo id="pickup-audio" label="Play preset" />
+  <p class="bench-scope-note">The Neck/Bridge sound is a fixed two-preset EQ approximation, not a live filter following the knob — a conceptual comparison, not an accurate pickup emulation.</p>
+</div>
+
+<script>
+  import { harmonicSeriesCycle, pickupHarmonicWeights } from "../../lib/audio/analysis";
+  import { renderPluckedString } from "../../lib/audio/pluckedString";
+  import { drawSpectrum } from "../../lib/draw/spectrum";
+  import { drawWaveform } from "../../lib/draw/waveform";
+
+  const root = document.getElementById("pickup-bench");
+  if (root) {
+    const positionInput = document.getElementById("pickup-position") as HTMLInputElement;
+    const presetRadios = Array.from(
+      root.querySelectorAll<HTMLInputElement>('input[name="pickup-preset"]'),
+    );
+    const waveformCanvas = document.getElementById("pickup-waveform") as HTMLCanvasElement;
+    const spectrumCanvas = document.getElementById("pickup-spectrum") as HTMLCanvasElement;
+    const toggle = document.getElementById("pickup-audio-toggle") as HTMLButtonElement;
+
+    const styles = getComputedStyle(root);
+    const trace = styles.getPropertyValue("--bench-phosphor").trim() || "#e2b13c";
+    const gridColor = styles.getPropertyValue("--bench-line").trim();
+    const labelColor = styles.getPropertyValue("--bench-panel-text-secondary").trim();
+
+    const neckPosition = Number(root.dataset.neckPosition ?? "0.32");
+    const bridgePosition = Number(root.dataset.bridgePosition ?? "0.08");
+    const OUTPUT_GAIN = 0.35;
+
+    let context: AudioContext | null = null;
+    let source: AudioBufferSourceNode | null = null;
+    let filter: BiquadFilterNode | null = null;
+
+    function currentPreset(): "neck" | "bridge" {
+      return (presetRadios.find((radio) => radio.checked)?.value ?? "neck") as "neck" | "bridge";
+    }
+
+    function stopAudio(): void {
+      source?.stop();
+      source = null;
+      filter = null;
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("pickup-audio", false);
+    }
+
+    function redraw(): void {
+      const position = Number(positionInput.value);
+      const weights = pickupHarmonicWeights(position);
+      const cycle = harmonicSeriesCycle(weights);
+
+      const waveformCtx = waveformCanvas.getContext("2d");
+      if (waveformCtx)
+        drawWaveform(waveformCtx, cycle, {
+          stroke: trace,
+          background: "transparent",
+          gridColor,
+          labelColor,
+        });
+
+      const spectrumCtx = spectrumCanvas.getContext("2d");
+      if (spectrumCtx)
+        drawSpectrum(spectrumCtx, weights, {
+          fill: trace,
+          background: "transparent",
+          gridColor,
+          labelColor,
+        });
+    }
+
+    positionInput.addEventListener("input", redraw);
+
+    presetRadios.forEach((radio) =>
+      radio.addEventListener("change", () => {
+        positionInput.value = String(radio.value === "neck" ? neckPosition : bridgePosition);
+        positionInput.dispatchEvent(new Event("input"));
+        if (filter) filter.frequency.value = radio.value === "neck" ? 1600 : 5200;
+      }),
+    );
+
+    toggle.addEventListener("click", () => {
+      if (source) {
+        stopAudio();
+        return;
+      }
+      context = context ?? new AudioContext();
+      const samples = renderPluckedString({
+        sampleRate: context.sampleRate,
+        frequency: 110,
+        durationSeconds: 1.4,
+      });
+      const buffer = context.createBuffer(1, samples.length, context.sampleRate);
+      buffer.copyToChannel(Float32Array.from(samples), 0);
+
+      filter = context.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = currentPreset() === "neck" ? 1600 : 5200;
+      filter.Q.value = 0.7;
+
+      const gain = context.createGain();
+      gain.gain.value = OUTPUT_GAIN;
+
+      source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(context.destination);
+      source.onended = () => {
+        source = null;
+        filter = null;
+        (
+          window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+        ).setAudioDemoState?.("pickup-audio", false);
+      };
+      source.start();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("pickup-audio", true);
+    });
+
+    redraw();
+  }
+</script>
+
+<style>
+  .pickup-bench {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .displays {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .displays {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

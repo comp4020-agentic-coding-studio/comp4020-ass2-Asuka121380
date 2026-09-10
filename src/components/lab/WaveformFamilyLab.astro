@@ -1,0 +1,184 @@
+---
+// Week 1 "Hear It": the same pitch, three waveform families. Selecting
+// sine/square/sawtooth plays a native OscillatorNode at a single fixed
+// frequency, so the comparison is exact — whatever changes is timbre
+// (harmonic content, shown in the paired displays below), never pitch.
+import AudioDemo from "../AudioDemo.astro";
+import Spectrum from "../Spectrum.astro";
+import Waveform from "../Waveform.astro";
+import FootswitchGroup from "./FootswitchGroup.astro";
+import { magnitudeSpectrum, sawtoothCycle, sineCycle, squareCycle } from "../../lib/audio/analysis";
+
+const DEFAULT_WAVEFORM = "sine";
+
+const cycles: Record<string, Float64Array> = {
+  sine: sineCycle(256),
+  square: squareCycle(256),
+  sawtooth: sawtoothCycle(256),
+};
+
+const waveformOptions = [
+  { value: "sine", label: "Sine" },
+  { value: "square", label: "Square" },
+  { value: "sawtooth", label: "Sawtooth" },
+];
+
+const defaultSamples = cycles[DEFAULT_WAVEFORM];
+const defaultSpectrum = magnitudeSpectrum(defaultSamples);
+---
+
+<div class="waveform-lab bench-module" id="waveform-lab">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Waveform Bench</span>
+    <FootswitchGroup name="lab-waveform" legend="Waveform family" options={waveformOptions} selected={DEFAULT_WAVEFORM} />
+  </div>
+
+  <div class="lab-body">
+    <div class="displays">
+      <Waveform id="lab-waveform-display" label="One cycle" samples={Array.from(defaultSamples)} strokeVar="--bench-phosphor" />
+      <Spectrum id="lab-spectrum-display" label="Harmonic spectrum" magnitudes={Array.from(defaultSpectrum)} fillVar="--bench-phosphor" />
+    </div>
+    <AudioDemo id="lab-audio" label="Play at 220 Hz" />
+    <p class="bench-scope-note">All three waveforms play at exactly the same 220 Hz fundamental. Whatever difference you hear is timbre, not pitch — the harmonic content shown above.</p>
+  </div>
+</div>
+
+<script>
+  import { magnitudeSpectrum, sawtoothCycle, sineCycle, squareCycle } from "../../lib/audio/analysis";
+  import { drawSpectrum } from "../../lib/draw/spectrum";
+  import { drawWaveform } from "../../lib/draw/waveform";
+
+  const root = document.getElementById("waveform-lab");
+  if (root) {
+    const waveformRadios = Array.from(
+      root.querySelectorAll<HTMLInputElement>('input[name="lab-waveform"]'),
+    );
+    const waveformCanvas = document.getElementById("lab-waveform-display") as HTMLCanvasElement;
+    const spectrumCanvas = document.getElementById("lab-spectrum-display") as HTMLCanvasElement;
+    const toggle = document.getElementById("lab-audio-toggle") as HTMLButtonElement;
+
+    const styles = getComputedStyle(root);
+    const trace = styles.getPropertyValue("--bench-phosphor").trim() || "#e2b13c";
+    const gridColor = styles.getPropertyValue("--bench-line").trim();
+    const labelColor = styles.getPropertyValue("--bench-panel-text-secondary").trim();
+
+    const FREQUENCY = 220;
+    const OUTPUT_GAIN = 0.2;
+
+    const cycles: Record<string, () => Float64Array> = {
+      sine: () => sineCycle(256),
+      square: () => squareCycle(256),
+      sawtooth: () => sawtoothCycle(256),
+    };
+
+    let context: AudioContext | null = null;
+    let oscillator: OscillatorNode | null = null;
+
+    function currentWaveform(): OscillatorType {
+      return (waveformRadios.find((radio) => radio.checked)?.value ?? "sine") as OscillatorType;
+    }
+
+    function stopAudio(): void {
+      oscillator?.stop();
+      oscillator = null;
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("lab-audio", false);
+    }
+
+    function redraw(): void {
+      const waveform = currentWaveform();
+      const samples = cycles[waveform]();
+      const spectrum = magnitudeSpectrum(samples);
+
+      const waveformCtx = waveformCanvas.getContext("2d");
+      if (waveformCtx)
+        drawWaveform(waveformCtx, samples, {
+          stroke: trace,
+          background: "transparent",
+          gridColor,
+          labelColor,
+        });
+
+      const spectrumCtx = spectrumCanvas.getContext("2d");
+      if (spectrumCtx)
+        drawSpectrum(spectrumCtx, spectrum, {
+          fill: trace,
+          background: "transparent",
+          gridColor,
+          labelColor,
+        });
+
+      if (oscillator) oscillator.type = waveform;
+    }
+
+    waveformRadios.forEach((radio) => radio.addEventListener("change", redraw));
+
+    toggle.addEventListener("click", () => {
+      if (oscillator) {
+        stopAudio();
+        return;
+      }
+      context = context ?? new AudioContext();
+      const gain = context.createGain();
+      gain.gain.value = OUTPUT_GAIN;
+      oscillator = context.createOscillator();
+      oscillator.type = currentWaveform();
+      oscillator.frequency.value = FREQUENCY;
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("lab-audio", true);
+    });
+
+    redraw();
+  }
+</script>
+
+<style>
+  .waveform-lab {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .lab-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .displays {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .displays {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

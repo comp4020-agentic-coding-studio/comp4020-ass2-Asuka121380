@@ -1,0 +1,161 @@
+---
+title: "The Guitar Is a Circuit"
+description:
+  Why passive resistors, potentiometers, and capacitors inside the guitar
+  already start shaping tone before any pedal
+week: 4
+date: 2027-03-15
+teachers:
+  - idris-fenn
+---
+
+import BenchFrame from "../../components/lab/BenchFrame.astro";
+import BenchBand from "../../components/lab/BenchBand.astro";
+import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
+import SignalChainDiagram from "../../components/diagrams/SignalChainDiagram.astro";
+import PotentiometerDiagram from "../../components/diagrams/PotentiometerDiagram.astro";
+import ToneControlBench from "../../components/lab/ToneControlBench.astro";
+import SignalChainStrip from "../../components/SignalChainStrip.astro";
+import TakeawaysList from "../../components/TakeawaysList.astro";
+
+export const circuitStages = [
+  { label: "Pickup", caption: "the voltage source" },
+  { label: "Volume pot", caption: "a variable divider to ground" },
+  { label: "Tone control", caption: "a variable RC low-pass" },
+  { label: "Cable", caption: "adds its own capacitance" },
+  { label: "Amp input", caption: "sees whatever survives the trip" },
+];
+
+<BenchFrame week={4} topic="THE CIRCUIT">
+
+<BenchBand mode="theory" label="ANALYSIS DESK">
+
+## Why can passive components inside a guitar significantly change its tone?
+
+<p class="bench-prose">
+Week 3 produced a voltage at the pickup. That voltage doesn't reach the
+amplifier untouched — inside the guitar, and along the cable to the amp, it
+passes through resistors, potentiometers, and capacitors that are entirely
+passive (no power supply, no amplification) yet still measurably reshape the
+signal's frequency content before anything resembling a pedal is involved.
+</p>
+
+<div class="bench-callout bench-prose">
+
+By the end of this week you should be able to: identify resistors,
+potentiometers, and capacitors in a simplified guitar circuit; describe what
+volume and tone controls actually do; explain, qualitatively, how resistance
+and capacitance combine into a filter; relate cable capacitance to
+high-frequency response; and read a simple frequency-response curve.
+
+</div>
+
+<CausalChainStrip
+  steps={["Resistance & capacitance", "RC low-pass filtering", "Frequency response", "Filtered tone"]}
+/>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+## Inside a simplified passive circuit
+
+<div class="bench-annotated">
+  <SignalChainDiagram stages={circuitStages} />
+  <p class="bench-prose">
+  The pickup behaves like a voltage source feeding a chain of passive parts.
+  A **potentiometer** is a variable resistor: as a **volume control**, it's
+  wired to send a variable fraction of the signal to ground instead of
+  onward, turning the pot down sends proportionally more away. The
+  **tone control** uses a potentiometer differently — as a variable
+  resistance in series with a fixed **capacitor** to ground. A capacitor's
+  impedance falls as frequency rises, so more of the signal's high-frequency
+  content gets diverted to ground as that resistance changes.
+  </p>
+</div>
+
+### The tone control as an RC low-pass
+
+<div class="bench-annotated">
+  <PotentiometerDiagram />
+  <p class="bench-prose">
+  Together, the tone pot's resistance and the fixed capacitor form a
+  **low-pass filter**, with cutoff frequency f_c = 1/(2πRC): a larger
+  resistance or a larger capacitance both lower the cutoff, removing more of
+  the high end. This is exactly why a passive tone control isn't simply a
+  volume control for treble — it selectively removes high-frequency energy
+  above the cutoff rather than turning everything down equally.
+  </p>
+</div>
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Pickup and cable interaction, and buffers
+
+<p class="bench-prose">
+A pickup isn't an ideal voltage source — its own construction gives it a
+non-negligible source impedance, and the instrument cable connecting it to
+the amplifier adds its own capacitance in the process. That cable
+capacitance, combined with the guitar's and amp's input impedance, forms
+another low-pass effect: a longer or higher-capacitance cable can measurably
+soften the signal's high end before the amplifier ever sees it. A **buffer**
+— briefly, an active stage placed early in the signal path — reduces this
+interaction between a high-impedance source and whatever comes after it,
+without needing this week's circuit analysis to go any deeper.
+</p>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+<CausalChainStrip compact />
+
+## Try it: the tone-control simulator
+
+<p class="bench-prose">
+Adjust the pot's resistance, the tone capacitor, and the cable capacitance
+below and watch the combined frequency-response curve and its cutoff
+frequency update — computed directly from f_c = 1/(2πRC), with cable
+capacitance folded in as extra capacitance alongside the tone capacitor.
+</p>
+
+<ToneControlBench />
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Key takeaways
+
+<TakeawaysList
+  items={[
+    "A potentiometer is a variable resistor — used as a volume control (a variable divider to ground) or, differently, as part of a tone control.",
+    "A capacitor's impedance falls with frequency, so pairing one with a resistor makes a filter, not just an attenuator.",
+    "A passive tone control is a variable RC low-pass: f_c = 1/(2πRC), with larger R or C lowering the cutoff and removing more high end.",
+    "A pickup's source impedance and a cable's capacitance interact to form another, unintentional low-pass effect.",
+    "A buffer reduces the interaction between a high-impedance source and the stages that follow it.",
+  ]}
+/>
+
+## Where this sits in the signal chain
+
+<SignalChainStrip current="Circuit" />
+
+## Connection to Week 3, and where this goes next
+
+<p class="bench-prose">
+Week 3 created the electrical signal at the pickup. This week showed that the
+signal is already being filtered — by volume and tone controls, and by cable
+capacitance — before it reaches any pedal at all. So far, every stage covered
+has been linear: it reshapes frequency content, but it doesn't add anything
+that wasn't already there. Week 5 introduces gain, and the point at which
+amplification stops being linear.
+</p>
+
+<CausalChainStrip compact />
+
+</BenchBand>
+
+</BenchFrame>

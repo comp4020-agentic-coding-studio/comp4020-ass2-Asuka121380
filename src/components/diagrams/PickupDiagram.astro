@@ -1,0 +1,159 @@
+---
+// Week 3 "See It": a magnetic pickup's structure (magnet, pole piece, coil,
+// ferromagnetic string), and a simple two-frame sketch of why string motion
+// induces a voltage — flux through the coil changes as the string moves
+// closer to and further from the pole piece. Conceptual line sketches, not
+// an accurate field simulation, matching CLAUDE.md's "avoid excessive
+// electromagnetic theory" guidance for this week.
+---
+
+<div class="pickup-diagrams">
+  <figure class="pickup-card bench-module">
+    <svg viewBox="0 0 160 100" role="img" aria-label="Cross section of a magnetic pickup: a ferromagnetic string above a pole piece, a coil of wire wound around the pole piece, and a permanent magnet beneath it.">
+      <line x1="10" y1="18" x2="150" y2="18" class="string" />
+      <circle cx="80" cy="18" r="2.5" class="string-dot" />
+      <rect x="70" y="30" width="20" height="34" class="pole-piece" />
+      <rect x="50" y="34" width="60" height="26" rx="4" class="coil" />
+      <path d="M 54 34 L 54 60 M 60 34 L 60 60 M 106 34 L 106 60 M 100 34 L 100 60" class="coil-hatch" />
+      <rect x="45" y="64" width="70" height="18" class="magnet" />
+      <text x="80" y="10" class="part-label" text-anchor="middle">ferromagnetic string</text>
+      <text x="118" y="50" class="part-label">coil</text>
+      <text x="118" y="76" class="part-label">magnet</text>
+      <text x="94" y="50" class="part-label part-label--pole">pole piece</text>
+    </svg>
+    <figcaption>
+      <span class="pickup-label">Pickup structure</span>
+      <span class="pickup-description">A permanent magnet, one or more pole pieces, and a coil of wire, positioned under a string that itself needs to be ferromagnetic to interact with the field.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="pickup-card bench-module">
+    <svg viewBox="0 0 200 100" role="img" aria-label="Two frames showing the string at rest and displaced toward the pole piece: as the string moves, the magnetic flux through the coil changes, and that change induces a voltage.">
+      <g>
+        <line x1="6" y1="20" x2="86" y2="20" class="string" />
+        <line x1="6" y1="20" x2="86" y2="20" class="string-rest" stroke-dasharray="2 3" />
+        <rect x="38" y="34" width="16" height="26" class="pole-piece" />
+        <rect x="24" y="64" width="44" height="14" class="magnet" />
+        <text x="46" y="10" class="part-label" text-anchor="middle">string at rest</text>
+      </g>
+      <svg x="90" y="0" width="20" height="100" viewBox="0 0 20 100">
+        <line x1="2" y1="50" x2="18" y2="50" class="wire" />
+        <path d="M 11 44 L 18 50 L 11 56" fill="none" class="wire" />
+      </svg>
+      <g transform="translate(114, 0)">
+        <line x1="6" y1="20" x2="86" y2="20" class="string-rest" stroke-dasharray="2 3" />
+        <line x1="6" y1="30" x2="86" y2="30" class="string" />
+        <rect x="38" y="34" width="16" height="26" class="pole-piece" />
+        <rect x="24" y="64" width="44" height="14" class="magnet" />
+        <path d="M 30 30 Q 46 40 62 30" class="flux-line" fill="none" />
+        <text x="46" y="10" class="part-label" text-anchor="middle">string displaced</text>
+      </g>
+    </svg>
+    <figcaption>
+      <span class="pickup-label">Motion induces a voltage</span>
+      <span class="pickup-description">As the string moves nearer to and further from the pole piece, the magnetic flux through the coil changes — a changing flux is what induces the electrical signal, not the string's position by itself.</span>
+    </figcaption>
+  </figure>
+</div>
+
+<style>
+  .pickup-diagrams {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1rem;
+  }
+
+  .pickup-card {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .pickup-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .string {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 2;
+  }
+
+  .string-dot {
+    fill: var(--bench-phosphor, var(--at-accent));
+  }
+
+  .string-rest {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+    fill: none;
+  }
+
+  .pole-piece {
+    fill: var(--at-bg);
+    stroke: var(--at-text-secondary);
+    stroke-width: 1.5;
+  }
+
+  .coil {
+    fill: none;
+    stroke: var(--at-accent);
+    stroke-width: 1.5;
+  }
+
+  .coil-hatch {
+    stroke: var(--at-accent);
+    stroke-width: 1;
+    opacity: 0.6;
+  }
+
+  .magnet {
+    fill: var(--at-bg-alt);
+    stroke: var(--at-text-secondary);
+    stroke-width: 1.5;
+  }
+
+  .wire {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1.5;
+    fill: none;
+  }
+
+  .flux-line {
+    stroke: var(--at-accent);
+    stroke-width: 1.5;
+    stroke-dasharray: 2 2;
+  }
+
+  .part-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .part-label--pole {
+    fill: var(--at-text-secondary);
+  }
+
+  figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .pickup-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--at-text);
+  }
+
+  .pickup-description {
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    line-height: 1.35;
+  }
+</style>

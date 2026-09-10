@@ -4,17 +4,19 @@
 // the explicit bridge from theory into the interactive piece.
 interface Props {
   compact?: boolean;
+  steps?: string[];
 }
 
-const { compact = false } = Astro.props;
-
-const steps = [
-  "Clipping topology",
-  "Transfer curve",
-  "Waveform shape",
-  "Harmonic spectrum",
-  "Audible result",
-];
+const {
+  compact = false,
+  steps = [
+    "Clipping topology",
+    "Transfer curve",
+    "Waveform shape",
+    "Harmonic spectrum",
+    "Audible result",
+  ],
+} = Astro.props;
 ---
 
 <div class:list={["bench-wide", "causal-chain", { "causal-chain--compact": compact }]} role="img" aria-label={`Causal chain: ${steps.join(" leads to ")}.`}>

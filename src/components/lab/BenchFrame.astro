@@ -1,14 +1,24 @@
 ---
-// Shared visual language for Week 6: a "test bench" reading built from the
-// site's existing --at-* tokens plus one new scoped palette (below), so
-// nothing here leaks into other weeks. Wrap a lecture page's body in this
-// once; every other Week 6 component assumes these classes/tokens exist.
+// Shared visual language for the "Bench & Booth" register, introduced for
+// Week 6 and reused course-wide: a "test bench" reading built from the
+// site's existing --at-* tokens plus one new scoped palette (below). Wrap a
+// lecture page's body in this once; every BenchBand/lab/diagram component
+// assumes these classes/tokens exist. `week` and `topic` drive the status
+// strip's "SLOP2186 · WK06 · NONLINEARITY" readout — defaulted to Week 6's
+// original values so that page needs no prop changes.
+interface Props {
+  week?: number;
+  topic?: string;
+}
+
+const { week = 6, topic = "NONLINEARITY" } = Astro.props;
+const weekCode = `WK${String(week).padStart(2, "0")}`;
 ---
 
 <div class="bench-frame">
   <div class="bench-status-strip" role="note" aria-label="Course and week identifier">
     <span class="status-dot" aria-hidden="true"></span>
-    <span>SLOP2186</span><span class="status-sep" aria-hidden="true">·</span><span>WK06</span><span class="status-sep" aria-hidden="true">·</span><span>NONLINEARITY</span>
+    <span>SLOP2186</span><span class="status-sep" aria-hidden="true">·</span><span>{weekCode}</span><span class="status-sep" aria-hidden="true">·</span><span>{topic}</span>
   </div>
   <slot />
 </div>
@@ -41,6 +51,14 @@
     --bench-paper-text: oklch(26% 0.018 70);
     --bench-paper-text-secondary: oklch(26% 0.018 70 / 68%);
     --bench-phosphor-ink: oklch(40% 0.09 174);
+
+    /* Quiet section-background textures, distinct from --bench-paper-line/
+       --bench-scan (which stay unchanged — modules, diagram axes and
+       borders still read at their original strength). These are only for
+       the full-bleed band background itself, which needed to get quieter
+       without touching anything drawn on top of it. */
+    --bench-paper-dot: oklch(45% 0.03 200 / 13%);
+    --bench-scan-band: oklch(60% 0.03 200 / 9%);
 
     /* Corrects the classic 100vw-breakout bug: 100vw includes the browser's
        vertical scrollbar, but the actual visible viewport (and any 100%-wide

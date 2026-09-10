@@ -1,0 +1,265 @@
+---
+// Week 4 "Try It": a passive tone control as a single combined RC low-pass.
+// Resistance/capacitance/cable-capacitance controls feed filters.ts's exact
+// f_c = 1/(2*pi*R*C) and single-pole magnitude response — the same simplified
+// model the reference doc scopes this week to (no pickup inductance, no
+// resonant peaking). Cable capacitance is folded in as extra capacitance in
+// parallel with the tone capacitor: a teaching simplification of two
+// contributions that interact somewhat differently in a real circuit, stated
+// plainly in the scope note below rather than left implicit.
+import AudioDemo from "../AudioDemo.astro";
+import Knob from "./Knob.astro";
+import { cutoffFrequency, lowpassMagnitudeResponse, logFrequencyAxis } from "../../lib/audio/filters";
+
+const DEFAULT_RESISTANCE_KOHM = 250;
+const DEFAULT_CAPACITANCE_UF = 0.022;
+const DEFAULT_CABLE_PF = 300;
+
+const MIN_HZ = 20;
+const MAX_HZ = 20000;
+const FREQ_COUNT = 100;
+
+const PLOT_LEFT = 24;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 10;
+const PLOT_BOTTOM = 96;
+
+function xForFrequency(hz: number): number {
+  const t = (Math.log10(hz) - Math.log10(MIN_HZ)) / (Math.log10(MAX_HZ) - Math.log10(MIN_HZ));
+  return PLOT_LEFT + t * (PLOT_RIGHT - PLOT_LEFT);
+}
+
+function responsePath(freqs: ArrayLike<number>, response: ArrayLike<number>): string {
+  let d = "";
+  for (let i = 0; i < freqs.length; i++) {
+    const x = PLOT_LEFT + (i / (freqs.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+    const y = PLOT_BOTTOM - response[i] * (PLOT_BOTTOM - PLOT_TOP);
+    d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+  }
+  return d.trim();
+}
+
+const defaultFreqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+const defaultOhms = DEFAULT_RESISTANCE_KOHM * 1000;
+const defaultFarads = DEFAULT_CAPACITANCE_UF * 1e-6 + DEFAULT_CABLE_PF * 1e-12;
+const defaultCutoff = cutoffFrequency(defaultOhms, defaultFarads);
+const defaultResponse = lowpassMagnitudeResponse(defaultFreqs, defaultCutoff);
+const defaultPath = responsePath(defaultFreqs, defaultResponse);
+
+const ticks = [100, 1000, 10000];
+---
+
+<div class="tone-bench bench-module" id="tone-control-bench">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Tone Bench</span>
+    <p class="cutoff-readout">Cutoff: <output id="tone-cutoff">{defaultCutoff.toFixed(0)}</output> Hz</p>
+  </div>
+
+  <div class="lab-controls">
+    <Knob id="tone-resistance" label="Pot resistance" min={10} max={500} step={10} value={DEFAULT_RESISTANCE_KOHM} unit=" kΩ" />
+    <Knob id="tone-capacitance" label="Tone capacitor" min={0.01} max={0.1} step={0.005} value={DEFAULT_CAPACITANCE_UF} unit=" µF" />
+    <Knob id="tone-cable" label="Cable capacitance" min={100} max={1000} step={50} value={DEFAULT_CABLE_PF} unit=" pF" />
+  </div>
+
+  <div class="response-plot" role="img" aria-label="Frequency response of the combined tone-control low-pass, from 20 Hz to 20 kHz, updating as the resistance and capacitance controls change.">
+    <svg viewBox="0 0 300 116">
+      <line x1={PLOT_LEFT} y1={PLOT_TOP} x2={PLOT_LEFT} y2={PLOT_BOTTOM} class="axis-line" />
+      <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+      {ticks.map((hz) => (
+        <>
+          <line x1={xForFrequency(hz)} y1={PLOT_TOP} x2={xForFrequency(hz)} y2={PLOT_BOTTOM} class="tick-line" />
+          <text x={xForFrequency(hz)} y={PLOT_BOTTOM + 10} class="freq-tick" text-anchor="middle">
+            {hz >= 1000 ? `${hz / 1000}k` : hz}
+          </text>
+        </>
+      ))}
+      <path id="tone-response-path" d={defaultPath} class="response-trace" fill="none" />
+    </svg>
+  </div>
+
+  <AudioDemo id="tone-audio" label="Play through filter" />
+  <p class="bench-scope-note">One combined RC low-pass stands in for the tone capacitor and cable capacitance together — a simplification of two effects that interact slightly differently in a real passive circuit.</p>
+</div>
+
+<script>
+  import { cutoffFrequency, lowpassMagnitudeResponse, logFrequencyAxis } from "../../lib/audio/filters";
+  import { renderPluckedString } from "../../lib/audio/pluckedString";
+
+  const root = document.getElementById("tone-control-bench");
+  if (root) {
+    const resistanceInput = document.getElementById("tone-resistance") as HTMLInputElement;
+    const capacitanceInput = document.getElementById("tone-capacitance") as HTMLInputElement;
+    const cableInput = document.getElementById("tone-cable") as HTMLInputElement;
+    const cutoffOutput = document.getElementById("tone-cutoff");
+    const responsePath = document.getElementById("tone-response-path") as unknown as SVGPathElement;
+    const toggle = document.getElementById("tone-audio-toggle") as HTMLButtonElement;
+
+    const MIN_HZ = 20;
+    const MAX_HZ = 20000;
+    const FREQ_COUNT = 100;
+    const PLOT_LEFT = 24;
+    const PLOT_RIGHT = 292;
+    const PLOT_TOP = 10;
+    const PLOT_BOTTOM = 96;
+    const OUTPUT_GAIN = 0.35;
+    const SOURCE_FREQUENCY = 220;
+
+    let context: AudioContext | null = null;
+    let source: AudioBufferSourceNode | null = null;
+    let filter: BiquadFilterNode | null = null;
+
+    function effectiveFarads(): number {
+      const toneUf = Number(capacitanceInput.value) * 1e-6;
+      const cablePf = Number(cableInput.value) * 1e-12;
+      return toneUf + cablePf;
+    }
+
+    function cutoffHz(): number {
+      const ohms = Number(resistanceInput.value) * 1000;
+      return cutoffFrequency(ohms, effectiveFarads());
+    }
+
+    function stopAudio(): void {
+      source?.stop();
+      source = null;
+      filter = null;
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("tone-audio", false);
+    }
+
+    function redraw(): void {
+      const cutoff = cutoffHz();
+      if (cutoffOutput) cutoffOutput.textContent = cutoff.toFixed(0);
+
+      const freqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+      const response = lowpassMagnitudeResponse(freqs, cutoff);
+
+      let d = "";
+      for (let i = 0; i < freqs.length; i++) {
+        const x = PLOT_LEFT + (i / (freqs.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+        const y = PLOT_BOTTOM - response[i] * (PLOT_BOTTOM - PLOT_TOP);
+        d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+      }
+      responsePath.setAttribute("d", d.trim());
+
+      if (filter) filter.frequency.value = cutoff;
+    }
+
+    [resistanceInput, capacitanceInput, cableInput].forEach((input) =>
+      input.addEventListener("input", redraw),
+    );
+
+    toggle.addEventListener("click", () => {
+      if (source) {
+        stopAudio();
+        return;
+      }
+      context = context ?? new AudioContext();
+      const samples = renderPluckedString({
+        sampleRate: context.sampleRate,
+        frequency: SOURCE_FREQUENCY,
+        durationSeconds: 1.4,
+      });
+      const buffer = context.createBuffer(1, samples.length, context.sampleRate);
+      buffer.copyToChannel(Float32Array.from(samples), 0);
+
+      filter = context.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = cutoffHz();
+      filter.Q.value = 0.7;
+
+      const gain = context.createGain();
+      gain.gain.value = OUTPUT_GAIN;
+
+      source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(context.destination);
+      source.onended = () => {
+        source = null;
+        filter = null;
+        (
+          window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+        ).setAudioDemoState?.("tone-audio", false);
+      };
+      source.start();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("tone-audio", true);
+    });
+
+    redraw();
+  }
+</script>
+
+<style>
+  .tone-bench {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .cutoff-readout {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    color: var(--at-heading);
+    margin: 0;
+  }
+
+  .lab-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.75rem;
+  }
+
+  .response-plot svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .tick-line {
+    stroke: var(--bench-line, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 2 2;
+  }
+
+  .freq-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .response-trace {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 1.75;
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+</style>
