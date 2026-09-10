@@ -266,6 +266,69 @@ trimmed for the word count — that curation happens once, at submission time.
   pass in a real browser at both marked viewports is still worth doing
   before treating this fully verified.
 
+- [`126a4d5`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/126a4d5) —
+  Milestone C, Week 9: "Delay, Reverb and Space." Covers a delay line
+  and wet/dry mix; feedback as a fraction of the delay's own output
+  returned to its input, so repeats decay instead of growing without
+  bound; feedback comb filtering (revisiting Week 8's feedforward comb
+  filter — same peak/notch spacing, sharpened by recirculation rather
+  than needing an LFO sweep); natural reverb as direct sound + early
+  reflections + a dense decaying tail, with room size and decay as the
+  two controlling parameters; algorithmic reverb framed generically as
+  a small network of feedback delays of unrelated lengths summed
+  together (deliberately not naming any specific real algorithm, per
+  the sourcing-discipline rule in `CLAUDE.md`); and impulse
+  responses/convolution reverb kept conceptual, without the underlying
+  convolution maths. New `src/lib/audio/delay.ts`
+  (`feedbackCombFilterMagnitudeResponse`, an IIR response contrasted in
+  its own comment against `modulation.ts`'s feedforward one;
+  `synthesiseReflections` and `synthesiseEchoTrain`, both pure and
+  DOM-free so the static `ReflectionEnvelopeDiagram` and the live
+  `DelayLab` script import the exact same functions rather than
+  duplicating DSP). New `DelayGraph` in `engine.ts`, modelled directly
+  on the already-committed `ModulationGraph`: an `"echo"` mode (one
+  `DelayNode`, one feedback `GainNode`) and a `"reverb"` mode (four
+  parallel delay+feedback branches at deliberately unrelated ratios,
+  each feedback path damped by a lowpass filter so later repeats lose
+  high frequencies, the way a real space's reflections do). New
+  diagrams `FeedbackLoopDiagram`, `FeedbackCombDiagram` (a two-snapshot
+  low/high-feedback overlay reusing `NotchResponseDiagram`'s plot
+  layout), and `ReflectionEnvelopeDiagram` (reused twice on the page
+  with different room-size/decay values and captions, once framed as
+  natural reverb, once as an impulse response, since both are the same
+  underlying shape). New `DelayLab` interactive: Time/Feedback/Mix stay
+  three statically-labelled knobs across both modes (same convention
+  as `ModulationLab`'s shared Rate/Depth/Mix), with the mode-specific
+  physical meaning — delay time vs room size, feedback vs decay — moved
+  into a live text readout and an envelope plot rather than into the
+  knob's own display. Added a `"Delay / Reverb"` stage to
+  `SignalChainStrip` between `Modulation` and `Amplifier` (confirmed
+  via `grep` that no `spec/*.ts` test depends on the exact stage list,
+  so this was safe). Why: continuing Milestone C (Weeks 9-12) of the
+  five-stage plan, without waiting for approval between individual
+  pages, per standing user direction. Checked: `pnpm check` green
+  end-to-end (typecheck, build incl. axe accessibility pass and
+  internal link/base-path checker, 5/5 vitest tests) — this caught a
+  real accessibility bug on the first attempt: `FeedbackLoopDiagram`
+  put `role="img"` directly on a `<figure>` element that also had a
+  `<figcaption>` child, which axe's `aria-allowed-role` rule flagged;
+  every other diagram component on the site puts `role="img"` on the
+  inner `<svg>`/`<canvas>` instead, so the fix was to match that
+  existing convention rather than invent a new one. Also removed one
+  now-unused local constant (`PLOT_TOP` in `DelayLab.astro`) that
+  `astro check` flagged. Ran the dev server and fetched the Week 9
+  page directly: 200 status, every expected control id (`delay-lab`,
+  the mode footswitches, all three knobs and their labels/values, the
+  audio toggle, the live readout and stem-plot group) present in the
+  rendered HTML, no `autoplay` attribute anywhere, no errors in the
+  dev server log. No browser-automation tool was available in this
+  environment, so live interaction — dragging the knobs, pressing
+  play, switching between Echo and Reverb mid-playback and confirming
+  a clean stop/restart, watching the envelope redraw, checking the
+  browser console — was not directly exercised; a manual pass in a
+  real browser at both marked viewports is still worth doing before
+  treating this fully verified.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
