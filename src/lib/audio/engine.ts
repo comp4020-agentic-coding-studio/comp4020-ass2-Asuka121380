@@ -149,3 +149,175 @@ function buildListeningChain(context: AudioContext): { input: AudioNode; output:
   toneShaping.connect(monitoring);
   return { input: toneShaping, output: monitoring };
 }
+
+export type ModulationEffect = "tremolo" | "vibrato" | "chorus" | "flanger" | "phaser";
+
+const MODULATION_SOURCE_FREQUENCY = 110;
+const MODULATION_SOURCE_DURATION_SECONDS = 3.2;
+const MODULATION_OUTPUT_GAIN = 0.5;
+const PHASER_STAGES = 4;
+const PHASER_POLE_HZ = 800;
+
+export interface ModulationGraphOptions {
+  effect: ModulationEffect;
+  rateHz: number;
+  depth: number;
+  mix: number;
+  onEnded?: () => void;
+}
+
+/**
+ * What the shared LFO drives for one effect: the node the source feeds to
+ * produce the "wet" copy, the AudioParam(s) the LFO's output connects to,
+ * the value those params sit at with zero depth, how many of their own
+ * units one unit of `depth` swings them by, and whether the LFO swings
+ * symmetrically around `baseValue` (delay- and phase-based effects) or only
+ * downward from it (tremolo, so depth=1 reaches exactly zero gain at the
+ * gain-swing's low point rather than going negative).
+ */
+interface ModulationTarget {
+  wetInput: AudioNode;
+  params: AudioParam[];
+  baseValue: number;
+  depthScale: number;
+  centered: boolean;
+}
+
+/**
+ * A one-shot plucked-string source run through a shared dry/wet modulation
+ * network: an LFO (a plain OscillatorNode used purely as a control signal,
+ * never connected to the destination) drives whichever parameter the
+ * selected effect modulates — a GainNode's gain for tremolo, a DelayNode's
+ * delayTime for vibrato/chorus/flanger, or a cascade of allpass
+ * BiquadFilterNodes' frequency for phaser. Rate and Depth always mean "how
+ * fast" and "how far" the LFO swings that parameter; Mix always means "how
+ * much of the modulated copy blends back with the plain original" — the
+ * same three controls, reused across five otherwise-different node graphs.
+ */
+export class ModulationGraph {
+  private readonly output: GainNode;
+  private readonly dryGain: GainNode;
+  private readonly wetGain: GainNode;
+  private readonly lfo: OscillatorNode;
+  private readonly lfoDepthGain: GainNode;
+  private readonly target: ModulationTarget;
+  private source: AudioBufferSourceNode | null = null;
+  private started = false;
+
+  constructor(
+    private readonly context: AudioContext,
+    private readonly options: ModulationGraphOptions,
+  ) {
+    this.output = context.createGain();
+    this.output.gain.value = MODULATION_OUTPUT_GAIN;
+    this.output.connect(context.destination);
+
+    this.dryGain = context.createGain();
+    this.wetGain = context.createGain();
+    this.dryGain.connect(this.output);
+    this.wetGain.connect(this.output);
+
+    this.lfo = context.createOscillator();
+    this.lfo.type = "sine";
+    this.lfo.frequency.value = options.rateHz;
+    this.lfoDepthGain = context.createGain();
+    this.lfo.connect(this.lfoDepthGain);
+    this.lfo.start();
+
+    this.target = this.buildTarget(options.effect);
+    this.setParams(options.rateHz, options.depth, options.mix);
+  }
+
+  private buildTarget(effect: ModulationEffect): ModulationTarget {
+    const { context, wetGain, lfoDepthGain } = this;
+
+    if (effect === "tremolo") {
+      const tremGain = context.createGain();
+      tremGain.gain.value = 1;
+      lfoDepthGain.connect(tremGain.gain);
+      tremGain.connect(wetGain);
+      return { wetInput: tremGain, params: [tremGain.gain], baseValue: 1, depthScale: 0.5, centered: false };
+    }
+
+    if (effect === "vibrato" || effect === "chorus" || effect === "flanger") {
+      const baseDelaySeconds = effect === "vibrato" ? 0.006 : effect === "chorus" ? 0.02 : 0.003;
+      const depthScale = effect === "vibrato" ? 0.003 : effect === "chorus" ? 0.008 : 0.002;
+      const delay = context.createDelay(0.05);
+      delay.delayTime.value = baseDelaySeconds;
+      lfoDepthGain.connect(delay.delayTime);
+      delay.connect(wetGain);
+      return { wetInput: delay, params: [delay.delayTime], baseValue: baseDelaySeconds, depthScale, centered: true };
+    }
+
+    // phaser: a cascade of first-order allpass stages, every stage's corner
+    // frequency driven by the same LFO so the whole cascade's notches sweep
+    // together.
+    const stageInput = context.createGain();
+    stageInput.gain.value = 1;
+    let node: AudioNode = stageInput;
+    const params: AudioParam[] = [];
+    for (let i = 0; i < PHASER_STAGES; i++) {
+      const stage = context.createBiquadFilter();
+      stage.type = "allpass";
+      stage.frequency.value = PHASER_POLE_HZ;
+      lfoDepthGain.connect(stage.frequency);
+      params.push(stage.frequency);
+      node.connect(stage);
+      node = stage;
+    }
+    node.connect(wetGain);
+    return { wetInput: stageInput, params, baseValue: PHASER_POLE_HZ, depthScale: 500, centered: true };
+  }
+
+  start(): void {
+    if (this.started) return;
+    this.started = true;
+
+    const samples = renderPluckedString({
+      sampleRate: this.context.sampleRate,
+      frequency: MODULATION_SOURCE_FREQUENCY,
+      durationSeconds: MODULATION_SOURCE_DURATION_SECONDS,
+    });
+    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
+    buffer.copyToChannel(Float32Array.from(samples), 0);
+
+    const bufferSource = this.context.createBufferSource();
+    bufferSource.buffer = buffer;
+    bufferSource.connect(this.dryGain);
+    bufferSource.connect(this.target.wetInput);
+    bufferSource.onended = () => {
+      if (this.source === bufferSource) {
+        this.source = null;
+        this.started = false;
+        this.options.onEnded?.();
+      }
+    };
+    bufferSource.start();
+    this.source = bufferSource;
+  }
+
+  stop(): void {
+    if (!this.started || !this.source) return;
+    this.source.onended = null;
+    try {
+      this.source.stop();
+    } catch {
+      // Already stopped (e.g. the one-shot pluck just finished on its own).
+    }
+    this.source = null;
+    this.started = false;
+  }
+
+  setParams(rateHz: number, depth: number, mix: number): void {
+    this.lfo.frequency.value = rateHz;
+    this.dryGain.gain.value = 1 - mix;
+    this.wetGain.gain.value = mix;
+
+    const swingMagnitude = depth * this.target.depthScale;
+    this.lfoDepthGain.gain.value = swingMagnitude;
+    const restValue = this.target.centered
+      ? this.target.baseValue
+      : this.target.baseValue - swingMagnitude;
+    for (const param of this.target.params) param.value = restValue;
+  }
+}

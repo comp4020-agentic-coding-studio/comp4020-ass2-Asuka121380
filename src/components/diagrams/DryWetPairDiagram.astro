@@ -1,0 +1,88 @@
+---
+// A short dry excerpt and a delayed copy of itself, overlaid — the pair of
+// signals every delay-based modulation effect (chorus, flanger, vibrato)
+// combines. The shift drawn here is fixed and illustrative, standing in for
+// "a short delay", not tied to any one effect's exact timing — the live
+// ModulationLab is where the delay actually varies.
+import { pluckedStringExcerpt } from "../../lib/audio/pluckedString";
+import { waveformPath, type Viewport } from "../../lib/draw/svgTrace";
+
+interface Props {
+  wetLabel?: string;
+}
+
+const { wetLabel = "Delayed copy" } = Astro.props;
+
+const viewport: Viewport = { width: 280, height: 90, padding: 10 };
+const dry = pluckedStringExcerpt(110);
+const shiftSamples = 40;
+const wet = Float64Array.from(dry, (_value, i) => dry[(i + dry.length - shiftSamples) % dry.length]);
+
+const dryPath = waveformPath(dry, viewport);
+const wetPath = waveformPath(wet, viewport);
+---
+
+<figure class="dry-wet bench-module">
+  <svg
+    viewBox={`0 0 ${viewport.width} ${viewport.height}`}
+    role="img"
+    aria-label={`A dry signal and a short ${wetLabel.toLowerCase()}, overlaid.`}
+  >
+    <path d={dryPath} class="trace-line trace-dry" fill="none" />
+    <path d={wetPath} class="trace-line trace-wet" fill="none" />
+  </svg>
+  <figcaption>
+    <span class="legend"><span class="swatch swatch-dry" aria-hidden="true"></span>Dry signal</span>
+    <span class="legend"><span class="swatch swatch-wet" aria-hidden="true"></span>{wetLabel}</span>
+  </figcaption>
+</figure>
+
+<style>
+  .dry-wet svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .trace-line {
+    stroke-width: 1.75;
+  }
+
+  .trace-dry {
+    stroke: var(--bench-input-trace, var(--at-accent));
+  }
+
+  .trace-wet {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-dasharray: 3 2;
+  }
+
+  figcaption {
+    display: flex;
+    gap: 1.1rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+
+  .swatch {
+    width: 0.9rem;
+    height: 0.15rem;
+    flex: none;
+  }
+
+  .swatch-dry {
+    background: var(--bench-input-trace, var(--at-accent));
+  }
+
+  .swatch-wet {
+    background: var(--bench-phosphor, var(--at-accent));
+  }
+</style>

@@ -1,0 +1,224 @@
+---
+title: "Modulation: Phase, Pitch and Motion"
+description:
+  How continuously changing delay, phase, pitch, or amplitude creates the
+  sensation of movement
+week: 8
+date: 2027-04-19
+teachers:
+  - idris-fenn
+---
+
+import BenchFrame from "../../components/lab/BenchFrame.astro";
+import BenchBand from "../../components/lab/BenchBand.astro";
+import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
+import LfoWaveformDiagram from "../../components/diagrams/LfoWaveformDiagram.astro";
+import DryWetPairDiagram from "../../components/diagrams/DryWetPairDiagram.astro";
+import NotchResponseDiagram from "../../components/diagrams/NotchResponseDiagram.astro";
+import ModulationLab from "../../components/lab/ModulationLab.astro";
+import SignalChainStrip from "../../components/SignalChainStrip.astro";
+import TakeawaysList from "../../components/TakeawaysList.astro";
+
+<BenchFrame week={8} topic="MODULATION">
+
+<BenchBand mode="theory" label="ANALYSIS DESK">
+
+## How can continuously changing delay, phase, pitch, or amplitude create the sensation of movement?
+
+<p class="bench-prose">
+Every transformation so far — gain, clipping, filtering — has been static:
+set a value and it stays put while a note rings out. This week asks what
+happens once a parameter is deliberately made to change continuously over
+time, on its own clock, independent of anything the player does. Five
+familiar effects — tremolo, vibrato, chorus, flanger, and phaser — turn out
+to share one mechanism underneath rather than being five unrelated pedals.
+</p>
+
+<div class="bench-callout bench-prose">
+
+By the end of this week you should be able to: explain what an LFO is;
+distinguish tremolo from vibrato; explain chorus as a short modulated
+delayed copy mixed with the original; explain flanging as the same idea with
+a much shorter delay; explain phasing conceptually, through phase-shifting
+filter stages rather than delay; and connect interference — constructive and
+destructive — to what any of this actually sounds like.
+
+</div>
+
+<CausalChainStrip
+  steps={["LFO (control signal)", "Modulated parameter", "Two versions interfering", "Moving, time-varying effect"]}
+/>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+## The LFO: a control signal, not a sound
+
+<p class="bench-prose">
+A **low-frequency oscillator (LFO)** is a plain, slow oscillator — a sine
+wave is the simplest case — that is never sent to the output. Instead its
+value at each instant is used to steer some *other* parameter: a gain, a
+delay time, a filter's cutoff. It is a control signal, not something anyone
+hears directly. Every effect this week is built the same way: one LFO,
+wired to a different parameter depending on the effect.
+</p>
+
+<div class="bench-annotated">
+  <LfoWaveformDiagram targetLabel="Whatever the effect modulates" minLabel="minimum" maxLabel="maximum" />
+  <p class="bench-prose">
+  The two traces are the same waveform. The left one is the LFO itself; the
+  right one is that same shape reframed as "the parameter this effect
+  varies," swinging between whatever minimum and maximum that parameter
+  takes. Only the framing changes from effect to effect.
+  </p>
+</div>
+
+## Tremolo: modulating amplitude
+
+<p class="bench-prose">
+**Tremolo** is the simplest case: the LFO drives the signal's amplitude
+directly, so the output rises and falls in loudness at the LFO's rate. No
+delay, no filtering — just gain, moved continuously instead of held fixed.
+</p>
+
+## Vibrato: modulating pitch
+
+<p class="bench-prose">
+**Vibrato** is periodic *pitch* modulation rather than amplitude
+modulation. The standard way to produce it electronically is to run the
+signal through a very short delay line and modulate the delay time itself
+with the LFO: continuously shortening and lengthening a delay stretches and
+compresses the signal passing through it, which is heard as the pitch
+rising and falling — a small, fast Doppler-like effect, not a literal
+pitch-shifting algorithm.
+</p>
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Chorus and flanger: two delayed copies, two different delay ranges
+
+<p class="bench-prose">
+Chorus and flanger both work by combining the dry signal with a copy of
+itself passed through an LFO-modulated delay line — mixed back in, rather
+than replacing the original the way vibrato does. What separates them is
+simply how short that delay is.
+</p>
+
+<div class="bench-annotated">
+  <DryWetPairDiagram wetLabel="Modulated delayed copy" />
+  <p class="bench-prose">
+  **Chorus** uses a delay long enough (tens of milliseconds) that the ear
+  hears the copy as a second, subtly detuned voice alongside the original —
+  the sound of two people meant to be in unison rather than one signal
+  interacting with itself. **Flanger** uses much shorter delay times (a few
+  milliseconds), short enough that the ear no longer hears "two voices" but
+  instead a single, moving, metallic-sounding shift in timbre.
+  </p>
+</div>
+
+## Why flanging sounds the way it does: a moving comb filter
+
+<p class="bench-prose">
+At flanger-length delays, summing the dry and delayed copies produces
+**interference**: at some frequencies the two copies arrive in phase and
+reinforce each other (constructive interference); at others they arrive out
+of phase and cancel (destructive interference). Sweeping the delay time
+sweeps *which* frequencies fall into each category, producing a **comb
+filter** — a response with a regularly spaced series of notches — whose
+notches visibly move as the LFO cycles.
+</p>
+
+<div class="bench-annotated">
+  <NotchResponseDiagram kind="comb" />
+  <p class="bench-prose">
+  Each trace is the comb filter's response at one instant of the sweep; a
+  shorter delay spaces the notches further apart. A static diagram can only
+  show a few snapshots — in the live bench below, the notches actually sweep
+  as the LFO cycles.
+  </p>
+</div>
+
+## Phaser: interference without a delay line
+
+<p class="bench-prose">
+A **phaser** reaches the same kind of interference by a different route.
+Instead of a delay line, the signal passes through a cascade of
+**phase-shifting filter stages**, each of which shifts the phase of
+different frequencies by different amounts without changing their level.
+Summing that phase-shifted copy with the original produces the same
+constructive/destructive interference as a comb filter — but the notch
+positions are set by how much phase each frequency has picked up, not by a
+travel-time delay. LFO-modulating the filter stages' corner frequency sweeps
+those notches, exactly as a flanger sweeps its delay-based ones.
+</p>
+
+<div class="bench-annotated">
+  <NotchResponseDiagram kind="phaser" />
+  <p class="bench-prose">
+  A cascade of a few phase-shifting stages typically produces only a
+  handful of moving notches — visibly fewer and less evenly spaced than a
+  flanger's comb filter, which is the usual audible way to tell the two
+  effects apart even though both are built from the same underlying
+  interference.
+  </p>
+</div>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+<CausalChainStrip compact />
+
+## Try it: rate, depth, and mix, across five effects
+
+<p class="bench-prose">
+Switch between Tremolo, Vibrato, Chorus, Flanger, and Phaser. Rate and Depth
+always mean the same thing — how fast and how far the LFO swings a
+parameter — but watch the panel underneath the knobs: it shows exactly
+which parameter is moving and between what values, which changes with the
+effect even though the two knobs controlling it don't.
+</p>
+
+<ModulationLab />
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Key takeaways
+
+<TakeawaysList
+  items={[
+    "An LFO is a slow, inaudible control signal used to steer some other parameter, not something heard directly.",
+    "Tremolo modulates amplitude; vibrato modulates pitch, typically via a modulated short delay line.",
+    "Chorus and flanger both mix a modulated delayed copy with the dry signal — chorus uses longer delays (a second voice), flanger much shorter ones (a moving comb filter).",
+    "A comb filter's notches come from constructive and destructive interference between the dry and delayed copies; sweeping the delay sweeps the notches.",
+    "A phaser produces the same kind of interference using phase-shifting filter stages instead of a delay line, giving fewer, unevenly spaced moving notches.",
+    "Rate and depth are shared, effect-independent parameters: how fast and how far the LFO swings whichever parameter that effect happens to modulate.",
+  ]}
+/>
+
+## Where this sits in the signal chain
+
+<SignalChainStrip current="Modulation" />
+
+## Connection to Week 7, and where this goes next
+
+<p class="bench-prose">
+Week 7 shaped frequency response using mostly static filters — set a cutoff
+and it stays there. This week made that kind of transformation
+time-dependent: an LFO continuously varying a gain, a delay, or a filter's
+corner frequency, producing motion instead of a fixed shape. Chorus and
+flanging already needed a short delay line to work. Week 9 takes that same
+idea of a delayed copy of the signal and expands it — into echoes, feedback
+systems, and the simulation of physical space.
+</p>
+
+<CausalChainStrip compact />
+
+</BenchBand>
+
+</BenchFrame>

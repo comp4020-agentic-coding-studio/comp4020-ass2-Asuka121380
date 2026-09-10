@@ -35,3 +35,49 @@ export function logFrequencyAxis(minHz: number, maxHz: number, count: number): F
   }
   return out;
 }
+
+// Week 7 reuses the same "sample a magnitude response over a log frequency
+// axis" pattern for a standard second-order (biquad-style) low-pass and
+// high-pass, with an explicit Q term — the same normalised transfer
+// function Web Audio's own BiquadFilterNode implements, so the plotted
+// curve and the live filter used for playback describe the same maths.
+// Q = 1/sqrt(2) is the maximally-flat (no-peaking) case; larger Q produces
+// a narrower resonant peak at the cutoff frequency.
+
+/**
+ * Relative magnitude response of a second-order low-pass:
+ * |H(f)| = 1 / sqrt((1 - x^2)^2 + (x/Q)^2), where x = f / cutoffHz.
+ */
+export function lowpassResonantMagnitudeResponse(
+  frequenciesHz: ArrayLike<number>,
+  cutoffHz: number,
+  q: number,
+): Float64Array {
+  const out = new Float64Array(frequenciesHz.length);
+  for (let i = 0; i < frequenciesHz.length; i++) {
+    const x = frequenciesHz[i] / cutoffHz;
+    const a = 1 - x * x;
+    const b = x / q;
+    out[i] = 1 / Math.sqrt(a * a + b * b);
+  }
+  return out;
+}
+
+/**
+ * Relative magnitude response of a second-order high-pass — the dual of
+ * `lowpassResonantMagnitudeResponse`: |H(f)| = x^2 / sqrt((1 - x^2)^2 + (x/Q)^2).
+ */
+export function highpassResonantMagnitudeResponse(
+  frequenciesHz: ArrayLike<number>,
+  cutoffHz: number,
+  q: number,
+): Float64Array {
+  const out = new Float64Array(frequenciesHz.length);
+  for (let i = 0; i < frequenciesHz.length; i++) {
+    const x = frequenciesHz[i] / cutoffHz;
+    const a = 1 - x * x;
+    const b = x / q;
+    out[i] = (x * x) / Math.sqrt(a * a + b * b);
+  }
+  return out;
+}

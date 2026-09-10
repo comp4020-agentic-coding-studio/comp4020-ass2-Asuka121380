@@ -1,0 +1,297 @@
+---
+// Week 7 "Try It": one filter, three characters. Low-pass and High-pass use
+// a fixed Q = 1/sqrt(2) (maximally flat, no peaking) so the Resonance knob
+// is the one control that visibly does something only in "Resonant" mode —
+// deliberately, so the demo itself teaches "a plain low-pass/high-pass
+// doesn't resonate; a second-order design with an adjustable Q does".
+// The plotted curve and the live BiquadFilterNode used for playback share
+// the exact same second-order transfer function (filters.ts), so what you
+// see and what you hear describe the same filter.
+import AudioDemo from "../AudioDemo.astro";
+import FootswitchGroup from "./FootswitchGroup.astro";
+import Knob from "./Knob.astro";
+import {
+  highpassResonantMagnitudeResponse,
+  logFrequencyAxis,
+  lowpassResonantMagnitudeResponse,
+} from "../../lib/audio/filters";
+
+const DEFAULT_TYPE = "lowpass";
+const DEFAULT_CUTOFF_HZ = 800;
+const DEFAULT_Q = 0.7;
+const FLAT_Q = 1 / Math.sqrt(2);
+
+const MIN_HZ = 80;
+const MAX_HZ = 6000;
+const FREQ_COUNT = 120;
+const MAG_MAX = 6.5;
+
+const PLOT_LEFT = 24;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 10;
+const PLOT_BOTTOM = 96;
+
+function xForFrequency(hz: number): number {
+  const t = (Math.log10(hz) - Math.log10(MIN_HZ)) / (Math.log10(MAX_HZ) - Math.log10(MIN_HZ));
+  return PLOT_LEFT + t * (PLOT_RIGHT - PLOT_LEFT);
+}
+
+function yForMagnitude(mag: number): number {
+  return PLOT_BOTTOM - Math.min(mag, MAG_MAX) * ((PLOT_BOTTOM - PLOT_TOP) / MAG_MAX);
+}
+
+function responsePath(response: ArrayLike<number>): string {
+  let d = "";
+  for (let i = 0; i < response.length; i++) {
+    const x = PLOT_LEFT + (i / (response.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+    const y = yForMagnitude(response[i]);
+    d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+  }
+  return d.trim();
+}
+
+const defaultFreqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+const defaultResponse = lowpassResonantMagnitudeResponse(defaultFreqs, DEFAULT_CUTOFF_HZ, FLAT_Q);
+const defaultPath = responsePath(defaultResponse);
+const unityY = yForMagnitude(1);
+
+const ticks = [100, 300, 1000, 3000];
+
+const typeOptions = [
+  { value: "lowpass", label: "Low-pass" },
+  { value: "highpass", label: "High-pass" },
+  { value: "resonant", label: "Resonant" },
+];
+---
+
+<div class="filter-bench bench-module" id="filter-bench">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Filter Bench</span>
+    <FootswitchGroup name="filter-type" legend="Filter type" options={typeOptions} selected={DEFAULT_TYPE} />
+  </div>
+
+  <div class="lab-controls">
+    <Knob id="filter-cutoff" label="Cutoff" min={MIN_HZ} max={MAX_HZ} step={20} value={DEFAULT_CUTOFF_HZ} unit=" Hz" />
+    <Knob id="filter-q" label="Resonance (Q)" min={0.5} max={6} step={0.1} value={DEFAULT_Q} unit="" />
+    <AudioDemo id="filter-audio" label="Play through filter" />
+  </div>
+
+  <div class="response-plot" role="img" aria-label="Frequency response of the selected filter type, from 80 Hz to 6 kHz, updating as the cutoff and resonance controls change.">
+    <svg viewBox="0 0 300 116">
+      <line x1={PLOT_LEFT} y1={PLOT_TOP} x2={PLOT_LEFT} y2={PLOT_BOTTOM} class="axis-line" />
+      <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+      <line x1={PLOT_LEFT} y1={unityY} x2={PLOT_RIGHT} y2={unityY} class="unity-line" />
+      <text x={PLOT_RIGHT} y={unityY - 3} class="freq-tick" text-anchor="end">unity gain</text>
+      {ticks.map((hz) => (
+        <>
+          <line x1={xForFrequency(hz)} y1={PLOT_TOP} x2={xForFrequency(hz)} y2={PLOT_BOTTOM} class="tick-line" />
+          <text x={xForFrequency(hz)} y={PLOT_BOTTOM + 10} class="freq-tick" text-anchor="middle">
+            {hz >= 1000 ? `${hz / 1000}k` : hz}
+          </text>
+        </>
+      ))}
+      <path id="filter-response-path" d={defaultPath} class="response-trace" fill="none" />
+    </svg>
+  </div>
+
+  <p class="bench-scope-note">Low-pass and High-pass hold Q fixed at 1/√2 — maximally flat, no peak — so the Resonance knob only visibly bends the curve in Resonant mode. That's the point: a plain first-order-style low-pass or high-pass doesn't resonate; a resonant peak is a distinct design choice.</p>
+</div>
+
+<script>
+  import {
+    highpassResonantMagnitudeResponse,
+    logFrequencyAxis,
+    lowpassResonantMagnitudeResponse,
+  } from "../../lib/audio/filters";
+  import { renderPluckedString } from "../../lib/audio/pluckedString";
+
+  const root = document.getElementById("filter-bench");
+  if (root) {
+    const typeRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="filter-type"]'));
+    const cutoffInput = document.getElementById("filter-cutoff") as HTMLInputElement;
+    const qInput = document.getElementById("filter-q") as HTMLInputElement;
+    const responsePathEl = document.getElementById("filter-response-path") as unknown as SVGPathElement;
+    const toggle = document.getElementById("filter-audio-toggle") as HTMLButtonElement;
+
+    const MIN_HZ = 80;
+    const MAX_HZ = 6000;
+    const FREQ_COUNT = 120;
+    const MAG_MAX = 6.5;
+    const PLOT_LEFT = 24;
+    const PLOT_RIGHT = 292;
+    const PLOT_TOP = 10;
+    const PLOT_BOTTOM = 96;
+    const FLAT_Q = 1 / Math.sqrt(2);
+    const OUTPUT_GAIN = 0.3;
+    const SOURCE_FREQUENCY = 220;
+
+    let context: AudioContext | null = null;
+    let source: AudioBufferSourceNode | null = null;
+    let filter: BiquadFilterNode | null = null;
+
+    function currentType(): "lowpass" | "highpass" | "resonant" {
+      return (typeRadios.find((radio) => radio.checked)?.value ?? "lowpass") as
+        | "lowpass"
+        | "highpass"
+        | "resonant";
+    }
+
+    function effectiveQ(): number {
+      return currentType() === "resonant" ? Number(qInput.value) : FLAT_Q;
+    }
+
+    function yForMagnitude(mag: number): number {
+      return PLOT_BOTTOM - Math.min(mag, MAG_MAX) * ((PLOT_BOTTOM - PLOT_TOP) / MAG_MAX);
+    }
+
+    function stopAudio(): void {
+      source?.stop();
+      source = null;
+      filter = null;
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("filter-audio", false);
+    }
+
+    function redraw(): void {
+      const type = currentType();
+      const cutoff = Number(cutoffInput.value);
+      const q = effectiveQ();
+
+      const freqs = logFrequencyAxis(MIN_HZ, MAX_HZ, FREQ_COUNT);
+      const response =
+        type === "highpass"
+          ? highpassResonantMagnitudeResponse(freqs, cutoff, q)
+          : lowpassResonantMagnitudeResponse(freqs, cutoff, q);
+
+      let d = "";
+      for (let i = 0; i < freqs.length; i++) {
+        const x = PLOT_LEFT + (i / (freqs.length - 1)) * (PLOT_RIGHT - PLOT_LEFT);
+        const y = yForMagnitude(response[i]);
+        d += `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)} `;
+      }
+      responsePathEl.setAttribute("d", d.trim());
+
+      if (filter) {
+        filter.type = type === "highpass" ? "highpass" : "lowpass";
+        filter.frequency.value = cutoff;
+        filter.Q.value = q;
+      }
+    }
+
+    typeRadios.forEach((radio) => radio.addEventListener("change", redraw));
+    cutoffInput.addEventListener("input", redraw);
+    qInput.addEventListener("input", redraw);
+
+    toggle.addEventListener("click", () => {
+      if (source) {
+        stopAudio();
+        return;
+      }
+      context = context ?? new AudioContext();
+      const samples = renderPluckedString({
+        sampleRate: context.sampleRate,
+        frequency: SOURCE_FREQUENCY,
+        durationSeconds: 1.4,
+      });
+      const buffer = context.createBuffer(1, samples.length, context.sampleRate);
+      buffer.copyToChannel(Float32Array.from(samples), 0);
+
+      filter = context.createBiquadFilter();
+      filter.type = currentType() === "highpass" ? "highpass" : "lowpass";
+      filter.frequency.value = Number(cutoffInput.value);
+      filter.Q.value = effectiveQ();
+
+      const gain = context.createGain();
+      gain.gain.value = OUTPUT_GAIN;
+
+      source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(context.destination);
+      source.onended = () => {
+        source = null;
+        filter = null;
+        (
+          window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+        ).setAudioDemoState?.("filter-audio", false);
+      };
+      source.start();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("filter-audio", true);
+    });
+
+    redraw();
+  }
+</script>
+
+<style>
+  .filter-bench {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .lab-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.75rem;
+  }
+
+  .response-plot svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .tick-line {
+    stroke: var(--bench-line, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 2 2;
+  }
+
+  .unity-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 1 3;
+  }
+
+  .freq-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .response-trace {
+    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke-width: 1.75;
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+</style>

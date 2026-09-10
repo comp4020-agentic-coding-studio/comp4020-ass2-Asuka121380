@@ -1,0 +1,178 @@
+---
+title: "Gain, Headroom and Clipping"
+description:
+  What actually happens, mathematically, when an amplified signal stops
+  behaving linearly
+week: 5
+date: 2027-03-22
+teachers:
+  - idris-fenn
+---
+
+import BenchFrame from "../../components/lab/BenchFrame.astro";
+import BenchBand from "../../components/lab/BenchBand.astro";
+import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
+import GainStageDiagram from "../../components/diagrams/GainStageDiagram.astro";
+import TransferCurveCard from "../../components/diagrams/TransferCurveCard.astro";
+import CurveGallery from "../../components/diagrams/CurveGallery.astro";
+import GainClippingBench from "../../components/lab/GainClippingBench.astro";
+import SignalChainStrip from "../../components/SignalChainStrip.astro";
+import TakeawaysList from "../../components/TakeawaysList.astro";
+import { buildClippingCurve } from "../../lib/audio/waveshaping";
+
+export const linearCurve = Array.from({ length: 1024 }, (_, i) => (i / 1023) * 2 - 1);
+export const softCurve = Array.from(buildClippingCurve("symmetric-soft", 5));
+export const hardCurve = Array.from(buildClippingCurve("hard", 3));
+
+<BenchFrame week={5} topic="GAIN & CLIPPING">
+
+<BenchBand mode="theory" label="ANALYSIS DESK">
+
+## What physically happens when an audio signal becomes distorted?
+
+<p class="bench-prose">
+Every stage so far — pickup, volume pot, tone control, cable — has been
+**linear**: it can reshape which frequencies are present, but it never adds
+anything that wasn't already there. Gain changes that. Once a signal is
+amplified far enough, the system running out of room to represent it stops
+being a detail and becomes the whole story.
+</p>
+
+<div class="bench-callout bench-prose">
+
+By the end of this week you should be able to: distinguish gain from output
+volume; explain linear amplification; define headroom conceptually; explain
+clipping in terms of input-output limits; distinguish hard and soft
+clipping; and explain why clipping introduces harmonic content that wasn't
+in the original signal.
+
+</div>
+
+<CausalChainStrip
+  steps={["Gain (amplitude scaling)", "Headroom limit reached", "Clipped waveform shape", "New harmonic content"]}
+/>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+## Gain versus volume, and running out of headroom
+
+<div class="bench-annotated">
+  <GainStageDiagram />
+  <p class="bench-prose">
+  **Gain** is amplification applied *within* a stage: for an ideal linear
+  amplifier, output(t) = G · input(t) — the waveform's shape is unchanged,
+  only its amplitude scales. **Volume** is a separate, later control over how
+  loud the already-processed signal ends up. A real stage can't raise
+  amplitude indefinitely, though: it has a maximum level it can represent
+  before something has to give. The gap between a signal's current level and
+  that maximum is its **headroom**. As gain increases, headroom shrinks —
+  and once it reaches zero, the waveform can no longer just get bigger.
+  </p>
+</div>
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Clipping: what happens when headroom runs out
+
+<p class="bench-prose">
+**Clipping** is what a system does once it can't represent an amplified
+waveform's true peak: rather than continuing to follow G · input(t), the
+output stops tracking the input once it nears the limit. *How* it stops
+tracking it is a design choice, not a single fixed behaviour — and that
+choice is exactly what separates the two clipping families below.
+</p>
+
+<CurveGallery>
+  <TransferCurveCard
+    label="Linear (no clipping)"
+    description="Well within headroom: a straight line — output tracks input at every level, just scaled up. The reference case."
+    curve={linearCurve}
+  />
+  <TransferCurveCard
+    label="Soft clipping"
+    description="Output bends away from the straight line gradually as it nears the limit — a smooth compression, not an abrupt wall."
+    curve={softCurve}
+  />
+  <TransferCurveCard
+    label="Hard clipping"
+    description="Output tracks the input exactly until an abrupt threshold, then is flattened outright — a sharp corner in the curve."
+    curve={hardCurve}
+  />
+</CurveGallery>
+
+<p class="bench-prose">
+Either way, the output is no longer a scaled copy of the input — it's a
+genuinely different waveform shape. A **nonlinear** transformation is exactly
+one where output isn't simply proportional to input, and clipping is the
+simplest example this course studies. A clipped sine wave contains frequency
+components that were never present in the clean sine at all: flattening the
+waveform's peaks is, in the frequency domain, equivalent to adding new
+harmonics on top of the fundamental. No detailed derivation is needed here —
+what matters is the causal link: *reshape the waveform → change its harmonic
+content*. Those extra harmonics change the signal's perceived timbre, though
+"more harmonics" on its own doesn't mean "better tone" — whether added
+harmonics sound pleasant depends on which ones appear and how they're
+balanced, not just how many there are.
+</p>
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+
+<CausalChainStrip compact />
+
+## Try it: one gain stage, two ways to clip
+
+<p class="bench-prose">
+Turn the Drive knob up from its low default and watch the transfer curve,
+waveform, and spectrum all update together. At low drive the curve stays
+close to the straight reference line and the output is just a louder sine;
+past a point it bends (soft) or folds sharply (hard), and the spectrum grows
+new bars exactly as the waveform starts to flatten. Play the tone to hear the
+same transition.
+</p>
+
+<GainClippingBench />
+
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
+
+## Key takeaways
+
+<TakeawaysList
+  items={[
+    "Gain is amplification within a stage; volume is a separate, later control over overall loudness.",
+    "An ideal linear amplifier scales amplitude without changing waveform shape: output(t) = G · input(t).",
+    "Headroom is the gap between a signal's current level and the maximum a stage can represent — gain shrinks it.",
+    "Clipping is what happens once headroom reaches zero: soft clipping compresses gradually, hard clipping cuts off abruptly.",
+    "Clipping is nonlinear and adds harmonic content that wasn't in the original signal — more harmonics isn't automatically 'better tone'.",
+  ]}
+/>
+
+## Where this sits in the signal chain
+
+<SignalChainStrip current="Gain" />
+
+## Connection to Week 4, and where this goes next
+
+<p class="bench-prose">
+Week 4 focused on linear filtering — reshaping frequency content without
+adding anything new. Week 5 introduced nonlinear signal transformation: past
+a headroom limit, a stage's output stops being a scaled copy of its input,
+and new harmonics appear. So far, clipping has stayed an abstract
+mathematical function — a curve, applied to a sine wave. Week 6 builds that
+same function out of a real gain stage and real clipping components, and
+asks why two circuits that both "clip the signal" can still sound different
+from each other.
+</p>
+
+<CausalChainStrip compact />
+
+</BenchBand>
+
+</BenchFrame>

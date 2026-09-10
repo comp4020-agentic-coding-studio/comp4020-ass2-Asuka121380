@@ -1,0 +1,121 @@
+---
+// The LFO as a control signal, not an audible one: a plain sine trace on
+// the left, and on the right that exact same shape reframed as "whatever
+// parameter the selected effect modulates", swinging between the two
+// labelled bounds that parameter takes for that effect. The two traces are
+// literally the same waveform — only the framing differs, which is the
+// point: one shared LFO, reused wherever a parameter needs to move.
+import { sineCycle } from "../../lib/audio/analysis";
+import { waveformPath, type Viewport } from "../../lib/draw/svgTrace";
+
+interface Props {
+  targetLabel: string;
+  minLabel: string;
+  maxLabel: string;
+}
+
+const { targetLabel, minLabel, maxLabel } = Astro.props;
+
+const viewport: Viewport = { width: 160, height: 90, padding: 10 };
+const padding = viewport.padding ?? 0;
+const lfo = sineCycle(96);
+const tracePath = waveformPath(lfo, viewport);
+const topY = padding + 4;
+const bottomY = viewport.height - padding - 4;
+---
+
+<div class="lfo-diagram bench-module">
+  <figure class="lfo-trace">
+    <svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} role="img" aria-label="The LFO: a plain sine wave used only as a control signal, never sent to the output.">
+      <path d={tracePath} class="trace-line" fill="none" />
+    </svg>
+    <figcaption>LFO — control signal</figcaption>
+  </figure>
+
+  <svg class="lfo-arrow" viewBox="0 0 40 16" aria-hidden="true">
+    <line x1="2" y1="8" x2="34" y2="8" />
+    <path d="M 27 3 L 35 8 L 27 13" fill="none" />
+    <text x="18" y="4" class="lfo-arrow-label">drives</text>
+  </svg>
+
+  <figure class="lfo-trace">
+    <svg
+      viewBox={`0 0 ${viewport.width} ${viewport.height}`}
+      role="img"
+      aria-label={`${targetLabel}, swinging between ${minLabel} and ${maxLabel} at the LFO's rate.`}
+    >
+      <line x1={padding} y1={topY} x2={viewport.width - padding} y2={topY} class="bound-line" />
+      <text x={viewport.width - padding} y={topY - 3} class="bound-label" text-anchor="end">{maxLabel}</text>
+      <line x1={padding} y1={bottomY} x2={viewport.width - padding} y2={bottomY} class="bound-line" />
+      <text x={viewport.width - padding} y={bottomY + 8} class="bound-label" text-anchor="end">{minLabel}</text>
+      <path d={tracePath} class="trace-line trace-driven" fill="none" />
+    </svg>
+    <figcaption>{targetLabel}</figcaption>
+  </figure>
+</div>
+
+<style>
+  .lfo-diagram {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .lfo-trace {
+    margin: 0;
+    flex: 1 1 9rem;
+    min-width: 8rem;
+  }
+
+  .lfo-trace svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .lfo-trace figcaption {
+    margin-top: 0.3rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    text-align: center;
+  }
+
+  .trace-line {
+    stroke: var(--bench-input-trace, var(--at-accent));
+    stroke-width: 2;
+  }
+
+  .trace-driven {
+    stroke: var(--bench-phosphor, var(--at-accent));
+  }
+
+  .bound-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+
+  .bound-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .lfo-arrow {
+    width: 2.75rem;
+    height: 1.1rem;
+    flex: none;
+    stroke: var(--at-text-secondary);
+    stroke-width: 1.5;
+    overflow: visible;
+  }
+
+  .lfo-arrow-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 5px;
+    fill: var(--at-text-secondary);
+    stroke: none;
+    text-anchor: middle;
+  }
+</style>

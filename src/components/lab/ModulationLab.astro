@@ -1,0 +1,255 @@
+---
+// Week 8 "Try It": one shared LFO, five effects. Rate/Depth/Mix and the
+// effect footswitches drive the same ModulationGraph the curriculum asks
+// for ("effect selector; rate; depth; mix"); the live panel underneath is
+// the "display the changing signal-processing parameter" requirement — a
+// marker sweeping between the actual min/max that effect's target
+// parameter takes, using the exact same base/depth-scale/centered numbers
+// ModulationGraph.setParams applies (see engine.ts), just mirrored here for
+// display so the panel can never show a different sweep than what's
+// playing.
+import AudioDemo from "../AudioDemo.astro";
+import FootswitchGroup from "./FootswitchGroup.astro";
+import Knob from "./Knob.astro";
+
+const DEFAULT_EFFECT = "tremolo";
+const DEFAULT_RATE_HZ = 3;
+const DEFAULT_DEPTH = 0.6;
+const DEFAULT_MIX = 0.5;
+
+const effectOptions = [
+  { value: "tremolo", label: "Tremolo" },
+  { value: "vibrato", label: "Vibrato" },
+  { value: "chorus", label: "Chorus" },
+  { value: "flanger", label: "Flanger" },
+  { value: "phaser", label: "Phaser" },
+];
+---
+
+<div class="modulation-lab bench-module" id="modulation-lab">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Modulation Bench</span>
+    <FootswitchGroup name="modulation-effect" legend="Effect" options={effectOptions} selected={DEFAULT_EFFECT} />
+  </div>
+
+  <div class="lab-controls">
+    <Knob id="modulation-rate" label="Rate" min={0.1} max={8} step={0.1} value={DEFAULT_RATE_HZ} unit=" Hz" />
+    <Knob id="modulation-depth" label="Depth" min={0} max={1} step={0.01} value={DEFAULT_DEPTH} unit="" />
+    <Knob id="modulation-mix" label="Mix" min={0} max={1} step={0.01} value={DEFAULT_MIX} unit="" />
+    <AudioDemo id="modulation-audio" label="Play through effect" />
+  </div>
+
+  <div class="target-plot" role="img" aria-label="The selected effect's modulated parameter, sweeping between its current minimum and maximum.">
+    <svg viewBox="0 0 300 46">
+      <text id="modulation-target-label" x="150" y="10" class="target-label" text-anchor="middle">Output gain</text>
+      <line x1="24" y1="30" x2="276" y2="30" class="target-track" />
+      <text id="modulation-min-label" x="24" y="42" class="target-tick" text-anchor="start">1.00</text>
+      <text id="modulation-max-label" x="276" y="42" class="target-tick" text-anchor="end">1.00</text>
+      <circle id="modulation-marker" cx="150" cy="30" r="4" class="target-marker" />
+    </svg>
+  </div>
+
+  <p class="bench-scope-note">Rate and Depth always mean the same thing — how fast and how far the LFO swings a parameter — but which parameter changes with the effect: output gain for Tremolo, delay time for Vibrato/Chorus/Flanger, and an allpass filter's corner frequency for Phaser.</p>
+</div>
+
+<script>
+  import { ModulationGraph, type ModulationEffect } from "../../lib/audio/engine";
+
+  interface TargetDescriptor {
+    label: string;
+    unit: string;
+    base: number;
+    depthScale: number;
+    centered: boolean;
+    decimals: number;
+  }
+
+  const TARGETS: Record<ModulationEffect, TargetDescriptor> = {
+    tremolo: { label: "Output gain", unit: "", base: 1, depthScale: 0.5, centered: false, decimals: 2 },
+    vibrato: { label: "Delay time", unit: " ms", base: 6, depthScale: 3, centered: true, decimals: 1 },
+    chorus: { label: "Delay time", unit: " ms", base: 20, depthScale: 8, centered: true, decimals: 1 },
+    flanger: { label: "Delay time", unit: " ms", base: 3, depthScale: 2, centered: true, decimals: 1 },
+    phaser: { label: "Allpass corner frequency", unit: " Hz", base: 800, depthScale: 500, centered: true, decimals: 0 },
+  };
+
+  const root = document.getElementById("modulation-lab");
+  if (root) {
+    const effectRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="modulation-effect"]'));
+    const rateInput = document.getElementById("modulation-rate") as HTMLInputElement;
+    const depthInput = document.getElementById("modulation-depth") as HTMLInputElement;
+    const mixInput = document.getElementById("modulation-mix") as HTMLInputElement;
+    const toggle = document.getElementById("modulation-audio-toggle") as HTMLButtonElement;
+
+    const targetLabelEl = document.getElementById("modulation-target-label") as unknown as SVGTextElement;
+    const minLabelEl = document.getElementById("modulation-min-label") as unknown as SVGTextElement;
+    const maxLabelEl = document.getElementById("modulation-max-label") as unknown as SVGTextElement;
+    const markerEl = document.getElementById("modulation-marker") as unknown as SVGCircleElement;
+
+    const TRACK_LEFT = 24;
+    const TRACK_RIGHT = 276;
+
+    let context: AudioContext | null = null;
+    let graph: ModulationGraph | null = null;
+    let animationFrame: number | null = null;
+    let phase = 0;
+    let lastFrameTime = 0;
+
+    function currentEffect(): ModulationEffect {
+      return (effectRadios.find((radio) => radio.checked)?.value ?? "tremolo") as ModulationEffect;
+    }
+
+    function markerX(sinValue: number): number {
+      return TRACK_LEFT + ((sinValue + 1) / 2) * (TRACK_RIGHT - TRACK_LEFT);
+    }
+
+    function updatePlot(sinValue: number): void {
+      const target = TARGETS[currentEffect()];
+      const depth = Number(depthInput.value);
+      const swing = depth * target.depthScale;
+      const min = target.centered ? target.base - swing : target.base - 2 * swing;
+      const max = target.centered ? target.base + swing : target.base;
+
+      targetLabelEl.textContent = target.label;
+      minLabelEl.textContent = `${min.toFixed(target.decimals)}${target.unit}`;
+      maxLabelEl.textContent = `${max.toFixed(target.decimals)}${target.unit}`;
+      markerEl.setAttribute("cx", String(markerX(sinValue)));
+    }
+
+    function stepAnimation(now: number): void {
+      const dt = lastFrameTime === 0 ? 0 : (now - lastFrameTime) / 1000;
+      lastFrameTime = now;
+      phase += 2 * Math.PI * Number(rateInput.value) * dt;
+      updatePlot(Math.sin(phase));
+      animationFrame = requestAnimationFrame(stepAnimation);
+    }
+
+    function stopAnimation(): void {
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+      lastFrameTime = 0;
+      phase = 0;
+      updatePlot(0);
+    }
+
+    function stopAudio(): void {
+      graph?.stop();
+      graph = null;
+      stopAnimation();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("modulation-audio", false);
+    }
+
+    function startAudio(): void {
+      context = context ?? new AudioContext();
+      graph = new ModulationGraph(context, {
+        effect: currentEffect(),
+        rateHz: Number(rateInput.value),
+        depth: Number(depthInput.value),
+        mix: Number(mixInput.value),
+        onEnded: () => {
+          graph = null;
+          stopAnimation();
+          (
+            window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+          ).setAudioDemoState?.("modulation-audio", false);
+        },
+      });
+      graph.start();
+      animationFrame = requestAnimationFrame(stepAnimation);
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("modulation-audio", true);
+    }
+
+    effectRadios.forEach((radio) =>
+      radio.addEventListener("change", () => {
+        const wasPlaying = graph !== null;
+        if (wasPlaying) stopAudio();
+        updatePlot(0);
+        if (wasPlaying) startAudio();
+      }),
+    );
+
+    [rateInput, depthInput, mixInput].forEach((input) =>
+      input.addEventListener("input", () => {
+        graph?.setParams(Number(rateInput.value), Number(depthInput.value), Number(mixInput.value));
+        if (!graph) updatePlot(0);
+      }),
+    );
+
+    toggle.addEventListener("click", () => {
+      if (graph) {
+        stopAudio();
+        return;
+      }
+      startAudio();
+    });
+
+    updatePlot(0);
+  }
+</script>
+
+<style>
+  .modulation-lab {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .lab-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.75rem;
+  }
+
+  .target-plot svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .target-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    fill: var(--at-text-secondary);
+  }
+
+  .target-track {
+    stroke: var(--bench-line, var(--at-border));
+    stroke-width: 2;
+  }
+
+  .target-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 7px;
+    fill: var(--at-text-secondary);
+  }
+
+  .target-marker {
+    fill: var(--bench-phosphor, var(--at-accent));
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+</style>
