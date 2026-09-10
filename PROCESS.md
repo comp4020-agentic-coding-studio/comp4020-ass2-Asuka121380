@@ -514,6 +514,71 @@ trimmed for the word count — that curation happens once, at submission time.
   browser at both marked viewports is still worth doing before treating
   this fully verified. This completes Milestone C (Weeks 9-12).
 
+- [`e7641ce`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/e7641ce) —
+  Milestone D: wrote the three real assessments and cleared every remaining
+  starter-content placeholder in the project. The starter's two placeholder
+  assessments (`assignment-1.md` at 40%, `final-project.md` at 60%) didn't
+  match the curriculum at all, so both were deleted and replaced with three
+  new files whose content follows `SLOP2186.md` section 7 directly: Tone
+  Autopsy (25%, `week: 6` due, weighted marking across observation/spectral
+  reasoning/observation-vs-interpretation/clarity, explicitly scoped to
+  Weeks 1-4 only per the curriculum's stated constraint that distortion and
+  amplifier behaviour aren't fair game yet), Pedal Laboratory (30%, `week: 9`
+  due, weighted marking across the causal-chain/circuit/nonlinear/filter/
+  audible-outcome skills the brief names), and Engineer a Guitar Tone (45%,
+  `week: 12` due matching the course's own end date, holistic marking since
+  it's an integrated design piece rather than a checklist — its verbatim
+  insufficient/sufficient justification examples from the curriculum are
+  reproduced directly in the page body). Weights sum to exactly 100. Deleting
+  `assignment-1.md` broke `sessions/02-first-review.md`'s
+  `related: [assessments/assignment-1]` edge, so that session's frontmatter
+  and body were rewritten together with `related` retargeted at
+  `assessments/tone-autopsy` — a natural fit, since the session is framed as
+  practice at separating observation from interpretation ahead of that
+  assessment. While in the sessions collection, also rewrote
+  `01-getting-started.md`, which had the same starter placeholder body.
+  Rounded out every other file `grep -rln "STARTER_CONTENT" src/` had
+  flagged: both people pages (`idris-fenn.md`, `marisol-quaye.md`) got real
+  bios and consultation guidance consistent with their existing role/contact
+  frontmatter; the homepage (`src/pages/index.astro`) got real "what you will
+  do" / "who it is for" copy (the hero artwork and its alt text were already
+  real, from an earlier milestone, so only the leftover comment needed
+  removing); `src/pages/policies/index.mdx` got real
+  assessment-progression/late-work/academic-integrity/getting-help sections;
+  and `src/decks/week-01.deck.mdx` was rewritten to match its actual lecture
+  content, following the same slide-writing convention already established
+  in `week-06.deck.mdx`. Why: this is Milestone D ("assessments +
+  course-level pages") of the staged course-build plan, following directly
+  from Milestone C's completion, per the standing instruction to proceed
+  through the whole course without waiting for approval between individual
+  pages. Checked: `pnpm check` first failed on a YAML parse error in
+  `engineer-a-guitar-tone.md` — a plain multi-line scalar for the holistic
+  `marking.description` field contained the substring "marks: does", and an
+  unquoted `: ` inside a plain YAML scalar gets parsed as a new mapping key,
+  which js-yaml correctly rejected as a bad indentation error; fixed by
+  switching that field to an explicit `>-` folded block scalar, which is
+  parsed as one literal string regardless of colons inside it. After that
+  fix, `pnpm check` ran fully green: typecheck (0 errors, only pre-existing
+  unrelated hints in `Spectrum.astro`/`Waveform.astro`/`FilterBench.astro`/
+  `Knob.astro`), build with axe accessibility and internal link/base-path
+  checks passing (28 pages, no violations, no broken links), deck compile (2
+  decks, no structural violations), course-graph generation (20 nodes, 11
+  edges), and 5/5 vitest tests — including `spec/assignment-2.test.ts`'s hard
+  check that assessment weights sum to exactly 100, read from the built
+  `dist/api/index.json`. Ran the dev server and fetched every new or changed
+  page directly: all returned 200 (home, all three assessment pages, the
+  assessments index, both session pages, both people pages, policies, the
+  Week 1 deck). Confirmed the assessments index actually displays 25%/30%/45%
+  for the three new entries, and confirmed the `related` edge is genuinely
+  bidirectional as documented — the Week 1 lecture page renders a "Tone
+  Autopsy" backlink even though only the assessment file declares the
+  `related:` field, not the lecture. `grep -rln "STARTER_CONTENT" src/`
+  returns nothing now. Not yet addressed, and knowingly deferred rather than
+  forgotten: the placeholder `socialImage`/`socialImageAlt` values in
+  `src/site-config.ts`, which `README.md` says `pnpm check:evidence` will
+  fail on — that needs an actual generated image asset, not text, so it's
+  left for a later pass rather than rushed here. This completes Milestone D.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
