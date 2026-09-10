@@ -1,13 +1,5 @@
 # Process overview
 
-<!-- TEMPLATE: this file is a shape to fill in, not a form. Replace everything
-     in it with your own overview, and delete this comment — `pnpm
-     check:evidence` will remind you if it's still here. -->
-
-Written by you, for a reader: how you got from the brief to the harness and
-agentic workflow behind this submission. Markers read this file and follow its
-citations; they don't trawl the repo for evidence you didn't point at.
-
 This file is the shape; the course site's
 [assessment page](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/assessment/#what-you-submit)
 is the requirement, and its
@@ -16,31 +8,71 @@ cover every deliverable.
 
 ## What I built
 
-One paragraph: the thing, and the idea behind it.
+**SLOP2186: The Science of Guitar Tone** — a 12-week course site that treats
+guitar tone as an engineering system rather than a matter of taste. Every
+week follows the same causal chain (physical mechanism → signal
+transformation → waveform/spectral consequence → audible consequence)
+through one stage of the real signal path — string, pickup, guitar
+electronics, gain, clipping, filtering, modulation, delay/reverb, amplifier,
+cabinet — and pairs the explanation with a live "lab bench" built on real
+Web Audio DSP, so a student can change an actual parameter and see and hear
+its consequence rather than take the theory on faith. The three assessments
+(Tone Autopsy, Pedal Laboratory, Engineer a Guitar Tone) follow the course's
+own Analyse → Manipulate → Design progression and sit on top of the same
+content collections as the lectures, sessions, and people pages.
 
 ## How I got here
 
-The account of the process: how the work actually went, and how you knew the
-result was right. Tell it in whatever order makes it clear. A weekly prototype
-needs a paragraph or two; an assignment needs more.
+The curriculum came first: `SLOP2186.md` fixes the 12-week structure, each
+week's central question, and the 25/30/45 assessment weighting, and every
+build decision below answers to it rather than inventing new scope.
 
-Cite the record as you go, as links whose text is the commit hash or range and
-whose target is this repo's commit or compare URL, so a reader clicks straight
-to the evidence:
+Early work fixed a naming mismatch between the reference document and the
+repo's provisioned course code
+([`61ed2d7`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/61ed2d7a9b9685f602c063d58ff09048a90d3322)),
+then built Week 6 (gain, clipping, and the pedal-laboratory bench) as the
+first full teaching week
+([`3f45616`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/3f45616)).
+Week 6 then went through a full presentation/interaction/audio redesign
+around a fictional-instrument-panel identity — the "Bench & Booth" language
+of bordered modules, oscilloscope-style diagrams, and a knob-and-footswitch
+lab interface — replacing dense prose with captioned diagrams and adding a
+synthetic Karplus-Strong plucked-string source so the lab demonstrates
+guitar-like material rather than a bare test tone
+([`0075aa7`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/0075aa7)).
+Once approved, that became the permanent visual language for the entire
+course rather than a one-week experiment, and the remaining nine weeks were
+built out in four staged milestones, each inspected in a browser and checked
+before moving on: Weeks 1-4
+([`02b7610`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/02b761082449abf4ac09d73689bd441f441508a6)),
+Weeks 5, 7, and 8
+([`183c542`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/183c542)),
+Weeks 9-12 — delay/reverb, amplifier staging, cabinet coloration, and the
+integrating final week that reasons backwards from a target sound through
+every stage covered so far
+([`126a4d5`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/126a4d5),
+[`fd7dcf6`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/fd7dcf6),
+[`e90169b`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/e90169b),
+[`aab7bc1`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/aab7bc1)) —
+and finally the three real assessments and every remaining course-level page
+(people, sessions, homepage, policies, the Week 1 deck), replacing the
+starter template's placeholder content throughout
+([`e7641ce`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/e7641ce)).
 
-- one commit: [`a1b2c3d`](https://github.com/YOUR-ORG/YOUR-REPO/commit/a1b2c3d)
-- a range:
-  [`a1b2c3d...e4f5a6b`](https://github.com/YOUR-ORG/YOUR-REPO/compare/a1b2c3d...e4f5a6b)
-
-To pair a prompt with the commit it produced, quote the prompt (curated, not a
-full transcript) next to the citation:
-
-> the prompt, verbatim
-
-Screenshots are welcome where one carries the point better than a sentence does.
-Commit the file to this repo and link it with a **relative** path, which is what
-makes it render on GitHub: `![alt text](docs/before.png)`. Images don't count
-towards the word count and don't replace the citation.
+Each stage followed the same discipline: `pnpm dev` running while iterating,
+a rendered-page check in a browser (or, where no browser-automation tool was
+available, a direct fetch of the built page plus a structural check of its
+controls and generated SVG data) rather than trusting the code alone, and
+`pnpm check` green — typecheck, build with an axe accessibility pass and
+internal link checks, deck compilation, and the `spec/` invariants,
+including the hard check that the three assessment weights sum to exactly
+100 — before any commit. Every failure `pnpm check` caught along the way
+(a handful of TypeScript literal-narrowing false positives on union-typed
+comparisons, one axe `aria-allowed-role` violation from a role placed on a
+`<figure>` instead of the `<svg>` it wraps, one YAML parse error from an
+unquoted colon inside a plain scalar) is recorded against the commit that
+introduced and then fixed it in the development log below, rather than
+smoothed over here.
 
 ## Development log
 
