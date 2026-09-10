@@ -42,6 +42,28 @@ Commit the file to this repo and link it with a **relative** path, which is what
 makes it render on GitHub: `![alt text](docs/before.png)`. Images don't count
 towards the word count and don't replace the citation.
 
+## Development log
+
+Chronological working log, kept alongside the final narrative above. Not
+trimmed for the word count — that curation happens once, at submission time.
+
+- [`61ed2d7`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/61ed2d7a9b9685f602c063d58ff09048a90d3322) —
+  renamed the curriculum reference from `SLOP0721.md`/`SLOP0721` to
+  `SLOP2186.md`/`SLOP2186` throughout the project (the reference document
+  itself, and the two mentions in `CLAUDE.md`'s curriculum-authority
+  section). Why: the intended final course code is `SLOP2186`. This also
+  removed a stale harness note — the old code (`0721`) conflicted with the
+  three digits (`186`) this repo was provisioned with in
+  `src/course-config.ts`, so `CLAUDE.md` had carried an explicit exception
+  saying the deployed code overrides the document; `2186` already ends in
+  `186`, so that exception no longer applies and the note was corrected to
+  say so. Checked: grepped the whole project for `SLOP0721` and `0721` before
+  and after — zero remaining hits outside this log entry itself; confirmed
+  `SLOP2186.md` exists and `SLOP0721.md` doesn't; ran `pnpm check` — build,
+  types, and 3/4 spec tests pass, the one failure (`runs across twelve dated
+  teaching weeks`) is the pre-existing, expected red from only 2 of 12
+  placeholder sessions existing so far, unrelated to this change.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
