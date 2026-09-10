@@ -1,36 +1,38 @@
 ---
 title: Getting started
 description:
-  The first session of the semester — what to have working before you arrive,
-  and what happens once you do
+  Setting up a listening environment and the toolchain the rest of the
+  course's demonstrations run on
 week: 1
 date: 2027-02-22
 teachers:
   - marisol-quaye
 spec:
-  - your development environment runs the course's toolchain
-  - you can build and preview the site locally
-  - you have something, however rough, to show the class
+  - you can build and preview the course site locally
+  - you have working headphones or monitors and have checked levels before Week 1's lab bench plays anything
 ---
-
-<!-- STARTER_CONTENT: replace this session, then remove this comment. -->
-
-Replace this page. A session brief tells a student three things: what to bring,
-what will happen, and how to tell afterwards whether it went well.
 
 ## Before the session
 
-The `spec` above is the contract. Write each line so a reader can tell whether
-it has been met without asking you --- that is the difference between a spec and
-a wish.
+Bring headphones or monitor speakers you trust, and a laptop that can run a
+modern browser. Nothing on this course's benches plays audio without you
+pressing something first, so there's no risk in having sound on — but do set
+a sane starting volume, since some later weeks' distortion and gain stages
+can get loud fast once you start turning knobs.
 
 ## In the session
 
-Say how the time is actually spent, in the order it happens. If the session runs
-to a repeating shape --- a demo, then feedback, then work time --- name the
-parts and say roughly how long each takes. Students plan against it.
+A short demo of the Week 1 lab bench — the waveform-family comparison that
+sits alongside "What Is Guitar Tone?" — followed by time to work through it
+yourself: listening to the same pitch and loudness rendered as different
+waveforms, and connecting what you hear to the harmonic content shown on
+screen. The point of this first session is calibration — making sure
+"harmonic content" and "timbre" mean something you've actually heard, not
+just read, before Week 2 builds on it.
 
 ## Afterwards
 
-Say what leaves the session: a mark, a piece of feedback, a decision about the
-next week's work.
+Nothing from this session is marked. What should follow it is confidence
+that you can get the site running locally, and that you can point at a
+waveform on screen and say what you'd expect it to sound like before you
+press play.

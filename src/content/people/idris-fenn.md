@@ -11,7 +11,16 @@ photo: ./idris-fenn.avif
 photoAlt: A stylised portrait of a person facing the viewer, flat gold and black shapes on warm cream, in a two-ink risograph print
 ---
 
-<!-- STARTER_CONTENT: replace this person entry, then remove this comment. -->
+Idris tutors the course's sessions and the practical work that follows them —
+Week 2's first review, and hands-on troubleshooting on the lab benches
+whenever a Try It control isn't behaving the way the theory says it should.
 
-Replace this entry. A second person makes the listing, role ordering and
-teacher-reference fields visible before you replace the cast with your own.
+Idris's own background is in audio signal processing rather than guitar
+specifically, which turns out to help: questions about *why* a filter or a
+clipping curve behaves a certain way get answered from the maths first, the
+guitar-specific consequence second.
+
+**Consultation:** ask during a session first — most questions about a
+control on the bench are faster to resolve by looking at it together than by
+describing it in an email. Email for anything that can't wait until the next
+session, or that needs a considered written answer.

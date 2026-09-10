@@ -5,9 +5,6 @@ import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
 import heroImage from "../assets/images/hero-home.avif";
 import { courseMeta } from "../course-config";
 import { sessionLabels, siteConfig } from "../site-config";
-
-// STARTER_CONTENT: replace the hero artwork and its alt text below, then
-// remove this comment.
 ---
 
 <ContentLayout
@@ -21,17 +18,27 @@ import { sessionLabels, siteConfig } from "../site-config";
     {courseMeta.tags.map((tag) => <li>{tag}</li>)}
   </ul>
 
-  <!-- STARTER_CONTENT: replace the authored page below, then remove this comment. -->
   <h2>What you will do</h2>
   <p>
-    Say what a student spends their time on — the making, reading, arguing or
-    measuring that fills the weeks. Name the artefact they walk out with.
+    Follow one guitar signal from a plucked string to a listener's ear, one
+    stage at a time: pickup, guitar electronics, gain, clipping, filtering,
+    modulation, delay and reverb, amplifier, and speaker cabinet. Every week
+    pairs the physical or electrical mechanism with a lab bench that lets you
+    change a real parameter and hear and see the consequence — a waveform, a
+    spectrum, a frequency response — rather than take it on faith. Across
+    three assessments you move from analysing an existing sound, to
+    manipulating a simplified pedal circuit, to designing and justifying a
+    complete signal chain against a stated tonal target.
   </p>
 
   <h2>Who it is for</h2>
   <p>
-    Say who this is aimed at and what they need to already know. Be specific
-    enough that someone can rule themselves in or out without emailing you.
+    Anyone curious about why two guitar sounds differ, who wants that
+    curiosity answered with physics and signal processing rather than
+    adjectives. No electronics or DSP background is assumed — the course
+    builds its own vocabulary from Week 1 — but you should be comfortable
+    with the idea that a sound can be read off a waveform or a spectrum, and
+    willing to reason from a graph rather than a gut feeling.
   </p>
 
   <h2>Where to go next</h2>

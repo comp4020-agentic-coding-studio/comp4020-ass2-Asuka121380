@@ -1,48 +1,101 @@
 ---
-title: Opening lecture
-description: The placeholder deck — replace it with a real deck for your course
----
-
-# Opening lecture
-
-{/* STARTER_CONTENT: replace this deck, then remove this comment. */}
-
-Replace this deck. It is here to show that slides are part of the site, built
-from the same markdown as everything else.
-
----
-
-## Slides are markdown
-
-A `---` starts a new slide. Everything else is ordinary markdown: headings,
-lists, links, tables, images, fenced code.
-
-- one idea per slide
-- the fewest words that carry it
-- the deck is a performance artefact, so it can say things a page wouldn't
-
+title: "Week 1: What Is Guitar Tone?"
+description: Pitch, loudness, and timbre — and why two guitars can share a note but never sound the same
 ---
 
 {/* _class: impact */}
 
-# A slide class
+# What do we mean when we say two guitars have different "tone"?
 
-`{/* _class: impact */}` fills the slide with the brand colour. `quote`,
-`banner` and `centered` are the others the theme styles.
+Not "warm" or "bright". What actually changed, physically?
 
 ---
 
-## What else is here
+## Three properties, one word
 
-```sh
-pnpm dev
-pnpm check
+"Tone" bundles together three separate things.
+
+**Pitch** — fundamental frequency.
+**Loudness** — amplitude.
+**Timbre** — everything else.
+
+---
+
+## Timbre is a composite
+
+No single number captures it. Timbre comes from:
+
+- harmonic balance
+- attack and decay
+- modulation over time
+- nonlinear distortion
+- resonances in the instrument and chain
+
+---
+
+## Two views of the same signal
+
+```text
+Time domain   → waveform  → amplitude vs. time
+Frequency domain → spectrum → energy vs. frequency
 ```
 
-The second command proves the deck compiles with the rest of the site. Use the
-first to inspect every slide at the desktop and phone marking viewports; slide
-fit and legibility are visual judgements.
+Neither is more "real". This course moves between both, constantly.
 
-The [astromotion](https://github.com/ANUcybernetics/astromotion) README has the
-rest of the syntax: speaker notes, backgrounds, QR codes, fragments, and
-components hydrated per slide.
+---
+
+## The guitar signal chain
+
+```text
+String → Pickup → Electronics → Pedals → Amplifier → Speaker → Room → Listener
+```
+
+Every stage can reshape the signal. Tone belongs to the whole chain, not
+any one link.
+
+---
+
+{/* _class: centered */}
+
+## Hear it: same pitch, three timbres
+
+Sine, square, and sawtooth — all at 220 Hz.
+
+Same fundamental. Same pitch. Completely different sound.
+
+---
+
+## Why they differ
+
+A square and a sawtooth carry harmonics a sine doesn't.
+
+Same fundamental frequency, different harmonic balance — that difference
+*is* the timbre you hear.
+
+---
+
+## Interactive example
+
+Open the Week 1 lab bench on this week's page.
+
+Switch between sine, square, and sawtooth at the same pitch. Watch the
+waveform and spectrum change as the sound does.
+
+---
+
+## Main conclusions
+
+- Pitch, loudness, and timbre are separate, measurable properties.
+- Waveform and spectrum are two readings of one signal, not two signals.
+- Tone is a property of the whole signal chain, not any single component.
+
+---
+
+{/* _class: banner */}
+
+## Transition to Week 2
+
+Harmonics were compared here in the abstract.
+
+Next week: where they physically come from — what a plucked string
+actually does.
