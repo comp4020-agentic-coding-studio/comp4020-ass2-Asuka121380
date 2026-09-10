@@ -1,10 +1,18 @@
 ---
+// The SLOP2186 Nonlinearity Bench: an abstract fictional pedal, not a real
+// commercial device. Two views share one state — a PEDAL view (what a
+// musician would touch: gain knob, topology footswitches, source and
+// bypass switches) and an ENGINEERING view (what those controls actually
+// do to the signal: transfer curve, before/after waveform, spectrum).
 import AudioDemo from "./AudioDemo.astro";
-import ParamSlider from "./ParamSlider.astro";
+import FootswitchGroup from "./lab/FootswitchGroup.astro";
+import Knob from "./lab/Knob.astro";
+import ToggleSwitch from "./lab/ToggleSwitch.astro";
 import Spectrum from "./Spectrum.astro";
 import Waveform from "./Waveform.astro";
 import { applyCurve, magnitudeSpectrum, sineCycle } from "../lib/audio/analysis";
 import { buildClippingCurve } from "../lib/audio/waveshaping";
+import { transferCurvePath, type Viewport } from "../lib/draw/svgTrace";
 
 const DEFAULT_TOPOLOGY = "symmetric-soft";
 const DEFAULT_DRIVE = 3;
@@ -13,142 +21,340 @@ const input = sineCycle(256);
 const curve = buildClippingCurve(DEFAULT_TOPOLOGY, DEFAULT_DRIVE);
 const output = applyCurve(input, curve);
 const spectrum = magnitudeSpectrum(output);
+
+const curveViewport: Viewport = { width: 160, height: 160, padding: 16 };
+const curvePadding = curveViewport.padding ?? 0;
+const curvePath = transferCurvePath(curve, curveViewport);
+
+const topologyOptions = [
+  { value: "symmetric-soft", label: "Symmetric" },
+  { value: "asymmetric-soft", label: "Asymmetric" },
+  { value: "hard", label: "Hard" },
+  { value: "fuzz", label: "Fuzz" },
+];
 ---
 
-<div class="clipping-lab" id="clipping-lab">
-  <div class="controls">
-    <div class="param-slider">
-      <label for="clipping-topology">Clipping topology</label>
-      <select id="clipping-topology">
-        <option value="symmetric-soft" selected>Symmetric soft clipping</option>
-        <option value="asymmetric-soft">Asymmetric soft clipping</option>
-        <option value="hard">Hard clipping</option>
-        <option value="fuzz">Fuzz-style saturation</option>
-      </select>
+<div class="clipping-lab bench-module" id="clipping-lab">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Nonlinearity Bench</span>
+    <ToggleSwitch id="lab-view-toggle" legend="View" offLabel="Pedal" onLabel="Engineering" />
+  </div>
+
+  <div class="lab-body">
+    <div class="lab-pedal">
+      <div class="jack" data-side="in" aria-hidden="true">IN</div>
+      <div class="pedal-controls">
+        <Knob id="lab-drive" label="Gain" min={1} max={12} step={0.5} value={DEFAULT_DRIVE} unit="×" />
+        <FootswitchGroup name="lab-topology" legend="Clipping topology" options={topologyOptions} selected={DEFAULT_TOPOLOGY} />
+        <ToggleSwitch id="lab-source-toggle" legend="Source" offLabel="Lab tone" onLabel="Guitar source" />
+        <AudioDemo id="lab-audio" label="Play" />
+      </div>
+      <div class="jack" data-side="out" aria-hidden="true">OUT</div>
+      <p id="lab-input-caption" class="bench-eyebrow lab-source-caption">LAB TONE — pure sine, for reading the transfer function cleanly</p>
     </div>
-    <ParamSlider id="clipping-drive" label="Gain into the clipping stage" min={1} max={12} step={0.5} value={DEFAULT_DRIVE} unit="×" />
-  </div>
 
-  <div class="displays">
-    <Waveform id="clipping-input-waveform" label="Input (clean sine)" samples={Array.from(input)} strokeVar="--at-border" />
-    <Waveform id="clipping-output-waveform" label="Output (after clipping)" samples={Array.from(output)} />
-    <Spectrum id="clipping-output-spectrum" label="Output spectrum" magnitudes={Array.from(spectrum)} />
-  </div>
+    <div class="lab-engineering">
+      <figure class="curve-panel">
+        <svg viewBox={`0 0 ${curveViewport.width} ${curveViewport.height}`} role="img" aria-label="Current transfer curve for the selected topology and gain.">
+          <line x1={curvePadding} y1={curveViewport.height / 2} x2={curveViewport.width - curvePadding} y2={curveViewport.height / 2} class="axis" />
+          <line x1={curveViewport.width / 2} y1={curvePadding} x2={curveViewport.width / 2} y2={curveViewport.height - curvePadding} class="axis" />
+          <path id="lab-transfer-path" d={curvePath} class="curve" fill="none" />
+        </svg>
+        <figcaption>Transfer curve — input amplitude → output amplitude</figcaption>
+      </figure>
 
-  <AudioDemo id="clipping-audio" label="Hear this clipping stage" />
+      <div class="displays">
+        <Waveform id="lab-input-waveform" label="Input, at the clipping stage" samples={Array.from(input)} strokeVar="--bench-input-trace" />
+        <Waveform id="lab-output-waveform" label="Output, at the clipping stage" samples={Array.from(output)} strokeVar="--bench-phosphor" />
+        <Spectrum id="lab-output-spectrum" label="Output spectrum" magnitudes={Array.from(spectrum)} fillVar="--bench-phosphor" />
+      </div>
+      <p class="bench-scope-note">The waveform and spectrum above read the signal right at the clipping stage. The Guitar source you hear also passes through a fixed listening filter afterwards — a stand-in for "played through something", not a taught cabinet model.</p>
+    </div>
+  </div>
 </div>
 
 <script>
-  import { applyCurve, magnitudeSpectrum, sineCycle } from "../lib/audio/analysis";
-  import { ClippingGraph } from "../lib/audio/engine";
+  import { applyCurve, levelCompensation, magnitudeSpectrum, sineCycle } from "../lib/audio/analysis";
+  import { ClippingGraph, type SourceKind } from "../lib/audio/engine";
+  import { pluckedStringExcerpt } from "../lib/audio/pluckedString";
   import { buildClippingCurve, type ClippingTopology } from "../lib/audio/waveshaping";
   import { drawSpectrum } from "../lib/draw/spectrum";
   import { drawWaveform } from "../lib/draw/waveform";
+  import { transferCurvePath } from "../lib/draw/svgTrace";
 
   const root = document.getElementById("clipping-lab");
   if (root) {
-    const topologySelect = document.getElementById("clipping-topology") as HTMLSelectElement;
-    const driveSlider = document.getElementById("clipping-drive") as HTMLInputElement;
-    const driveValue = document.getElementById("clipping-drive-value");
-    const outputCanvas = document.getElementById("clipping-output-waveform") as HTMLCanvasElement;
-    const spectrumCanvas = document.getElementById(
-      "clipping-output-spectrum",
-    ) as HTMLCanvasElement;
-    const toggle = document.getElementById("clipping-audio-toggle") as HTMLButtonElement;
+    const topologyRadios = Array.from(
+      root.querySelectorAll<HTMLInputElement>('input[name="lab-topology"]'),
+    );
+    const driveInput = document.getElementById("lab-drive") as HTMLInputElement;
+    const sourceToggle = document.getElementById("lab-source-toggle") as HTMLInputElement;
+    const viewToggle = document.getElementById("lab-view-toggle") as HTMLInputElement;
+    const inputCanvas = document.getElementById("lab-input-waveform") as HTMLCanvasElement;
+    const outputCanvas = document.getElementById("lab-output-waveform") as HTMLCanvasElement;
+    const spectrumCanvas = document.getElementById("lab-output-spectrum") as HTMLCanvasElement;
+    const curvePathEl = document.getElementById("lab-transfer-path") as unknown as SVGPathElement;
+    const sourceCaption = document.getElementById("lab-input-caption");
+    const toggle = document.getElementById("lab-audio-toggle") as HTMLButtonElement;
 
-    const accent =
-      getComputedStyle(document.documentElement).getPropertyValue("--at-accent").trim() ||
-      "#e2b13c";
-    const input = sineCycle(256);
+    const styles = getComputedStyle(root);
+    const inputTrace = styles.getPropertyValue("--bench-input-trace").trim();
+    const outputTrace = styles.getPropertyValue("--bench-phosphor").trim() || "#e2b13c";
+    const gridColor = styles.getPropertyValue("--bench-line").trim();
+    const labelColor = styles.getPropertyValue("--bench-panel-text-secondary").trim();
+
+    const curveViewport = { width: 160, height: 160, padding: 16 };
+    const referenceOutput = applyCurve(sineCycle(256), buildClippingCurve("symmetric-soft", 3));
+
     let graph: ClippingGraph | null = null;
 
-    function redraw(): void {
-      const topology = topologySelect.value as ClippingTopology;
-      const drive = Number(driveSlider.value);
-      if (driveValue) driveValue.textContent = `${drive}×`;
+    function currentTopology(): ClippingTopology {
+      return (topologyRadios.find((radio) => radio.checked)?.value ??
+        "symmetric-soft") as ClippingTopology;
+    }
 
+    function currentSource(): SourceKind {
+      return sourceToggle.checked ? "string" : "sine";
+    }
+
+    function stopAudio(): void {
+      graph?.stop();
+      graph = null;
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("lab-audio", false);
+    }
+
+    function redraw(): void {
+      const topology = currentTopology();
+      const drive = Number(driveInput.value);
+      const source = currentSource();
+
+      const inputSamples = source === "sine" ? sineCycle(256) : pluckedStringExcerpt();
       const curve = buildClippingCurve(topology, drive);
-      const output = applyCurve(input, curve);
+      const output = applyCurve(inputSamples, curve);
       const spectrum = magnitudeSpectrum(output);
+      const compensation = levelCompensation(output, referenceOutput);
+
+      if (sourceCaption) {
+        sourceCaption.textContent =
+          source === "sine"
+            ? "LAB TONE — pure sine, for reading the transfer function cleanly"
+            : "GUITAR SOURCE — synthetic plucked-string excerpt, a teaching source, not a physical guitar emulation";
+      }
+
+      const inputCtx = inputCanvas.getContext("2d");
+      if (inputCtx)
+        drawWaveform(inputCtx, inputSamples, {
+          stroke: inputTrace,
+          background: "transparent",
+          gridColor,
+          labelColor,
+        });
 
       const outputCtx = outputCanvas.getContext("2d");
-      if (outputCtx) drawWaveform(outputCtx, output, { stroke: accent, background: "transparent" });
+      if (outputCtx)
+        drawWaveform(outputCtx, output, {
+          stroke: outputTrace,
+          background: "transparent",
+          gridColor,
+          labelColor,
+        });
 
       const spectrumCtx = spectrumCanvas.getContext("2d");
       if (spectrumCtx)
-        drawSpectrum(spectrumCtx, spectrum, { fill: accent, background: "transparent" });
+        drawSpectrum(spectrumCtx, spectrum, {
+          fill: outputTrace,
+          background: "transparent",
+          gridColor,
+          labelColor,
+        });
+
+      curvePathEl.setAttribute("d", transferCurvePath(curve, curveViewport));
 
       graph?.setCurve(topology, drive);
+      graph?.setLevelCompensation(compensation);
     }
 
-    topologySelect.addEventListener("change", redraw);
-    driveSlider.addEventListener("input", redraw);
+    topologyRadios.forEach((radio) => radio.addEventListener("change", redraw));
+    driveInput.addEventListener("input", redraw);
+    sourceToggle.addEventListener("change", () => {
+      if (graph) stopAudio();
+      redraw();
+    });
+    viewToggle.addEventListener("change", () => {
+      root.classList.toggle("engineering-view", viewToggle.checked);
+    });
 
     toggle.addEventListener("click", () => {
       if (graph) {
-        graph.stop();
-        graph = null;
-        (window as { setAudioDemoState?: (id: string, playing: boolean) => void }).setAudioDemoState?.(
-          "clipping-audio",
-          false,
-        );
+        stopAudio();
         return;
       }
       const context = new AudioContext();
       graph = new ClippingGraph(context, {
-        frequency: 220,
-        topology: topologySelect.value as ClippingTopology,
-        drive: Number(driveSlider.value),
+        source: currentSource(),
+        topology: currentTopology(),
+        drive: Number(driveInput.value),
+        onEnded: () => {
+          graph = null;
+          (
+            window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+          ).setAudioDemoState?.("lab-audio", false);
+        },
       });
-      graph.start();
-      (window as { setAudioDemoState?: (id: string, playing: boolean) => void }).setAudioDemoState?.(
-        "clipping-audio",
-        true,
+      const output = applyCurve(
+        currentSource() === "sine" ? sineCycle(256) : pluckedStringExcerpt(),
+        buildClippingCurve(currentTopology(), Number(driveInput.value)),
       );
+      graph.setLevelCompensation(levelCompensation(output, referenceOutput));
+      graph.start();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("lab-audio", true);
     });
+
+    redraw();
   }
 </script>
 
 <style>
   .clipping-lab {
-    margin-block: 2rem;
-    padding: 1.25rem;
-    border: 1px solid var(--at-border);
-    border-radius: var(--at-border-radius);
-    background: var(--at-bg-alt);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
   }
 
-  .controls {
-    display: grid;
+  .lab-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 1rem;
-    grid-template-columns: 1fr 1fr;
-    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
   }
 
-  .param-slider label {
-    display: block;
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
     font-size: var(--at-font-size-sm);
-    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
   }
 
-  select {
-    width: 100%;
-    padding: 0.4rem;
-    font: inherit;
+  .lab-body {
+    display: grid;
+  }
+
+  .lab-pedal {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
     border: 1px solid var(--at-border);
     border-radius: var(--at-border-radius);
     background: var(--at-bg);
-    color: inherit;
+  }
+
+  .jack {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-muted, var(--at-text-secondary));
+    border: 1px solid var(--at-border);
+    border-radius: 50%;
+    width: 1.6rem;
+    height: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+  }
+
+  .pedal-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
+  .lab-source-caption {
+    grid-column: 1 / -1;
+    margin: 0;
+    text-align: center;
+  }
+
+  .lab-engineering {
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+
+  .clipping-lab.engineering-view .lab-engineering {
+    display: flex;
+  }
+
+  .curve-panel {
+    margin: 0;
+    max-width: 12rem;
+  }
+
+  .curve-panel svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg);
+  }
+
+  .curve-panel figcaption {
+    margin-top: 0.35rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+
+  .axis {
+    stroke: var(--bench-grid, var(--at-border));
+    stroke-width: 1;
+  }
+
+  .curve {
+    stroke: var(--bench-phosphor);
+    stroke-width: 2;
   }
 
   .displays {
     display: grid;
     gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .bench-scope-note {
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 900px) {
+    .displays {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   @media (max-width: 640px) {
-    .controls {
+    .lab-pedal {
+      grid-template-columns: 1fr;
+    }
+
+    .jack {
+      display: none;
+    }
+
+    .lab-source-caption {
+      grid-column: auto;
+    }
+
+    .displays {
       grid-template-columns: 1fr;
     }
   }

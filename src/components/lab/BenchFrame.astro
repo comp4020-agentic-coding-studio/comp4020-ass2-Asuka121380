@@ -1,0 +1,219 @@
+---
+// Shared visual language for Week 6: a "test bench" reading built from the
+// site's existing --at-* tokens plus one new scoped palette (below), so
+// nothing here leaks into other weeks. Wrap a lecture page's body in this
+// once; every other Week 6 component assumes these classes/tokens exist.
+---
+
+<div class="bench-frame">
+  <div class="bench-status-strip" role="note" aria-label="Course and week identifier">
+    <span class="status-dot" aria-hidden="true"></span>
+    <span>SLOP2186</span><span class="status-sep" aria-hidden="true">·</span><span>WK06</span><span class="status-sep" aria-hidden="true">·</span><span>NONLINEARITY</span>
+  </div>
+  <slot />
+</div>
+
+<style is:global>
+  :root {
+    /* One new hue (a teal-green "scope phosphor") used everywhere a signal
+       is *active/processed*, plus a fixed cool neutral for *clean/input*
+       signal — the same two identities in every diagram and in the lab,
+       light band or dark. Everything else here is dark-panel chrome for
+       the "bench" bands, not new brand colour. */
+    --bench-phosphor: oklch(78% 0.135 174);
+    --bench-input-trace: oklch(80% 0.018 240 / 85%);
+    --bench-panel-bg: oklch(15% 0.014 200);
+    --bench-panel-bg-raised: oklch(21% 0.018 200);
+    --bench-line: oklch(60% 0.03 200 / 40%);
+    --bench-panel-text: oklch(93% 0.008 200);
+    --bench-panel-text-secondary: oklch(93% 0.008 200 / 72%);
+    --bench-scan: oklch(60% 0.03 200 / 16%);
+    --bench-dot: color-mix(in srgb, var(--at-border) 45%, transparent);
+
+    /* The "analysis desk" (light) half of the same instrument, built from
+       the same phosphor hue rather than a second, unrelated palette: a warm
+       measurement-paper ground instead of pure white, and a dark, AA-safe
+       "ink" reading of the phosphor for text-sized use where the bright
+       version would fail contrast. */
+    --bench-paper-bg: oklch(96.5% 0.012 75);
+    --bench-paper-bg-raised: oklch(93% 0.015 75);
+    --bench-paper-line: oklch(45% 0.03 200 / 22%);
+    --bench-paper-text: oklch(26% 0.018 70);
+    --bench-paper-text-secondary: oklch(26% 0.018 70 / 68%);
+    --bench-phosphor-ink: oklch(40% 0.09 174);
+
+    /* Corrects the classic 100vw-breakout bug: 100vw includes the browser's
+       vertical scrollbar, but the actual visible viewport (and any 100%-wide
+       ancestor) does not, so a naive `100vw` full-bleed band ends up wider
+       than the page and forces horizontal scrolling. Measuring the gap once
+       here lets every full-bleed rule below correct for it. */
+    --bench-scrollbar-gutter: calc(100vw - 100%);
+  }
+
+  .bench-frame {
+    --bench-grid: color-mix(in srgb, var(--at-border) 55%, transparent);
+    --bench-readout: var(--at-font-mono);
+    /* Base register outside any band is the light "analysis desk" — the
+       same read as a .bench-band--theory band, so the status strip above
+       the first band doesn't paste a stray white sliver above the paper. */
+    --at-bg: var(--bench-paper-bg);
+    --at-bg-alt: var(--bench-paper-bg-raised);
+    --at-bg-elevated: var(--bench-paper-bg-raised);
+    --at-border: var(--bench-paper-line);
+    --at-divider: var(--bench-paper-line);
+    --at-text: var(--bench-paper-text);
+    --at-text-secondary: var(--bench-paper-text-secondary);
+    --at-text-muted: var(--bench-paper-text-secondary);
+    --at-heading: var(--bench-paper-text);
+    --at-accent: var(--bench-phosphor-ink);
+    counter-reset: bench-section;
+    display: flow-root;
+  }
+
+  .bench-status-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--bench-readout);
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--at-text-secondary);
+    border-bottom: 1px solid var(--bench-paper-line);
+    padding-block: 0.6rem;
+    margin-block-end: 1.5rem;
+  }
+
+  .status-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--bench-phosphor);
+    box-shadow: 0 0 5px var(--bench-phosphor);
+    flex: none;
+  }
+
+  .status-sep {
+    color: var(--at-text-muted, var(--at-text-secondary));
+  }
+
+  /* Breaks a block out to a wider band than the page's prose column, while
+     staying centred on the same axis. There's no theme-provided "wide"
+     grid line inside .at-main to opt into (only `body`'s own grid has
+     those), so this uses a viewport-relative breakout instead — corrected
+     by --bench-scrollbar-gutter so the vertical scrollbar's width doesn't
+     push the band wider than the actual visible viewport (the cause of a
+     page-level horizontal scrollbar). */
+  .bench-frame .bench-wide {
+    width: calc(100vw - var(--bench-scrollbar-gutter));
+    max-width: min(76rem, 100vw - var(--bench-scrollbar-gutter) - 2 * var(--at-gutter));
+    margin-inline: calc(50% - 50vw + var(--bench-scrollbar-gutter) / 2);
+    box-sizing: border-box;
+  }
+
+  /* Pairs a diagram with a short annotation: side-by-side once there's
+     room, stacked below it. Used inside bench bands so prose doesn't just
+     sit underneath a diagram at full width, unread. */
+  .bench-frame .bench-annotated {
+    display: grid;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  @media (min-width: 860px) {
+    .bench-frame .bench-annotated {
+      grid-template-columns: 1.5fr 1fr;
+    }
+  }
+
+  .bench-frame .bench-eyebrow {
+    display: block;
+    font-family: var(--bench-readout);
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--at-text-secondary);
+    margin-bottom: 0.35rem;
+  }
+
+  .bench-frame .bench-module {
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg-alt);
+    background-image:
+      linear-gradient(var(--bench-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bench-grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+    padding: 1.25rem;
+  }
+
+  .bench-frame .bench-callout {
+    border-left: 3px solid var(--at-accent);
+    background: var(--at-bg-alt);
+    border-radius: 0 var(--at-border-radius) var(--at-border-radius) 0;
+    padding: 0.9rem 1.1rem;
+    margin-block: 1.25rem;
+  }
+
+  .bench-frame .bench-callout p {
+    margin: 0;
+  }
+
+  .bench-frame .bench-scope-note {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+    border: 1px dashed var(--at-border);
+    border-radius: var(--at-border-radius);
+    padding: 0.5rem 0.75rem;
+    margin-block: 1rem;
+  }
+
+  .bench-frame .bench-scope-note::before {
+    content: "SCOPE";
+    font-family: var(--bench-readout);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.08em;
+    color: var(--at-accent);
+    flex: none;
+  }
+
+  .bench-frame .bench-prose {
+    max-width: 38rem;
+  }
+
+  .bench-frame section {
+    margin-block: 0;
+  }
+
+  /* A lab-notebook margin number beside every h2, living in the same
+     gutter the signal rail occupies — one more shared device tying the
+     paper and panel bands to the same "instrument" rather than reading
+     as two different sites. */
+  .bench-frame h2 {
+    counter-increment: bench-section;
+    position: relative;
+    margin-bottom: 0.75rem;
+  }
+
+  .bench-frame h2::before {
+    content: counter(bench-section, decimal-leading-zero);
+    position: absolute;
+    right: 100%;
+    top: 0.2em;
+    padding-inline-end: 0.6rem;
+    font-family: var(--bench-readout);
+    font-size: var(--at-font-size-xs);
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--at-accent);
+    opacity: 0.55;
+  }
+
+  .bench-frame p {
+    line-height: 1.7;
+  }
+</style>

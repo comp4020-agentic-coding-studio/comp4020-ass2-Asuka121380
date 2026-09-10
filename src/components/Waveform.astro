@@ -4,23 +4,32 @@ interface Props {
   label: string;
   samples: number[];
   strokeVar?: string;
+  grid?: boolean;
 }
 
-const { id, label, samples, strokeVar = "--at-accent" } = Astro.props;
+const { id, label, samples, strokeVar = "--at-accent", grid = true } = Astro.props;
 ---
 
 <figure class="waveform">
-  <canvas id={id} width="480" height="120" role="img" aria-label={label}></canvas>
+  <canvas id={id} width="640" height="200" role="img" aria-label={label}></canvas>
   <figcaption>{label}</figcaption>
 </figure>
 
-<script define:vars={{ id, samples, strokeVar }}>
+<script define:vars={{ id, samples, strokeVar, grid }}>
   import("../lib/draw/waveform.ts").then(({ drawWaveform }) => {
     const canvas = document.getElementById(id);
     const ctx = canvas?.getContext("2d");
-    if (!ctx) return;
-    const stroke = getComputedStyle(document.documentElement).getPropertyValue(strokeVar).trim();
-    drawWaveform(ctx, samples, { stroke: stroke || "#e2b13c", background: "transparent" });
+    if (!ctx || !canvas) return;
+    const styles = getComputedStyle(canvas);
+    const stroke = styles.getPropertyValue(strokeVar).trim();
+    const gridColor = grid ? styles.getPropertyValue("--at-border").trim() : undefined;
+    const labelColor = grid ? styles.getPropertyValue("--at-text-secondary").trim() : undefined;
+    drawWaveform(ctx, samples, {
+      stroke: stroke || "#e2b13c",
+      background: "transparent",
+      gridColor,
+      labelColor,
+    });
   });
 </script>
 

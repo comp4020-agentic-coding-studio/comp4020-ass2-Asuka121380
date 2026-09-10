@@ -1,0 +1,98 @@
+---
+// The 4-stage pedal block diagram: Input -> Gain -> Clipping -> Tone filter
+// -> Output, as connected modules with a flowing signal-path line. Replaces
+// a `text` code block with a real generated diagram of the same idea.
+interface Stage {
+  label: string;
+  caption: string;
+}
+
+const stages: Stage[] = [
+  { label: "Input", caption: "string signal" },
+  { label: "Gain", caption: "amplifies toward the clipping threshold" },
+  { label: "Clipping", caption: "the nonlinear element" },
+  { label: "Tone filter", caption: "shapes the new harmonics" },
+  { label: "Output", caption: "to the rest of the rig" },
+];
+---
+
+<div class="signal-chain bench-module" role="img" aria-label="Signal chain: Input, then Gain, then Clipping, then Tone filter, then Output.">
+  {stages.map((stage, index) => (
+    <>
+      <div class="chain-stage">
+        <span class="chain-label">{stage.label}</span>
+        <span class="chain-caption">{stage.caption}</span>
+      </div>
+      {index < stages.length - 1 && (
+        <svg class="chain-arrow" viewBox="0 0 32 16" aria-hidden="true">
+          <line x1="2" y1="8" x2="26" y2="8" />
+          <path d="M 20 3 L 27 8 L 20 13" fill="none" />
+        </svg>
+      )}
+    </>
+  ))}
+</div>
+
+<style>
+  .signal-chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .chain-stage {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3rem;
+    flex: 1 1 8rem;
+    min-width: 8rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg);
+    text-align: center;
+  }
+
+  .chain-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--at-accent);
+  }
+
+  .chain-caption {
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    line-height: 1.35;
+  }
+
+  .chain-arrow {
+    width: 2.2rem;
+    height: 1rem;
+    flex: none;
+    align-self: center;
+    stroke: var(--at-border);
+    stroke-width: 1.5;
+  }
+
+  @media (max-width: 640px) {
+    .signal-chain {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .chain-stage {
+      min-width: 0;
+    }
+
+    .chain-arrow {
+      width: 1rem;
+      height: 1.6rem;
+      align-self: center;
+      transform: rotate(90deg);
+    }
+  }
+</style>

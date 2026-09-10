@@ -4,23 +4,45 @@ interface Props {
   label: string;
   magnitudes: number[];
   fillVar?: string;
+  grid?: boolean;
+  highlightIndices?: number[];
+  highlightFillVar?: string;
 }
 
-const { id, label, magnitudes, fillVar = "--at-accent" } = Astro.props;
+const {
+  id,
+  label,
+  magnitudes,
+  fillVar = "--at-accent",
+  grid = true,
+  highlightIndices = [],
+  highlightFillVar = "--at-error",
+} = Astro.props;
 ---
 
 <figure class="spectrum">
-  <canvas id={id} width="480" height="120" role="img" aria-label={label}></canvas>
+  <canvas id={id} width="640" height="200" role="img" aria-label={label}></canvas>
   <figcaption>{label}</figcaption>
 </figure>
 
-<script define:vars={{ id, magnitudes, fillVar }}>
+<script define:vars={{ id, magnitudes, fillVar, grid, highlightIndices, highlightFillVar }}>
   import("../lib/draw/spectrum.ts").then(({ drawSpectrum }) => {
     const canvas = document.getElementById(id);
     const ctx = canvas?.getContext("2d");
-    if (!ctx) return;
-    const fill = getComputedStyle(document.documentElement).getPropertyValue(fillVar).trim();
-    drawSpectrum(ctx, magnitudes, { fill: fill || "#e2b13c", background: "transparent" });
+    if (!ctx || !canvas) return;
+    const styles = getComputedStyle(canvas);
+    const fill = styles.getPropertyValue(fillVar).trim();
+    const highlightFill = highlightIndices.length ? styles.getPropertyValue(highlightFillVar).trim() : undefined;
+    const gridColor = grid ? styles.getPropertyValue("--at-border").trim() : undefined;
+    const labelColor = grid ? styles.getPropertyValue("--at-text-secondary").trim() : undefined;
+    drawSpectrum(ctx, magnitudes, {
+      fill: fill || "#e2b13c",
+      background: "transparent",
+      gridColor,
+      labelColor,
+      highlightIndices,
+      highlightFill,
+    });
   });
 </script>
 

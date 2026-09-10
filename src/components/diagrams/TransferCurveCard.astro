@@ -1,0 +1,80 @@
+---
+// One topology's transfer curve (input amplitude -> output amplitude) plus
+// a short caption. Purely presentational — the curve data is computed by
+// the caller with the same `buildClippingCurve` the lab and audio engine
+// use, so this card can never disagree with what the lab actually does.
+import { transferCurvePath, type Viewport } from "../../lib/draw/svgTrace";
+
+interface Props {
+  label: string;
+  description: string;
+  curve: ArrayLike<number>;
+}
+
+const { label, description, curve } = Astro.props;
+const viewport: Viewport = { width: 120, height: 120, padding: 12 };
+const padding = viewport.padding ?? 0;
+const path = transferCurvePath(curve, viewport);
+---
+
+<figure class="curve-card">
+  <svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} role="img" aria-label={`Transfer curve: ${label}. ${description}`}>
+    <line x1={padding} y1={viewport.height / 2} x2={viewport.width - padding} y2={viewport.height / 2} class="axis" />
+    <line x1={viewport.width / 2} y1={padding} x2={viewport.width / 2} y2={viewport.height - padding} class="axis" />
+    <path d={path} class="curve" fill="none" />
+  </svg>
+  <figcaption>
+    <span class="curve-label">{label}</span>
+    <span class="curve-description">{description}</span>
+  </figcaption>
+</figure>
+
+<style>
+  .curve-card {
+    margin: 0;
+    padding-top: 0.75rem;
+    /* Mode-aware accent (bright phosphor on the dark bench, a darker
+       AA-safe "ink" reading of the same hue on paper) rather than the raw
+       phosphor value, which would wash out against a light background. */
+    border-top: 2px solid var(--at-accent);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .curve-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis {
+    stroke: var(--bench-grid, var(--at-border));
+    stroke-width: 1;
+  }
+
+  .curve {
+    stroke: var(--at-accent);
+    stroke-width: 2;
+  }
+
+  figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .curve-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--at-text);
+  }
+
+  .curve-description {
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    line-height: 1.35;
+  }
+</style>

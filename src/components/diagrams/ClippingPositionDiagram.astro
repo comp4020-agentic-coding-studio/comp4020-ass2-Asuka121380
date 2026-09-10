@@ -1,0 +1,106 @@
+---
+// Two small conceptual sketches of where a clipping element sits in a
+// circuit: to ground (shunt) versus inside a feedback loop. These are
+// simplified boxed signal-path sketches, not real schematics — restraint,
+// per CLAUDE.md's rule on not asserting specific circuit accuracy.
+---
+
+<div class="position-diagrams">
+  <figure class="position-card bench-module">
+    <svg viewBox="0 0 140 90" role="img" aria-label="Clipping element wired to ground, shunting signal above a threshold to earth.">
+      <line x1="10" y1="30" x2="130" y2="30" class="wire" />
+      <circle cx="10" cy="30" r="2.5" class="node" />
+      <circle cx="130" cy="30" r="2.5" class="node" />
+      <line x1="70" y1="30" x2="70" y2="60" class="wire" />
+      <path d="M 62 60 L 78 60 M 62 66 L 78 66 M 62 72 L 78 72" class="ground" />
+      <rect x="58" y="42" width="24" height="14" class="element" />
+    </svg>
+    <figcaption>
+      <span class="position-label">Clipping to ground</span>
+      <span class="position-description">The element shunts signal above a threshold to earth — a simple limiter on the path.</span>
+    </figcaption>
+  </figure>
+
+  <figure class="position-card bench-module">
+    <svg viewBox="0 0 140 90" role="img" aria-label="Clipping element inside a feedback loop around an amplifying stage.">
+      <line x1="10" y1="45" x2="45" y2="45" class="wire" />
+      <rect x="45" y="30" width="30" height="30" class="element" />
+      <line x1="75" y1="45" x2="130" y2="45" class="wire" />
+      <path d="M 105 45 L 105 20 L 55 20 L 55 30" class="wire feedback" fill="none" />
+      <rect x="88" y="12" width="26" height="14" class="element" />
+      <circle cx="10" cy="45" r="2.5" class="node" />
+      <circle cx="130" cy="45" r="2.5" class="node" />
+    </svg>
+    <figcaption>
+      <span class="position-label">Clipping in a feedback loop</span>
+      <span class="position-description">The element sits around an amplifying stage, so the curve it produces depends on the loop gain too.</span>
+    </figcaption>
+  </figure>
+</div>
+
+<style>
+  .position-diagrams {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1rem;
+  }
+
+  .position-card {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .position-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .wire {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1.5;
+    fill: none;
+  }
+
+  .feedback {
+    stroke-dasharray: 3 3;
+  }
+
+  .node {
+    fill: var(--at-text-secondary);
+  }
+
+  .element {
+    fill: var(--at-bg);
+    stroke: var(--at-accent);
+    stroke-width: 1.5;
+  }
+
+  .ground {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1.5;
+    fill: none;
+  }
+
+  figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .position-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--at-text);
+  }
+
+  .position-description {
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    line-height: 1.35;
+  }
+</style>

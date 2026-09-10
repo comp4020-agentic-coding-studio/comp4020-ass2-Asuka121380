@@ -47,3 +47,27 @@ export function magnitudeSpectrum(samples: ArrayLike<number>, bins = 24): Float6
   const peak = Math.max(...magnitudes, 1e-9);
   return magnitudes.map((m) => m / peak) as Float64Array;
 }
+
+/** Root-mean-square level of a signal, used for rough loudness matching. */
+export function rms(samples: ArrayLike<number>): number {
+  let sumSquares = 0;
+  for (let i = 0; i < samples.length; i++) sumSquares += samples[i] * samples[i];
+  return Math.sqrt(sumSquares / Math.max(1, samples.length));
+}
+
+/**
+ * A gain factor that brings `samples`' RMS level back toward `reference`'s,
+ * clamped so a near-silent curve can't demand absurd amplification. This is
+ * a rough engineering approximation, not perceptual loudness matching — its
+ * only job is to stop "louder" from being mistaken for "more distorted"
+ * when comparing clipping topologies back to back.
+ */
+export function levelCompensation(
+  samples: ArrayLike<number>,
+  reference: ArrayLike<number>,
+): number {
+  const target = rms(reference);
+  const actual = rms(samples);
+  if (actual < 1e-6) return 1;
+  return Math.max(0.4, Math.min(2.5, target / actual));
+}

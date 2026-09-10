@@ -11,10 +11,13 @@ const { id, label } = Astro.props;
 ---
 
 <div class="audio-demo" data-audio-demo={id}>
-  <button type="button" id={`${id}-toggle`} aria-pressed="false">
-    <span class="play-icon" aria-hidden="true">▶</span>
-    <span class="stop-icon" aria-hidden="true">■</span>
-    {label}
+  <button type="button" id={`${id}-toggle`} aria-pressed="false" class="footswitch-button">
+    <span class="led" aria-hidden="true"></span>
+    <span class="footswitch-label">
+      <span class="play-icon" aria-hidden="true">▶</span>
+      <span class="stop-icon" aria-hidden="true">■</span>
+      {label}
+    </span>
   </button>
   <p class="hint">Audio never plays automatically — press play to hear it, press again to stop.</p>
 </div>
@@ -37,34 +40,57 @@ const { id, label } = Astro.props;
     margin-block: 1rem;
   }
 
-  button {
+  .footswitch-button {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    gap: 0.6rem;
+    padding: 0.6rem 1.1rem;
     border: 1px solid var(--at-border);
-    border-radius: var(--at-border-radius);
-    background: var(--at-bg-alt);
+    border-radius: calc(var(--at-border-radius) * 0.6);
+    background: var(--at-bg);
     color: var(--at-heading);
     font: inherit;
     cursor: pointer;
   }
 
-  button .stop-icon {
+  .led {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--at-border);
+    flex: none;
+  }
+
+  .footswitch-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .footswitch-button .stop-icon {
     display: none;
   }
 
-  button[aria-pressed="true"] .play-icon {
+  .footswitch-button[aria-pressed="true"] .play-icon {
     display: none;
   }
 
-  button[aria-pressed="true"] .stop-icon {
+  .footswitch-button[aria-pressed="true"] .stop-icon {
     display: inline;
   }
 
-  button[aria-pressed="true"] {
+  .footswitch-button[aria-pressed="true"] {
+    border-color: var(--at-accent);
+    background: var(--at-bg-alt);
+  }
+
+  .footswitch-button[aria-pressed="true"] .led {
     background: var(--at-accent);
-    color: var(--at-bg);
+    box-shadow: 0 0 6px var(--at-accent);
   }
 
   .hint {

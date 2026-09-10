@@ -1,0 +1,29 @@
+---
+// Explicit 4 -> 2 -> 1 column reflow for the transfer-curve comparison, so
+// every card stays reachable at every width instead of relying on an
+// auto-fit grid to happen to land on a sane column count.
+---
+
+<div class="curve-gallery bench-wide">
+  <slot />
+</div>
+
+<style is:global>
+  .curve-gallery {
+    display: grid;
+    gap: 1.5rem 1.25rem;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (max-width: 860px) {
+    .curve-gallery {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .curve-gallery {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

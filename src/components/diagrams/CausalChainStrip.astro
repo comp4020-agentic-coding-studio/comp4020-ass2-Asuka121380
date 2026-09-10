@@ -1,0 +1,87 @@
+---
+// The page's conceptual spine, reused twice: once near the top as a map of
+// where the page is going, and again directly above the Pedal Laboratory as
+// the explicit bridge from theory into the interactive piece.
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+
+const steps = [
+  "Clipping topology",
+  "Transfer curve",
+  "Waveform shape",
+  "Harmonic spectrum",
+  "Audible result",
+];
+---
+
+<div class:list={["bench-wide", "causal-chain", { "causal-chain--compact": compact }]} role="img" aria-label={`Causal chain: ${steps.join(" leads to ")}.`}>
+  {steps.map((step, index) => (
+    <>
+      <span class="causal-step">{step}</span>
+      {index < steps.length - 1 && (
+        <svg class="causal-arrow" viewBox="0 0 24 12" aria-hidden="true">
+          <line x1="1" y1="6" x2="19" y2="6" />
+          <path d="M 14 2 L 20 6 L 14 10" fill="none" />
+        </svg>
+      )}
+    </>
+  ))}
+</div>
+
+<style>
+  .causal-chain {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.9rem 0.5rem;
+  }
+
+  .causal-chain--compact {
+    padding: 0.5rem 0.5rem;
+  }
+
+  .causal-step {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--at-text-secondary);
+    border: 1px solid var(--at-border);
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    white-space: nowrap;
+  }
+
+  .causal-arrow {
+    width: 1.4rem;
+    height: 0.7rem;
+    flex: none;
+    stroke: var(--at-border);
+    stroke-width: 1.5;
+  }
+
+  @media (max-width: 640px) {
+    .causal-chain {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .causal-step {
+      text-align: center;
+      border-radius: var(--at-border-radius);
+      white-space: normal;
+    }
+
+    .causal-arrow {
+      width: 0.7rem;
+      height: 1.4rem;
+      align-self: center;
+      transform: rotate(90deg);
+    }
+  }
+</style>

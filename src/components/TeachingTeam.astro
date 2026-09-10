@@ -4,9 +4,13 @@ import { withBase } from "astro-theme-university/url";
 
 interface Props {
   teachers: CollectionEntry<"sessions">["data"]["teachers"] | CollectionEntry<"lectures">["data"]["teachers"];
+  // Optional per-person display-name override, keyed by person id. Lets one
+  // page show a different convenor name locally without changing the
+  // People collection or the underlying reference.
+  nameOverrides?: Record<string, string>;
 }
 
-const { teachers } = Astro.props;
+const { teachers, nameOverrides } = Astro.props;
 // A session or lecture with no `teachers:` renders no team at all.
 const people = teachers ? await getEntries(teachers) : [];
 ---
@@ -16,7 +20,7 @@ const people = teachers ? await getEntries(teachers) : [];
     <section aria-labelledby="teaching-team">
       <h2 id="teaching-team">Teaching team</h2>
       <ul>
-        {people.map((person) => <li><a href={withBase(`/people/${person.id}/`)}>{person.data.title}</a> — {person.data.role}</li>)}
+        {people.map((person) => <li><a href={withBase(`/people/${person.id}/`)}>{nameOverrides?.[person.id] ?? person.data.title}</a> — {person.data.role}</li>)}
       </ul>
     </section>
   )

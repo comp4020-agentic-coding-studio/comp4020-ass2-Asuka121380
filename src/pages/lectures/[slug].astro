@@ -16,12 +16,16 @@ export async function getStaticPaths() {
 const { lecture } = Astro.props;
 const { Content } = await render(lecture);
 const title = `Week ${lecture.data.week}: ${lecture.data.title}`;
+// Lecture frontmatter may carry an ad-hoc `teacherOverrides` map (allowed by
+// the collection's loose schema) for a page-local convenor display-name
+// override, without touching the People collection or the teachers reference.
+const teacherOverrides = (lecture.data as { teacherOverrides?: Record<string, string> }).teacherOverrides;
 ---
 
 <ContentLayout title={title} description={lecture.data.description} {...siteConfig}>
   <p><strong>{formatCourseDate(lecture.data.date)}</strong></p>
   {lecture.data.slides && <p><a href={withBase(lecture.data.slides)}>Open the slides</a></p>}
   <Content />
-  <TeachingTeam teachers={lecture.data.teachers} />
+  <TeachingTeam teachers={lecture.data.teachers} nameOverrides={teacherOverrides} />
   <RelatedContent entry={lecture} collections={graphCollections} />
 </ContentLayout>

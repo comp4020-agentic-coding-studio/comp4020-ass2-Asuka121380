@@ -1,0 +1,111 @@
+---
+// Small input waveform -> amplification arrow -> waveform approaching a
+// drawn clipping threshold. Illustrates headroom without any prose: the
+// second trace uses the same sine cycle scaled up and soft-limited only for
+// this sketch, so its flattened tops read as "about to clip", not an actual
+// topology (the real topologies are shown in TransferCurveCard).
+import { sineCycle } from "../../lib/audio/analysis";
+import { waveformPath, type Viewport } from "../../lib/draw/svgTrace";
+
+const viewport: Viewport = { width: 160, height: 90, padding: 10 };
+const padding = viewport.padding ?? 0;
+const clean = sineCycle(96);
+const driven = Float64Array.from(clean, (x) => {
+  const boosted = x * 1.8;
+  return Math.sign(boosted) * Math.min(1, Math.abs(boosted) ** 0.6 * 0.92);
+});
+
+const cleanPath = waveformPath(clean, viewport);
+const drivenPath = waveformPath(driven, viewport);
+const thresholdY = padding + (viewport.height - padding * 2) * 0.5 * 0.12;
+---
+
+<div class="gain-stage bench-module">
+  <figure class="gain-trace">
+    <svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} role="img" aria-label="Low-level input waveform, a clean sine cycle.">
+      <path d={cleanPath} class="trace-line" fill="none" />
+    </svg>
+    <figcaption>Low gain — clean</figcaption>
+  </figure>
+
+  <svg class="gain-arrow" viewBox="0 0 40 16" aria-hidden="true">
+    <line x1="2" y1="8" x2="34" y2="8" />
+    <path d="M 27 3 L 35 8 L 27 13" fill="none" />
+    <text x="18" y="4" class="gain-arrow-label">gain ↑</text>
+  </svg>
+
+  <figure class="gain-trace">
+    <svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} role="img" aria-label="Higher-level waveform with flattened peaks, approaching the clipping threshold.">
+      <line x1={padding} y1={thresholdY} x2={viewport.width - padding} y2={thresholdY} class="threshold-line" />
+      <line
+        x1={padding}
+        y1={viewport.height - thresholdY}
+        x2={viewport.width - padding}
+        y2={viewport.height - thresholdY}
+        class="threshold-line"
+      />
+      <path d={drivenPath} class="trace-line trace-driven" fill="none" />
+    </svg>
+    <figcaption>Higher gain — nearing threshold</figcaption>
+  </figure>
+</div>
+
+<style>
+  .gain-stage {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .gain-trace {
+    margin: 0;
+    flex: 1 1 9rem;
+    min-width: 8rem;
+  }
+
+  .gain-trace svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .gain-trace figcaption {
+    margin-top: 0.3rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    text-align: center;
+  }
+
+  .trace-line {
+    stroke: var(--bench-input-trace, var(--at-accent));
+    stroke-width: 2;
+  }
+
+  .trace-driven {
+    stroke: var(--bench-phosphor, var(--at-accent));
+  }
+
+  .threshold-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+
+  .gain-arrow {
+    width: 2.75rem;
+    height: 1.1rem;
+    flex: none;
+    stroke: var(--at-text-secondary);
+    stroke-width: 1.5;
+    overflow: visible;
+  }
+
+  .gain-arrow-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 5px;
+    fill: var(--at-text-secondary);
+    stroke: none;
+    text-anchor: middle;
+  }
+</style>

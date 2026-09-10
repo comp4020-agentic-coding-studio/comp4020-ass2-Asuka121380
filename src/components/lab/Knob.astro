@@ -1,0 +1,124 @@
+---
+// A rotary control that reads and writes an ordinary <input type="range">.
+// The range input stays in the accessibility tree and keyboard-operable
+// (arrow keys, tab focus) — it's made invisible with opacity, not display/
+// visibility, so screen readers and keyboard users see a normal slider
+// while sighted mouse users see a knob.
+interface Props {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+  step?: number;
+  value: number;
+  unit?: string;
+}
+
+const { id, label, min, max, step = 0.01, value, unit = "" } = Astro.props;
+---
+
+<div class="knob">
+  <span class="bench-eyebrow" id={`${id}-label`}>{label}</span>
+  <div class="knob-visual">
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <circle cx="32" cy="32" r="27" class="knob-body" />
+      <circle cx="32" cy="32" r="27" class="knob-rim" fill="none" />
+      <g id={`${id}-pointer`} class="knob-pointer">
+        <line x1="32" y1="32" x2="32" y2="9" />
+      </g>
+    </svg>
+    <input
+      type="range"
+      id={id}
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      class="knob-input"
+      aria-labelledby={`${id}-label`}
+    />
+  </div>
+  <output id={`${id}-value`} class="knob-value" for={id}>{value.toFixed(2)}{unit}</output>
+</div>
+
+<script define:vars={{ id, min, max }}>
+  const input = document.getElementById(id);
+  const pointer = document.getElementById(`${id}-pointer`);
+  const readout = document.getElementById(`${id}-value`);
+  if (input && pointer && readout) {
+    const sync = () => {
+      const value = Number(input.value);
+      const fraction = (value - min) / (max - min);
+      const angle = -135 + fraction * 270;
+      pointer.style.transform = `rotate(${angle}deg)`;
+      readout.textContent = value.toFixed(2);
+    };
+    input.addEventListener("input", sync);
+    sync();
+  }
+</script>
+
+<style>
+  .knob {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .knob-visual {
+    position: relative;
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  .knob-visual svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .knob-body {
+    fill: var(--at-bg);
+    stroke: var(--at-border);
+    stroke-width: 1.5;
+  }
+
+  .knob-rim {
+    stroke: var(--bench-grid, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+  }
+
+  .knob-pointer {
+    transform-origin: 32px 32px;
+    transition: transform 0.08s linear;
+  }
+
+  .knob-pointer line {
+    stroke: var(--at-accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .knob-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: grab;
+    margin: 0;
+  }
+
+  .knob-input:focus-visible + svg,
+  .knob-visual:has(.knob-input:focus-visible) .knob-body {
+    stroke: var(--at-accent);
+    stroke-width: 2;
+  }
+
+  .knob-value {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+</style>

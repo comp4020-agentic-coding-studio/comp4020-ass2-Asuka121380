@@ -7,109 +7,157 @@ week: 6
 date: 2027-03-29
 teachers:
   - marisol-quaye
+teacherOverrides:
+  marisol-quaye: Jimi Hendrix
 slides: /decks/week-06/
 ---
 
+import BenchFrame from "../../components/lab/BenchFrame.astro";
+import BenchBand from "../../components/lab/BenchBand.astro";
+import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
+import ClippingPositionDiagram from "../../components/diagrams/ClippingPositionDiagram.astro";
+import CurveGallery from "../../components/diagrams/CurveGallery.astro";
+import GainStageDiagram from "../../components/diagrams/GainStageDiagram.astro";
+import SignalChainDiagram from "../../components/diagrams/SignalChainDiagram.astro";
+import TransferCurveCard from "../../components/diagrams/TransferCurveCard.astro";
 import ClippingLab from "../../components/ClippingLab.astro";
 import SignalChainStrip from "../../components/SignalChainStrip.astro";
 import TakeawaysList from "../../components/TakeawaysList.astro";
+import { buildClippingCurve } from "../../lib/audio/waveshaping";
+
+export const noClippingCurve = Array.from({ length: 1024 }, (_, i) => (i / 1023) * 2 - 1);
+export const symmetricCurve = Array.from(buildClippingCurve("symmetric-soft", 4));
+export const asymmetricCurve = Array.from(buildClippingCurve("asymmetric-soft", 4));
+export const hardCurve = Array.from(buildClippingCurve("hard", 4));
+
+<BenchFrame>
+
+<BenchBand mode="theory" label="ANALYSIS DESK">
 
 ## Why does clipping sound different from circuit to circuit?
 
+<p class="bench-prose">
 Week 5 showed that clipping a sine wave adds harmonic content that wasn't
 there before. But two circuits that both "clip the signal" don't necessarily
-clip it the same way — and the shape of the clip determines which new
-harmonics appear.
+clip it the same way — and the shape of the clip decides which new harmonics
+appear.
+</p>
 
-By the end of this week you should be able to:
+<div class="bench-callout bench-prose">
 
-- identify the main stages of a simplified distortion pedal;
-- explain how a gain stage and a clipping stage divide the work;
-- distinguish symmetric from asymmetric clipping, and connect the difference
-  to a change in harmonic content;
-- compare clipping applied inside a feedback loop with clipping applied
-  directly to the signal, conceptually;
-- explain why overdrive, distortion and fuzz are better understood as
-  different *kinds* of nonlinearity than as different *amounts* of the same
-  effect.
+By the end of this week you should be able to: identify the stages of a
+simplified distortion pedal; explain how a gain stage and a clipping stage
+divide the work; distinguish symmetric from asymmetric clipping by their
+effect on harmonic content; compare clipping-to-ground with feedback-loop
+clipping conceptually; and explain why overdrive, distortion and fuzz are
+different *kinds* of nonlinearity rather than different *amounts* of one
+effect.
+
+</div>
+
+<CausalChainStrip />
+
+</BenchBand>
+
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
 
 ## Inside a simplified pedal
 
-A distortion pedal can be reduced to four stages:
+<div class="bench-annotated">
+  <SignalChainDiagram />
+  <p class="bench-prose">
+  The <strong>gain stage</strong> raises the signal past the level the next
+  stage can pass without limiting it — the more gain applied here, the harder
+  the following stage clips. The <strong>clipping stage</strong> is where
+  Week 5's abstract "clipping function" becomes a real circuit, usually built
+  from diodes: a diode conducts more readily in one direction than the other,
+  arranged across a signal path that imposes a soft limit on the waveform.
+  This is a conceptual model of what a diode does here, not a full account of
+  semiconductor physics.
+  </p>
+</div>
 
-```text
-Input
-  ↓
-Gain stage
-  ↓
-Clipping stage
-  ↓
-Tone filter
-  ↓
-Output
-```
+### From gain to nonlinearity
 
-The **gain stage** (built from an op-amp, a practical building block for
-amplification — its internal transistor detail isn't needed here) raises the
-signal past the level the next stage can pass without limiting it. The more
-gain applied here, the harder the following stage clips.
+<div class="bench-annotated">
+  <GainStageDiagram />
+  <p class="bench-prose">
+  Pushed far enough, the waveform's peaks start to flatten before they ever
+  reach the clipping stage's threshold — headroom is what "far enough" means.
+  </p>
+</div>
 
-The **clipping stage** is where Week 5's abstract "clipping function" becomes
-a real circuit. **Diodes** are the usual nonlinear element: a diode conducts
-more readily in one direction than the other, and arranged across a signal
-path, that behaviour imposes a soft limit on the waveform. That's a
-conceptual model of what a diode does to this signal, not a full account of
-semiconductor physics.
+</BenchBand>
 
-### Symmetric versus asymmetric clipping
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
 
-If the positive and negative halves of the waveform are limited the same
-way, the clipping is **symmetric** — the output stays close to odd-symmetric,
-which mostly reinforces odd harmonics already present in the input.
+## Symmetric versus asymmetric clipping
 
-If the two halves are limited *differently*, the clipping is **asymmetric**
-— breaking that symmetry introduces harmonics that a symmetric curve
-wouldn't produce, changing the harmonic *balance*, not just the harmonic
-*count*.
+<CurveGallery>
+  <TransferCurveCard
+    label="No clipping"
+    description="A straight line: output tracks input at every level. The reference case."
+    curve={noClippingCurve}
+  />
+  <TransferCurveCard
+    label="Symmetric soft"
+    description="Positive and negative halves limited the same way — stays close to odd-symmetric, mostly reinforcing harmonics already present."
+    curve={symmetricCurve}
+  />
+  <TransferCurveCard
+    label="Asymmetric soft"
+    description="The two halves limited differently — breaks the symmetry, introducing a different harmonic balance."
+    curve={asymmetricCurve}
+  />
+  <TransferCurveCard
+    label="Hard"
+    description="An abrupt threshold rather than a gradual curve — a sharper corner, richer high harmonics."
+    curve={hardCurve}
+  />
+</CurveGallery>
 
-### Where the clipping element sits
+</BenchBand>
 
-The same diode idea can appear in different places in a circuit:
+<BenchBand mode="bench" label="→ ENTERING THE BENCH">
 
-- **clipping to ground** — the nonlinear element sits directly across the
-  signal, limiting its swing once it reaches a threshold;
-- **feedback-loop clipping** — the nonlinear element sits inside an
-  amplifier's feedback path instead, which shapes the transfer curve
-  differently even though the underlying diode behaviour is the same.
+## Where the clipping element sits
 
-Two different circuit contexts for the same component produce two different
-input-output curves — which is one reason two "distortion" circuits built
-from similar parts can still sound different.
+<div class="bench-annotated">
+  <ClippingPositionDiagram />
+  <p class="bench-prose">
+  Two different circuit contexts for the same diode behaviour produce two
+  different input-output curves — one reason two "distortion" circuits built
+  from similar parts can still sound different.
+  </p>
+</div>
 
-### Fuzz is not just "more distortion"
+<p class="bench-scope-note">
+Fuzz circuits usually push further than a single diode pair — extra gain
+stages and stronger waveshaping than simple diode clipping — but there isn't
+one fuzz topology to name: it's a family of stronger, often less predictable
+transformations, not a fixed extra notch on a "how distorted" dial. Anything
+more specific — a named pedal, a transistor type, a historical circuit's
+component values — would need a real source, and none is asserted here.
+</p>
 
-Fuzz circuits often push further than a single diode pair: additional gain
-stages, transistor behaviour, and stronger waveshaping than simple diode
-clipping. There isn't one fuzz topology — it's a family of stronger, often
-less predictable, nonlinear transformations, not a single extra notch on a
-"how distorted" dial.
-
-Any claim more specific than this — about a particular named pedal, a
-specific transistor type, or a historical circuit's exact component values —
-needs a real source, and none is asserted here.
+<CausalChainStrip compact />
 
 ## The pedal laboratory
 
-The lab below builds one simplified clipping stage at a time. Choose a
-topology, set the gain going into it, and the waveform and spectrum update
-to match — press play to hear the same transformation.
+<p class="bench-prose">
+Below is the <strong>SLOP2186 Nonlinearity Bench</strong> — a fictional test
+instrument, not a replica of any real pedal. The <strong>Pedal</strong> view
+is what a musician touches: a gain knob, topology footswitches, a source
+switch, and a play switch. Flip to <strong>Engineering</strong> to see what
+those controls actually did to the signal — its transfer curve, its
+waveform before and after clipping, and the resulting spectrum.
+</p>
 
 <ClippingLab />
 
-Notice that the input is always the same clean sine wave. Everything that
-changes — the output waveform's shape, the new harmonics in its spectrum,
-and what it sounds like — is entirely a consequence of the clipping topology
-and how hard it's driven.
+</BenchBand>
+
+<BenchBand mode="theory" label="→ BACK TO THE DESK">
 
 ## Key takeaways
 
@@ -129,14 +177,23 @@ and how hard it's driven.
 
 ## Connection to Week 5, and where this goes next
 
-Week 5 introduced clipping as a mathematical transformation: an input-output
-curve that stops being a straight line once the signal exceeds a system's
+<p class="bench-prose">
+Week 5 introduced clipping as a mathematical transformation — an input-output
+curve that stops being a straight line once a signal exceeds a system's
 headroom. This week implemented that transformation with real circuit
-elements — gain stages, diodes, and the different contexts a nonlinear
+elements: gain stages, diodes, and the different contexts a nonlinear
 element can sit in.
+</p>
 
-Clipping's real effect, from the last section, is to generate additional
-harmonic content that wasn't in the original signal. The next step in the
-signal chain is to ask what happens to that new, wider spectrum once it
-reaches a filter — which selectively keeps, removes, or emphasises parts of
-it rather than passing all of it through unchanged.
+<CausalChainStrip compact />
+
+<p class="bench-prose">
+Clipping's real effect is to generate additional harmonic content that
+wasn't in the original signal. Next week asks what happens to that new,
+wider spectrum once it reaches a filter — which selectively keeps, removes,
+or emphasises parts of it, rather than passing all of it through unchanged.
+</p>
+
+</BenchBand>
+
+</BenchFrame>

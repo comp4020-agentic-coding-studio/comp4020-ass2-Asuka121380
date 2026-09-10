@@ -1,0 +1,159 @@
+---
+// A full-bleed section environment. "theory" is the "analysis desk" —
+// light, paper-toned, editorial — prose lives in; "bench" is the dark,
+// instrument-panel register for circuit/signal-flow content and the lab.
+// Both share one grid geometry, one left-edge signal rail, and one label
+// convention, so switching modes reads as the same instrument switching
+// register, not two unrelated sites stacked together. `label` is a short,
+// optional instrumentation cue ("ANALYSIS DESK", "-> ENTERING THE BENCH")
+// rendered at the top of the band.
+interface Props {
+  mode: "theory" | "bench";
+  label?: string;
+}
+
+const { mode, label } = Astro.props;
+---
+
+<div class:list={["bench-band", `bench-band--${mode}`]} data-bench-mode={mode}>
+  <div class="bench-band-inner">
+    {label && <p class="bench-band-label">{label}</p>}
+    <slot />
+  </div>
+</div>
+
+<style is:global>
+  .bench-band {
+    /* Corrects the classic 100vw-breakout bug — see --bench-scrollbar-gutter
+       in BenchFrame.astro. Without this, the vertical scrollbar's width
+       makes every band a few pixels wider than the true viewport, which is
+       what forces a page-level horizontal scrollbar. */
+    position: relative;
+    width: calc(100vw - var(--bench-scrollbar-gutter));
+    margin-inline: calc(50% - 50vw + var(--bench-scrollbar-gutter) / 2);
+    box-sizing: border-box;
+    padding-block: 2.75rem;
+  }
+
+  .bench-band-inner {
+    position: relative;
+    margin-inline: auto;
+    padding-inline: calc(var(--at-gutter) + 0.75rem) var(--at-gutter);
+    box-sizing: border-box;
+  }
+
+  .bench-band--theory .bench-band-inner {
+    max-width: 52rem;
+  }
+
+  .bench-band--bench .bench-band-inner {
+    max-width: 78rem;
+  }
+
+  /* The signal rail: the same element, position and colour in every band,
+     so it reads as one continuous line running down the page rather than
+     a dark-band-only decoration. Only its opacity adapts to stay visible
+     against each background. */
+  .bench-band-inner::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 2px;
+    background: var(--bench-phosphor);
+  }
+
+  .bench-band--theory .bench-band-inner::before {
+    opacity: 0.4;
+  }
+
+  .bench-band--bench .bench-band-inner::before {
+    opacity: 0.55;
+  }
+
+  .bench-band-label {
+    margin: 0 0 1.5rem;
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--at-accent);
+    opacity: 0.75;
+  }
+
+  /* Theory ("analysis desk") bands: warm measurement-paper rather than
+     pure white, using the same square grid geometry (32px) the bench
+     bands draw their scan-grid at, so the two registers share visible
+     DNA instead of one being a plain page and the other a diagram. */
+  .bench-band--theory {
+    --at-bg: var(--bench-paper-bg);
+    --at-bg-alt: var(--bench-paper-bg-raised);
+    --at-bg-elevated: var(--bench-paper-bg-raised);
+    --at-border: var(--bench-paper-line);
+    --at-divider: var(--bench-paper-line);
+    --at-text: var(--bench-paper-text);
+    --at-text-secondary: var(--bench-paper-text-secondary);
+    --at-text-muted: var(--bench-paper-text-secondary);
+    --at-heading: var(--bench-paper-text);
+    --at-accent: var(--bench-phosphor-ink);
+    --bench-grid: var(--bench-paper-line);
+
+    background-color: var(--bench-paper-bg);
+    background-image:
+      linear-gradient(var(--bench-paper-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bench-paper-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    color: var(--bench-paper-text);
+  }
+
+  /* A theory band immediately following a bench band fades in from the
+     panel colour at its top edge, rather than cutting straight from black
+     to paper — a soft "returning to the desk" blend instead of a hard
+     seam. Detected structurally (adjacent-sibling), not by position, so
+     it stays correct if the sequence of bands is ever reordered. */
+  .bench-band--bench + .bench-band--theory {
+    background-image:
+      linear-gradient(to bottom, var(--bench-panel-bg), transparent 4rem),
+      linear-gradient(var(--bench-paper-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bench-paper-line) 1px, transparent 1px);
+    background-size: 100% 4rem, 32px 32px, 32px 32px;
+    background-repeat: no-repeat, repeat, repeat;
+  }
+
+  .bench-band--bench {
+    /* Remap the tokens every existing component already reads, so the
+       whole theme (modules, controls, canvases, text) re-themes for a
+       dark instrument panel with zero per-component changes. */
+    --at-bg: var(--bench-panel-bg);
+    --at-bg-alt: var(--bench-panel-bg-raised);
+    --at-bg-elevated: var(--bench-panel-bg-raised);
+    --at-border: var(--bench-line);
+    --at-divider: var(--bench-line);
+    --at-text: var(--bench-panel-text);
+    --at-text-secondary: var(--bench-panel-text-secondary);
+    --at-text-muted: var(--bench-panel-text-secondary);
+    --at-heading: var(--bench-phosphor);
+    --at-accent: var(--bench-phosphor);
+    --bench-grid: var(--bench-scan);
+
+    background-color: var(--bench-panel-bg);
+    background-image:
+      linear-gradient(var(--bench-scan) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bench-scan) 1px, transparent 1px);
+    background-size: 32px 32px;
+    color: var(--bench-panel-text);
+    box-shadow: inset 0 1px 0 var(--bench-line), inset 0 -1px 0 var(--bench-line);
+  }
+
+  /* A bench band immediately following a theory band fades in from the
+     paper colour at its top edge — the "entering the bench" half of the
+     same transition, detected the same structural way. */
+  .bench-band--theory + .bench-band--bench {
+    background-image:
+      linear-gradient(to bottom, var(--bench-paper-bg), transparent 4rem),
+      linear-gradient(var(--bench-scan) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bench-scan) 1px, transparent 1px);
+    background-size: 100% 4rem, 32px 32px, 32px 32px;
+    background-repeat: no-repeat, repeat, repeat;
+  }
+</style>

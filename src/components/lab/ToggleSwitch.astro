@@ -1,0 +1,108 @@
+---
+// A two-state flip switch backed by a checkbox. Reused for LAB TONE /
+// GUITAR SOURCE and PEDAL / ENGINEERING view — "checked" always means the
+// second (right-hand) label.
+interface Props {
+  id: string;
+  legend: string;
+  offLabel: string;
+  onLabel: string;
+  checked?: boolean;
+}
+
+const { id, legend, offLabel, onLabel, checked = false } = Astro.props;
+---
+
+<div class="toggle">
+  <span class="bench-eyebrow" id={`${id}-label`}>{legend}</span>
+  <label class="toggle-control">
+    <span class="toggle-side" data-side="off">{offLabel}</span>
+    <span class="toggle-switch">
+      <input type="checkbox" id={id} checked={checked} aria-labelledby={`${id}-label`} />
+      <span class="toggle-track" aria-hidden="true">
+        <span class="toggle-thumb"></span>
+      </span>
+    </span>
+    <span class="toggle-side" data-side="on">{onLabel}</span>
+  </label>
+</div>
+
+<style>
+  .toggle {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .toggle-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+
+  .toggle-side {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--at-text-secondary);
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-flex;
+    width: 2.4rem;
+    height: 1.3rem;
+  }
+
+  .toggle-switch input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  .toggle-track {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--at-border);
+    border-radius: 999px;
+    background: var(--at-bg);
+    position: relative;
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(1.3rem - 6px);
+    height: calc(1.3rem - 6px);
+    border-radius: 50%;
+    background: var(--at-text-secondary);
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+
+  .toggle-switch input:checked + .toggle-track .toggle-thumb {
+    transform: translateX(1.1rem);
+    background: var(--at-accent);
+  }
+
+  .toggle-switch input:checked + .toggle-track {
+    border-color: var(--at-accent);
+  }
+
+  .toggle-switch input:focus-visible + .toggle-track {
+    outline: 2px solid var(--at-accent);
+    outline-offset: 2px;
+  }
+
+  .toggle-control:has(input:checked) .toggle-side[data-side="on"],
+  .toggle-control:not(:has(input:checked)) .toggle-side[data-side="off"] {
+    color: var(--at-text);
+  }
+</style>
