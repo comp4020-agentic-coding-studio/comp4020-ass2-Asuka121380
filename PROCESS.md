@@ -101,6 +101,60 @@ trimmed for the word count — that curation happens once, at submission time.
   real browser is still worth doing before treating this as fully
   verified.
 
+- [`0075aa7`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/0075aa7) —
+  redesigned Week 6 around a "Bench & Booth" identity (a fictional
+  "SLOP2186 Nonlinearity Bench" test instrument) and then refined that
+  design against feedback, both in the same commit since neither pass
+  had been committed yet. The build added inline-SVG signal-flow and
+  transfer-curve diagrams (`src/components/diagrams/`), a two-view
+  (Pedal / Engineering) lab with custom knob/footswitch/toggle controls
+  (`src/components/lab/`, `ClippingLab.astro`), and a synthetic
+  plucked-string source (`src/lib/audio/pluckedString.ts`) alongside
+  the existing sine test tone, replacing the earlier form-style lab and
+  `ParamSlider`. The refinement pass then addressed ten review points on
+  that first build: gave the light "theory" sections a warm
+  technical-paper token family (`--bench-paper-*`, `--bench-phosphor-ink`
+  in `BenchFrame.astro`) instead of just darkening them, so both
+  registers read as one instrument rather than two unrelated themes;
+  replaced the abrupt light/dark cut with adjacent-band CSS gradients
+  and short instrumentation-cue labels ("→ ENTERING THE BENCH", "→ BACK
+  TO THE DESK") in `BenchBand.astro`; fixed a page-level horizontal
+  scrolling bug traced to the classic `100vw`-breakout-overshoots-by-
+  scrollbar-width problem in the `.bench-wide`/`.bench-band` full-bleed
+  rules, corrected with a shared `--bench-scrollbar-gutter: calc(100vw -
+  100%)` custom property; corrected a `white-space: nowrap` in
+  `CausalChainStrip.astro`'s narrow layout that could force overflow at
+  small widths; and fixed a real contrast bug in `TransferCurveCard.astro`,
+  which hardcoded the bright dark-mode phosphor colour even though it
+  renders inside a light band — switched to the mode-aware `--at-accent`
+  token. Also added a page-local `teacherOverrides` frontmatter field
+  (passed through by the `lectures` collection's loose schema, threaded
+  through `[slug].astro` and `TeachingTeam.astro`) so Week 6 alone
+  displays "Jimi Hendrix" as convenor without touching the People
+  collection, `marisol-quaye.md`, or any other week. Why: the user's
+  brief was explicit that light sections should stop reading as a
+  generic university page without simply getting darker, that light and
+  dark should feel like "two modes of the same instrument," and that
+  horizontal scrolling and non-reflowing wide components had to be
+  eliminated by fixing the actual responsive composition rather than
+  `overflow-x: hidden`; the convenor change was scoped to Week 6 only,
+  with no invented biography for Jimi Hendrix. Checked: `pnpm check`
+  passed fully green (typecheck, build incl. axe accessibility pass and
+  internal link/base-path checker, deck-structure check, 5/5 vitest
+  tests); grepped the built `dist/` output to confirm Week 6 shows
+  "Jimi Hendrix" while the People page still shows "Marisol Quaye," and
+  that the corrected `.bench-wide` rule and `--bench-scrollbar-gutter`
+  property are present in the bundled CSS; ran the dev server and
+  fetched the live Week 6 page to confirm all five `<BenchBand>`
+  sections render in the intended theory/bench/theory/bench/theory
+  order with their transition labels. No headless-browser tool was
+  available in this environment, so true visual/responsive verification
+  across the five requested viewport tiers (large-desktop through
+  mobile) could not be performed directly — only structural HTML/CSS
+  inspection and the automated axe pass; a manual look in a real browser
+  at those widths is still worth doing before treating the responsive
+  fixes as fully verified.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
