@@ -10,7 +10,7 @@ build.
 
 ## Curriculum authority
 
-`/Users/yangshangren/Documents/2026Sem2/COMP4020/Assignment2/SLOP0721.md` is
+`/Users/yangshangren/Documents/2026Sem2/COMP4020/Assignment2/SLOP2186.md` is
 the source of truth for every course-content decision: the 12-week structure,
 each week's central question, the assessment progression, and the course
 philosophy below. Elaborate, explain, visualise, implement, and improve the
@@ -19,11 +19,9 @@ structure, a week's core topic, the assessment progression, or the central
 philosophy. If a substantial curriculum change would improve the course, say
 so explicitly and ask, rather than silently changing it.
 
-One fixed exception to that document: the deployed course code must keep the
-digits `186` that this repo was provisioned with (see `src/course-config.ts`),
-not the `0721` the reference document uses for the code. Everything else
-about the code (the level digit) and the rest of the curriculum follows the
-document as written.
+The document's code, `SLOP2186`, already keeps the digits `186` this repo
+was provisioned with (see `src/course-config.ts`), so the deployed course
+code follows the document as written — no exception needed.
 
 ### Course philosophy
 
