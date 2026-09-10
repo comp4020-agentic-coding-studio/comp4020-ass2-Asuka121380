@@ -329,6 +329,60 @@ trimmed for the word count — that curation happens once, at submission time.
   real browser at both marked viewports is still worth doing before
   treating this fully verified.
 
+- [`fd7dcf6`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/fd7dcf6) —
+  built Week 10, "Inside the Guitar Amplifier": a preamp -> tone stack
+  -> power amp -> master level signal chain, framed explicitly as the
+  amplifier repeating processes Weeks 5-9 already taught (gain, more
+  than once; filtering; nonlinear distortion) rather than as one new
+  black box. New `src/lib/audio/gainStaging.ts`
+  (`estimateGainStageLevels`, a deliberately simple tanh-based model of
+  how much each stage saturates, explicitly commented as an
+  illustrative teaching approximation and not a measured level chain)
+  imported identically by a new static `GainStagingDiagram` (reused
+  twice on the page, contrasting front-loaded gain against back-loaded
+  gain at the same master level) and by the new `AmplifierBench` live
+  lab, so the static picture and the live simulator always describe
+  the same numbers. New `AmplifierGraph` in `engine.ts`, reusing Week
+  6's existing `buildClippingCurve` topologies at two different points
+  in the chain (`"asymmetric-soft"` at the preamp, `"symmetric-soft"`
+  at the power stage) either side of a single lowpass standing in for
+  the tone stack; the master-level gain stage carries no waveshaper of
+  its own, which is the concrete mechanism behind the page's claim that
+  raising master level and raising preamp gain do different things.
+  Reused two existing generic components rather than building new ones
+  for the block diagram and the preamp/power-amp comparison
+  (`SignalChainDiagram` with a custom `stages` prop; `CurveGallery` +
+  `TransferCurveCard` with curves computed via `buildClippingCurve` in
+  the MDX frontmatter, the same pattern `week-06.mdx` already uses).
+  Tube-vs-solid-state and negative feedback stayed prose/callout only —
+  no circuit diagrams — since the curriculum itself warns against
+  "tubes are inherently warm" and "tube good/transistor bad" framing,
+  and any drawn circuit risks implying a specific real topology this
+  course doesn't want to claim. The lab exposes 4 knobs (Preamp Gain,
+  Tone, Power-Stage Saturation, Master Level) rather than the
+  curriculum's suggested 5, folding "Input Gain" into "Preamp Gain"
+  since both would otherwise multiplicatively drive the exact same
+  first nonlinearity in this simplified model — stated explicitly in
+  the lab's own caption rather than silently dropped. Why: continuing
+  Milestone C (Weeks 9-12) without waiting for approval between
+  individual pages, per standing user direction. Checked: `pnpm check`
+  green end-to-end (typecheck, build incl. axe accessibility pass and
+  internal link/base-path checker, 5/5 vitest tests) — this caught one
+  real issue, an unused `barWidth` constant left over in
+  `AmplifierBench.astro`'s frontmatter once bars moved to being drawn
+  only by the client script, fixed by removing it. Ran the dev server
+  and fetched the Week 10 page directly: 200 status, every expected
+  control id (`amplifier-bench`, all four knobs, `amp-audio-toggle`,
+  `amp-readout`, `amp-bars`) present in the rendered HTML, both
+  `GainStagingDiagram` instances and the transfer-curve gallery
+  rendered with their intended `aria-label`s, no `autoplay` attribute
+  anywhere, no errors in the dev server log. No browser-automation
+  tool was available in this environment, so live interaction —
+  dragging each knob and watching the level-bar plot and readout
+  update, pressing play/stop, confirming a clean restart — was not
+  directly exercised; a manual pass in a real browser at both marked
+  viewports is still worth doing before treating this fully verified.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
