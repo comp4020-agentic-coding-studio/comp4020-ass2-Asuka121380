@@ -1,0 +1,253 @@
+---
+// Week 10 "Try It": a simplified gain-staging simulator. Preamp Gain and
+// Power-Stage Saturation drive two separate nonlinearities (asymmetric-soft
+// at the preamp, symmetric-soft at the power stage — the same topologies
+// Week 6 introduced, just placed at two different points in the chain);
+// Tone reshapes frequency content without changing level; Master Level is a
+// plain output gain applied after both nonlinearities. The level-bar plot
+// below and the live AmplifierGraph both read estimateGainStageLevels, so
+// the picture and the sound describe the same numbers.
+import AudioDemo from "../AudioDemo.astro";
+import Knob from "./Knob.astro";
+import { estimateGainStageLevels } from "../../lib/audio/gainStaging";
+
+const DEFAULT_PREAMP = 3;
+const DEFAULT_TONE = 2500;
+const DEFAULT_POWER = 1.5;
+const DEFAULT_MASTER = 0.7;
+
+const PLOT_LEFT = 18;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 14;
+const PLOT_BOTTOM = 88;
+const SATURATION_LEVEL = 0.92;
+
+const initialStages = estimateGainStageLevels(DEFAULT_PREAMP, DEFAULT_POWER, DEFAULT_MASTER);
+const slotWidth = (PLOT_RIGHT - PLOT_LEFT) / initialStages.length;
+const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
+---
+
+<div class="amplifier-bench bench-module" id="amplifier-bench">
+  <div class="lab-header">
+    <span class="lab-name">SLOP2186 Amplifier Bench</span>
+  </div>
+
+  <div class="lab-controls">
+    <Knob id="amp-preamp" label="Preamp Gain" min={0.5} max={10} step={0.1} value={DEFAULT_PREAMP} unit="×" />
+    <Knob id="amp-tone" label="Tone" min={400} max={6000} step={50} value={DEFAULT_TONE} unit=" Hz" />
+    <Knob id="amp-power" label="Power-Stage Saturation" min={0.5} max={6} step={0.1} value={DEFAULT_POWER} unit="×" />
+    <Knob id="amp-master" label="Master Level" min={0} max={1} step={0.01} value={DEFAULT_MASTER} unit="" />
+    <AudioDemo id="amp-audio" label="Play through amplifier" />
+  </div>
+
+  <p id="amp-readout" class="bench-scope-note amp-readout">
+    Preamp driving 3.0×, tone stack rolled off above 2500 Hz, power stage driving 1.5×, master at 70%.
+  </p>
+
+  <div
+    class="levels-plot"
+    role="img"
+    aria-label="Signal level at each stage of the amplifier — input, preamp, tone stack, power amp, master out — as a bar chart, with a dashed line marking the level at which a stage is treated as saturated."
+  >
+    <svg viewBox="0 0 300 108">
+      <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+      <line x1={PLOT_LEFT} y1={ceilingY} x2={PLOT_RIGHT} y2={ceilingY} class="ceiling-line" />
+      <text x={PLOT_RIGHT} y={ceilingY - 3} class="ceiling-tick" text-anchor="end">saturation</text>
+      <g id="amp-bars">
+        {initialStages.map((stage, i) => (
+          <text
+            x={PLOT_LEFT + i * slotWidth + slotWidth / 2}
+            y={PLOT_BOTTOM + 11}
+            class="stage-tick"
+            text-anchor="middle"
+          >
+            {stage.label}
+          </text>
+        ))}
+      </g>
+    </svg>
+  </div>
+
+  <p class="bench-scope-note">Preamp Gain and Power-Stage Saturation each drive their own stage into its own nonlinearity — that's why a signal can be "preamp-distorted", "power-amp-distorted", both, or neither. Master Level only turns the already-decided result up or down; it never adds distortion of its own in this model.</p>
+</div>
+
+<script>
+  import { AmplifierGraph } from "../../lib/audio/engine";
+  import { estimateGainStageLevels } from "../../lib/audio/gainStaging";
+
+  const PLOT_LEFT = 18;
+  const PLOT_RIGHT = 292;
+  const PLOT_TOP = 14;
+  const PLOT_BOTTOM = 88;
+  const STAGE_COUNT = 5;
+  const SLOT_WIDTH = (PLOT_RIGHT - PLOT_LEFT) / STAGE_COUNT;
+  const BAR_WIDTH = SLOT_WIDTH * 0.55;
+
+  function barHeight(level: number): number {
+    return Math.min(Math.max(level, 0), 1) * (PLOT_BOTTOM - PLOT_TOP);
+  }
+
+  const root = document.getElementById("amplifier-bench");
+  if (root) {
+    const preampInput = document.getElementById("amp-preamp") as HTMLInputElement;
+    const toneInput = document.getElementById("amp-tone") as HTMLInputElement;
+    const powerInput = document.getElementById("amp-power") as HTMLInputElement;
+    const masterInput = document.getElementById("amp-master") as HTMLInputElement;
+    const toggle = document.getElementById("amp-audio-toggle") as HTMLButtonElement;
+    const readout = document.getElementById("amp-readout") as HTMLParagraphElement;
+    const barsGroup = document.getElementById("amp-bars") as unknown as SVGGElement;
+
+    let context: AudioContext | null = null;
+    let graph: AmplifierGraph | null = null;
+
+    function currentParams() {
+      return {
+        preamp: Number(preampInput.value),
+        tone: Number(toneInput.value),
+        power: Number(powerInput.value),
+        master: Number(masterInput.value),
+      };
+    }
+
+    function redraw(): void {
+      const { preamp, tone, power, master } = currentParams();
+      const stages = estimateGainStageLevels(preamp, power, master);
+
+      barsGroup.querySelectorAll("rect").forEach((rect) => rect.remove());
+      stages.forEach((stage, i) => {
+        const h = barHeight(stage.level);
+        const x = PLOT_LEFT + i * SLOT_WIDTH + (SLOT_WIDTH - BAR_WIDTH) / 2;
+        const y = PLOT_BOTTOM - h;
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", String(x));
+        rect.setAttribute("y", String(y));
+        rect.setAttribute("width", String(BAR_WIDTH));
+        rect.setAttribute("height", String(h));
+        rect.setAttribute("class", stage.saturated ? "stage-bar stage-bar-saturated" : "stage-bar");
+        barsGroup.insertBefore(rect, barsGroup.firstChild);
+      });
+
+      readout.textContent = `Preamp driving ${preamp.toFixed(1)}×, tone stack rolled off above ${Math.round(tone)} Hz, power stage driving ${power.toFixed(1)}×, master at ${Math.round(master * 100)}%.`;
+
+      graph?.setParams(preamp, tone, power, master);
+    }
+
+    function stopAudio(): void {
+      graph?.stop();
+      graph = null;
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("amp-audio", false);
+    }
+
+    function startAudio(): void {
+      context = context ?? new AudioContext();
+      const { preamp, tone, power, master } = currentParams();
+      graph = new AmplifierGraph(context, {
+        preampGain: preamp,
+        toneHz: tone,
+        powerGain: power,
+        masterLevel: master,
+        onEnded: () => {
+          graph = null;
+          (
+            window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+          ).setAudioDemoState?.("amp-audio", false);
+        },
+      });
+      graph.start();
+      (
+        window as { setAudioDemoState?: (id: string, playing: boolean) => void }
+      ).setAudioDemoState?.("amp-audio", true);
+    }
+
+    [preampInput, toneInput, powerInput, masterInput].forEach((input) => input.addEventListener("input", redraw));
+
+    toggle.addEventListener("click", () => {
+      if (graph) {
+        stopAudio();
+        return;
+      }
+      startAudio();
+    });
+
+    redraw();
+  }
+</script>
+
+<style>
+  .amplifier-bench {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .lab-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .lab-name {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-secondary);
+  }
+
+  .lab-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.75rem;
+  }
+
+  .amp-readout {
+    text-align: center;
+    font-family: var(--bench-readout, var(--at-font-mono));
+  }
+
+  .levels-plot svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .ceiling-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+
+  .ceiling-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  :global(.stage-bar) {
+    fill: var(--bench-input-trace, var(--at-accent));
+  }
+
+  :global(.stage-bar-saturated) {
+    fill: var(--at-warning, var(--bench-phosphor));
+  }
+
+  .stage-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 7px;
+    fill: var(--at-text-secondary);
+  }
+
+  .bench-scope-note {
+    margin: 0;
+  }
+</style>

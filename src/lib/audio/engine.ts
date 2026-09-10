@@ -474,3 +474,107 @@ export class DelayGraph {
     }
   }
 }
+
+// Week 10: a simplified amplifier — preamp (gain + asymmetric, diode-like
+// clipping) -> tone stack (a single lowpass, standing in for the whole
+// tone-shaping stage) -> power amp (its own gain + softer, symmetric
+// saturation) -> master level. Preamp and power-stage nonlinearity reuse
+// the exact same `buildClippingCurve` topologies Week 6 introduced, just
+// applied at two different points in the chain, matching the curriculum's
+// framing of "the amplifier repeats many of the same processes taught
+// earlier". Master level is a plain gain stage placed after both
+// nonlinearities, never itself distorting — the concrete illustration of
+// why raising preamp gain and raising master level change different things.
+const AMP_SOURCE_FREQUENCY = 110;
+const AMP_SOURCE_DURATION_SECONDS = 1.6;
+const AMP_BASE_MASTER_GAIN = 0.6;
+const TONE_STACK_Q = 1 / Math.sqrt(2);
+
+export interface AmplifierGraphOptions {
+  preampGain: number;
+  toneHz: number;
+  powerGain: number;
+  masterLevel: number;
+  onEnded?: () => void;
+}
+
+export class AmplifierGraph {
+  private readonly preampDrive: GainNode;
+  private readonly preampShaper: WaveShaperNode;
+  private readonly toneFilter: BiquadFilterNode;
+  private readonly powerDrive: GainNode;
+  private readonly powerShaper: WaveShaperNode;
+  private readonly masterGain: GainNode;
+  private source: AudioBufferSourceNode | null = null;
+  private started = false;
+
+  constructor(
+    private readonly context: AudioContext,
+    private readonly options: AmplifierGraphOptions,
+  ) {
+    this.preampDrive = context.createGain();
+    this.preampShaper = context.createWaveShaper();
+    this.toneFilter = context.createBiquadFilter();
+    this.toneFilter.type = "lowpass";
+    this.toneFilter.Q.value = TONE_STACK_Q;
+    this.powerDrive = context.createGain();
+    this.powerShaper = context.createWaveShaper();
+    this.masterGain = context.createGain();
+
+    this.preampDrive.connect(this.preampShaper);
+    this.preampShaper.connect(this.toneFilter);
+    this.toneFilter.connect(this.powerDrive);
+    this.powerDrive.connect(this.powerShaper);
+    this.powerShaper.connect(this.masterGain);
+    this.masterGain.connect(context.destination);
+
+    this.setParams(options.preampGain, options.toneHz, options.powerGain, options.masterLevel);
+  }
+
+  start(): void {
+    if (this.started) return;
+    this.started = true;
+
+    const samples = renderPluckedString({
+      sampleRate: this.context.sampleRate,
+      frequency: AMP_SOURCE_FREQUENCY,
+      durationSeconds: AMP_SOURCE_DURATION_SECONDS,
+    });
+    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
+    buffer.copyToChannel(Float32Array.from(samples), 0);
+
+    const bufferSource = this.context.createBufferSource();
+    bufferSource.buffer = buffer;
+    bufferSource.connect(this.preampDrive);
+    bufferSource.onended = () => {
+      if (this.source === bufferSource) {
+        this.source = null;
+        this.started = false;
+        this.options.onEnded?.();
+      }
+    };
+    bufferSource.start();
+    this.source = bufferSource;
+  }
+
+  stop(): void {
+    if (!this.started || !this.source) return;
+    this.source.onended = null;
+    try {
+      this.source.stop();
+    } catch {
+      // Already stopped (e.g. the one-shot pluck just finished on its own).
+    }
+    this.source = null;
+    this.started = false;
+  }
+
+  setParams(preampGain: number, toneHz: number, powerGain: number, masterLevel: number): void {
+    this.preampDrive.gain.value = preampGain;
+    this.preampShaper.curve = asShaperCurve(buildClippingCurve("asymmetric-soft", preampGain));
+    this.toneFilter.frequency.value = toneHz;
+    this.powerDrive.gain.value = powerGain;
+    this.powerShaper.curve = asShaperCurve(buildClippingCurve("symmetric-soft", powerGain));
+    this.masterGain.gain.value = AMP_BASE_MASTER_GAIN * Math.min(Math.max(masterLevel, 0), 1);
+  }
+}

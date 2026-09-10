@@ -1,0 +1,103 @@
+---
+// Signal level through a multi-stage amplifier, illustrating gain staging:
+// the same total amount of gain, distributed differently across the preamp
+// and power-amp stages, drives each stage's own nonlinearity by a different
+// amount. Reuses gainStaging.ts's estimateGainStageLevels so this static
+// picture and the live AmplifierBench are always describing the same model.
+import { estimateGainStageLevels } from "../../lib/audio/gainStaging";
+
+interface Props {
+  preampGain: number;
+  powerGain: number;
+  masterLevel: number;
+  label: string;
+  ariaLabel: string;
+}
+
+const { preampGain, powerGain, masterLevel, label, ariaLabel } = Astro.props;
+
+const PLOT_LEFT = 18;
+const PLOT_RIGHT = 292;
+const PLOT_TOP = 14;
+const PLOT_BOTTOM = 108;
+const SATURATION_LEVEL = 0.92;
+
+const stages = estimateGainStageLevels(preampGain, powerGain, masterLevel);
+const slotWidth = (PLOT_RIGHT - PLOT_LEFT) / stages.length;
+const barWidth = slotWidth * 0.55;
+
+function barHeight(level: number): number {
+  return Math.min(Math.max(level, 0), 1) * (PLOT_BOTTOM - PLOT_TOP);
+}
+
+const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
+---
+
+<figure class="gain-staging bench-module">
+  <svg viewBox={`0 0 300 132`} role="img" aria-label={ariaLabel}>
+    <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
+    <line x1={PLOT_LEFT} y1={ceilingY} x2={PLOT_RIGHT} y2={ceilingY} class="ceiling-line" />
+    <text x={PLOT_RIGHT} y={ceilingY - 3} class="ceiling-tick" text-anchor="end">saturation</text>
+    {stages.map((stage, i) => {
+      const h = barHeight(stage.level);
+      const x = PLOT_LEFT + i * slotWidth + (slotWidth - barWidth) / 2;
+      const y = PLOT_BOTTOM - h;
+      return (
+        <>
+          <rect x={x} y={y} width={barWidth} height={h} class={stage.saturated ? "stage-bar stage-bar-saturated" : "stage-bar"} />
+          <text x={x + barWidth / 2} y={PLOT_BOTTOM + 11} class="stage-tick" text-anchor="middle">
+            {stage.label}
+          </text>
+        </>
+      );
+    })}
+  </svg>
+  <figcaption>{label}</figcaption>
+</figure>
+
+<style>
+  .gain-staging svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .axis-line {
+    stroke: var(--at-text-secondary);
+    stroke-width: 1;
+  }
+
+  .ceiling-line {
+    stroke: var(--at-warning, var(--at-border));
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+
+  .ceiling-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 6px;
+    fill: var(--at-text-secondary);
+  }
+
+  .stage-bar {
+    fill: var(--bench-input-trace, var(--at-accent));
+  }
+
+  .stage-bar-saturated {
+    fill: var(--at-warning, var(--bench-phosphor));
+  }
+
+  .stage-tick {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 7px;
+    fill: var(--at-text-secondary);
+  }
+
+  figcaption {
+    margin-top: 0.6rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    line-height: 1.4;
+    text-align: center;
+  }
+</style>
