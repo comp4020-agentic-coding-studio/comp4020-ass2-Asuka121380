@@ -11,15 +11,40 @@ const { id, label, samples, strokeVar = "--at-accent", grid = true } = Astro.pro
 ---
 
 <figure class="waveform">
-  <canvas id={id} width="640" height="200" role="img" aria-label={label}></canvas>
+  <canvas
+    id={id}
+    width="640"
+    height="200"
+    role="img"
+    aria-label={label}
+    data-waveform-display
+    data-samples={JSON.stringify(samples)}
+    data-stroke-var={strokeVar}
+    data-grid={grid}
+  ></canvas>
   <figcaption>{label}</figcaption>
 </figure>
 
-<script define:vars={{ id, samples, strokeVar, grid }}>
-  import("../lib/draw/waveform.ts").then(({ drawWaveform }) => {
-    const canvas = document.getElementById(id);
-    const ctx = canvas?.getContext("2d");
-    if (!ctx || !canvas) return;
+<script>
+  // A plain top-level static import (not define:vars + dynamic import()):
+  // define:vars forces this script to render as a non-module inline
+  // script, and a relative `import("../lib/draw/waveform.ts")` inside one
+  // resolves against the *page's* URL, not this file's — on every
+  // /lectures/week-NN/ page that 404s. Reading props back from data-*
+  // attributes keeps this a real, Vite-bundled module like every other
+  // script in this codebase. Astro dedupes this script to one instance per
+  // page even though <Waveform> is used multiple times, so it queries for
+  // every canvas rather than assuming a single one.
+  import { drawWaveform } from "../lib/draw/waveform";
+
+  for (const canvas of document.querySelectorAll<HTMLCanvasElement>("canvas[data-waveform-display]")) {
+    if (canvas.dataset.waveformInitialized) continue;
+    canvas.dataset.waveformInitialized = "true";
+    const ctx = canvas.getContext("2d");
+    if (!ctx) continue;
+    const samples = JSON.parse(canvas.dataset.samples ?? "[]");
+    const strokeVar = canvas.dataset.strokeVar || "--at-accent";
+    const grid = canvas.dataset.grid === "true";
     const styles = getComputedStyle(canvas);
     const stroke = styles.getPropertyValue(strokeVar).trim();
     const gridColor = grid ? styles.getPropertyValue("--at-border").trim() : undefined;
@@ -30,7 +55,7 @@ const { id, label, samples, strokeVar = "--at-accent", grid = true } = Astro.pro
       gridColor,
       labelColor,
     });
-  });
+  }
 </script>
 
 <style>

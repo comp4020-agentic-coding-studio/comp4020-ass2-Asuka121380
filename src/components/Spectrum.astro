@@ -21,15 +21,40 @@ const {
 ---
 
 <figure class="spectrum">
-  <canvas id={id} width="640" height="200" role="img" aria-label={label}></canvas>
+  <canvas
+    id={id}
+    width="640"
+    height="200"
+    role="img"
+    aria-label={label}
+    data-spectrum-display
+    data-magnitudes={JSON.stringify(magnitudes)}
+    data-fill-var={fillVar}
+    data-grid={grid}
+    data-highlight-indices={JSON.stringify(highlightIndices)}
+    data-highlight-fill-var={highlightFillVar}
+  ></canvas>
   <figcaption>{label}</figcaption>
 </figure>
 
-<script define:vars={{ id, magnitudes, fillVar, grid, highlightIndices, highlightFillVar }}>
-  import("../lib/draw/spectrum.ts").then(({ drawSpectrum }) => {
-    const canvas = document.getElementById(id);
-    const ctx = canvas?.getContext("2d");
-    if (!ctx || !canvas) return;
+<script>
+  // See Waveform.astro for why this reads props from data-* attributes
+  // instead of define:vars + a dynamic import(): define:vars forces a
+  // non-module inline script, and a relative import() inside one resolves
+  // against the page's URL rather than this file's, 404ing on every
+  // /lectures/week-NN/ page.
+  import { drawSpectrum } from "../lib/draw/spectrum";
+
+  for (const canvas of document.querySelectorAll<HTMLCanvasElement>("canvas[data-spectrum-display]")) {
+    if (canvas.dataset.spectrumInitialized) continue;
+    canvas.dataset.spectrumInitialized = "true";
+    const ctx = canvas.getContext("2d");
+    if (!ctx) continue;
+    const magnitudes = JSON.parse(canvas.dataset.magnitudes ?? "[]");
+    const fillVar = canvas.dataset.fillVar || "--at-accent";
+    const grid = canvas.dataset.grid === "true";
+    const highlightIndices = JSON.parse(canvas.dataset.highlightIndices ?? "[]");
+    const highlightFillVar = canvas.dataset.highlightFillVar || "--at-error";
     const styles = getComputedStyle(canvas);
     const fill = styles.getPropertyValue(fillVar).trim();
     const highlightFill = highlightIndices.length ? styles.getPropertyValue(highlightFillVar).trim() : undefined;
@@ -43,7 +68,7 @@ const {
       highlightIndices,
       highlightFill,
     });
-  });
+  }
 </script>
 
 <style>
