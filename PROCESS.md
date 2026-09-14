@@ -832,6 +832,48 @@ trimmed for the word count — that curation happens once, at submission time.
   no accessibility violations across 28 pages, no broken links, deck
   structure clean, 5/5 vitest tests.
 
+- **`dc6b915`** — Phase 3 of the post-audit redesign plan: gave every
+  lecture week an explicit Editorial-mode intro before its `BenchFrame`
+  content, so the Editorial-vs-Bench mode switch the brief asks for
+  actually happens on lecture pages instead of every week dropping straight
+  into Bench content with only the status strip as a header. Added
+  `src/components/LectureIntro.astro`, reusing the homepage's
+  `EditorialFrame`/`EditorialBand` rather than inventing a third design
+  system: a kicker matching `BenchFrame`'s own "SLOP2186 · WK0X · TOPIC"
+  status-strip reading, a slot for the week's core question restated in
+  plain editorial voice plus a one-line connection to the previous/next
+  week, and a closing "→ ENTERING THE BENCH" transition marker. The
+  marker's background gradient blends the Editorial dark tone into
+  `--bench-paper-bg`, a global custom property `BenchFrame.astro` already
+  defines on `:root` — chosen over extending `BenchBand.astro`'s existing
+  adjacent-sibling-selector blend technique across two independently
+  authored top-level frame components, which would have made the seam
+  depend on DOM adjacency between two components that don't know about
+  each other. Wired `LectureIntro` into all 12 weeks with real per-week
+  content — each core question paraphrased from that week's own existing
+  heading, each connection paragraph echoing the prose already inside that
+  week's own "Connection to Week N" section — rather than generic
+  boilerplate. Week 6 was a special case: its `<BenchFrame>` call had no
+  `week`/`topic` props and relied on the component's own
+  `week=6`/`topic="NONLINEARITY"` defaults, so it got explicit props added
+  to match every other week and let `LectureIntro`'s kicker agree with it.
+  Deliberately did not give the transition marker any `aria-hidden` escape
+  hatch beyond marking it decorative text (`aria-hidden="true"`), since the
+  actual mode change is a visual/structural fact already present in the
+  surrounding content, not information the marker alone conveys — flagged
+  here as a judgment call worth revisiting during the Phase 6
+  accessibility pass rather than treated as settled. Confirmed `ContentLayout`
+  renders the page's own `<h1>` from lecture frontmatter (read
+  `src/pages/lectures/[slug].astro` directly), so `LectureIntro` never
+  emits an `<h1>` of its own. Checked: `pnpm check` clean — typecheck (0
+  errors, same 6 pre-existing hints), build with axe reporting no
+  accessibility violations across all 28 pages, no broken links, deck
+  structure clean, 5/5 vitest tests; inspected the built HTML for several
+  weeks (01, 04, 06, 12) to confirm each kicker reads the right week/topic,
+  the transition marker renders, and no duplicate `<h1>` appears. Did not
+  yet do a live-browser visual pass at the two marked viewports across
+  multiple weeks — still pending before treating Phase 3 as fully verified.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
