@@ -1007,6 +1007,23 @@ trimmed for the word count — that curation happens once, at submission time.
   base stylesheet, no new interactive controls added by this phase's
   edits) rather than a direct visual/interaction check.
 
+- **`9c725e7`** — Phase 6 of the post-audit redesign plan (part 2): while
+  doing Phase 6's "check every page for horizontal scroll" pass, found
+  that `SignalChainStrip.astro` — the "SLOP2186 · WKXX · TOPIC" position
+  strip used identically across all 12 lecture weeks — has the same
+  `overflow-x: auto` horizontal-scroll gap that the previous commit fixed
+  on the homepage's `SignalJourney`: a 12-item pill row with no visible
+  affordance that there's more off-screen. Fixed with a CSS-only
+  `::after` pseudo-element pinned to the container's own box (no wrapper
+  markup needed, since `.signal-chain` is already the scroll container),
+  applied unconditionally rather than behind a breakpoint, since unlike
+  `SignalJourney` this component has no responsive point where the
+  overflow is guaranteed to stop, and the fade is invisible against
+  `--at-bg-alt` when the strip happens to fit. Checked: `pnpm check`
+  green (typecheck, full build, axe across all 28 pages, link check,
+  vitest); inspected the compiled CSS bundle directly to confirm the
+  `::after` rule compiled as written.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
