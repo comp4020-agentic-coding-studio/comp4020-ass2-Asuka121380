@@ -3,10 +3,10 @@
 // variable between presets is the signal chain itself — the same principle
 // CLAUDE.md's audio policy asks every guitar-specific demo to follow. This
 // reuses CompleteChainGraph exactly as Week 12's CompleteChainBench does
-// (same plucked-string source, same engine, same never-autoplay AudioDemo
-// control); it presets three fixed points along that chain rather than
-// exposing the full control surface, since the homepage's job is to make
-// the idea audible in ten seconds, not to teach every parameter.
+// (same canonical DI guitar recording, same engine, same never-autoplay
+// AudioDemo control); it presets three fixed points along that chain rather
+// than exposing the full control surface, since the homepage's job is to
+// make the idea audible in ten seconds, not to teach every parameter.
 import AudioDemo from "../AudioDemo.astro";
 import type { CompleteChainOptions } from "../../lib/audio/engine";
 
@@ -91,9 +91,9 @@ const PRESETS: Preset[] = [
     }
   </div>
   <p class="hear-note">
-    Same plucked-string source through three different signal chains — same performance, different processing,
-    different tone. (This uses the course's own synthesised string model, the same source every lab on the site
-    uses; see Week 5 onward for exactly what changes at each stage.)
+    Same DI guitar recording through three different signal chains — same performance, different processing,
+    different tone. (This is the course's one canonical dry recording, the same source every guitar-specific
+    lab on the site uses; see Week 5 onward for exactly what changes at each stage.)
   </p>
 </div>
 
@@ -128,7 +128,7 @@ const PRESETS: Preset[] = [
       const toggle = document.getElementById(`${preset.id}-toggle`) as HTMLButtonElement | null;
       if (!toggle) continue;
 
-      toggle.addEventListener("click", () => {
+      toggle.addEventListener("click", async () => {
         const wasActive = activeId === preset.id;
         stopActive();
         if (wasActive) return;
@@ -144,9 +144,10 @@ const PRESETS: Preset[] = [
             }
           },
         });
-        graph.start();
         activeGraph = graph;
         activeId = preset.id;
+        await graph.start();
+        if (activeGraph !== graph) return;
         setState(preset.id, true);
       });
     }

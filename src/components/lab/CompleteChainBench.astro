@@ -289,20 +289,22 @@ const cabinetOptions = CABINET_PROFILE_ORDER.map((profile) => ({
       graph?.setParams(p);
     }
 
-    toggle.addEventListener("click", () => {
+    toggle.addEventListener("click", async () => {
       if (graph) {
         stopAudio();
         return;
       }
       context = context ?? new AudioContext();
-      graph = new CompleteChainGraph(context, {
+      const newGraph = new CompleteChainGraph(context, {
         ...currentParams(),
         onEnded: () => {
           graph = null;
           (window as { setAudioDemoState?: (id: string, playing: boolean) => void }).setAudioDemoState?.("chain-audio", false);
         },
       });
-      graph.start();
+      graph = newGraph;
+      await newGraph.start();
+      if (graph !== newGraph) return;
       (window as { setAudioDemoState?: (id: string, playing: boolean) => void }).setAudioDemoState?.("chain-audio", true);
     });
 

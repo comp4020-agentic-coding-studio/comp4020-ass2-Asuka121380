@@ -103,7 +103,7 @@ const typeOptions = [
     logFrequencyAxis,
     lowpassResonantMagnitudeResponse,
   } from "../../lib/audio/filters";
-  import { renderPluckedString } from "../../lib/audio/pluckedString";
+  import { loadDiGuitarBuffer } from "../../lib/audio/diSample";
 
   const root = document.getElementById("filter-bench");
   if (root) {
@@ -123,11 +123,12 @@ const typeOptions = [
     const PLOT_BOTTOM = 96;
     const FLAT_Q = 1 / Math.sqrt(2);
     const OUTPUT_GAIN = 0.3;
-    const SOURCE_FREQUENCY = 220;
 
     let context: AudioContext | null = null;
     let source: AudioBufferSourceNode | null = null;
     let filter: BiquadFilterNode | null = null;
+    let pending = false;
+    let cancelled = false;
 
     function currentType(): "lowpass" | "highpass" | "resonant" {
       return (typeRadios.find((radio) => radio.checked)?.value ?? "lowpass") as
@@ -145,6 +146,8 @@ const typeOptions = [
     }
 
     function stopAudio(): void {
+      cancelled = true;
+      pending = false;
       source?.stop();
       source = null;
       filter = null;
@@ -183,19 +186,17 @@ const typeOptions = [
     cutoffInput.addEventListener("input", redraw);
     qInput.addEventListener("input", redraw);
 
-    toggle.addEventListener("click", () => {
-      if (source) {
+    toggle.addEventListener("click", async () => {
+      if (source || pending) {
         stopAudio();
         return;
       }
+      cancelled = false;
+      pending = true;
       context = context ?? new AudioContext();
-      const samples = renderPluckedString({
-        sampleRate: context.sampleRate,
-        frequency: SOURCE_FREQUENCY,
-        durationSeconds: 1.4,
-      });
-      const buffer = context.createBuffer(1, samples.length, context.sampleRate);
-      buffer.copyToChannel(Float32Array.from(samples), 0);
+      const buffer = await loadDiGuitarBuffer(context);
+      if (cancelled) return;
+      pending = false;
 
       filter = context.createBiquadFilter();
       filter.type = currentType() === "highpass" ? "highpass" : "lowpass";

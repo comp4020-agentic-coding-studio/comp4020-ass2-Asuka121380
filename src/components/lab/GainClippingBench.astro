@@ -186,20 +186,21 @@ const topologyOptions = [
     driveInput.addEventListener("input", redraw);
     compareToggle.addEventListener("change", redraw);
 
-    toggle.addEventListener("click", () => {
+    toggle.addEventListener("click", async () => {
       if (graph) {
         stopAudio();
         return;
       }
       const context = new AudioContext();
-      graph = new ClippingGraph(context, {
+      const newGraph = new ClippingGraph(context, {
         source: "sine",
         topology: currentTopology(),
         drive: Number(driveInput.value),
       });
+      graph = newGraph;
       const output = applyCurve(sineCycle(256), buildClippingCurve(currentTopology(), Number(driveInput.value)));
-      graph.setLevelCompensation(levelCompensation(output, referenceOutput));
-      graph.start();
+      newGraph.setLevelCompensation(levelCompensation(output, referenceOutput));
+      await newGraph.start();
       (
         window as { setAudioDemoState?: (id: string, playing: boolean) => void }
       ).setAudioDemoState?.("gain-audio", true);

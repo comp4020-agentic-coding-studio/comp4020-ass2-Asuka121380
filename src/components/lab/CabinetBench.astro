@@ -125,7 +125,7 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
     type MicPosition,
   } from "../../lib/audio/cabinet";
   import { logFrequencyAxis } from "../../lib/audio/filters";
-  import { renderPluckedString } from "../../lib/audio/pluckedString";
+  import { loadDiGuitarBuffer } from "../../lib/audio/diSample";
 
   const root = document.getElementById("cabinet-bench");
   if (root) {
@@ -145,13 +145,14 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
     const PLOT_TOP = 10;
     const PLOT_BOTTOM = 96;
     const OUTPUT_GAIN = 0.3;
-    const SOURCE_FREQUENCY = 110;
 
     let context: AudioContext | null = null;
     let source: AudioBufferSourceNode | null = null;
     let lowShelfFilter: BiquadFilterNode | null = null;
     let highShelfFilter: BiquadFilterNode | null = null;
     let micFilter: BiquadFilterNode | null = null;
+    let pending = false;
+    let cancelled = false;
 
     function currentProfile(): CabinetProfile {
       return (profileRadios.find((radio) => radio.checked)?.value ?? "bright") as CabinetProfile;
@@ -166,6 +167,8 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
     }
 
     function stopAudio(): void {
+      cancelled = true;
+      pending = false;
       source?.stop();
       source = null;
       lowShelfFilter = null;
@@ -204,19 +207,17 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
       }
     }
 
-    toggle.addEventListener("click", () => {
-      if (source) {
+    toggle.addEventListener("click", async () => {
+      if (source || pending) {
         stopAudio();
         return;
       }
+      cancelled = false;
+      pending = true;
       context = context ?? new AudioContext();
-      const samples = renderPluckedString({
-        sampleRate: context.sampleRate,
-        frequency: SOURCE_FREQUENCY,
-        durationSeconds: 1.6,
-      });
-      const buffer = context.createBuffer(1, samples.length, context.sampleRate);
-      buffer.copyToChannel(Float32Array.from(samples), 0);
+      const buffer = await loadDiGuitarBuffer(context);
+      if (cancelled) return;
+      pending = false;
 
       const profile = currentProfile();
       const position = currentPosition();

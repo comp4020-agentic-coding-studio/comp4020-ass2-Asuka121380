@@ -140,7 +140,7 @@ const topologyOptions = [
         sourceCaption.textContent =
           source === "sine"
             ? "LAB TONE — pure sine, for reading the transfer function cleanly"
-            : "GUITAR SOURCE — synthetic plucked-string excerpt, a teaching source, not a physical guitar emulation";
+            : "GUITAR SOURCE — the site's real DI guitar recording; the diagram below shows a representative note-shaped excerpt, not a literal trace of the recording";
       }
 
       const inputCtx = inputCanvas.getContext("2d");
@@ -186,13 +186,13 @@ const topologyOptions = [
       root.classList.toggle("engineering-view", viewToggle.checked);
     });
 
-    toggle.addEventListener("click", () => {
+    toggle.addEventListener("click", async () => {
       if (graph) {
         stopAudio();
         return;
       }
       const context = new AudioContext();
-      graph = new ClippingGraph(context, {
+      const newGraph = new ClippingGraph(context, {
         source: currentSource(),
         topology: currentTopology(),
         drive: Number(driveInput.value),
@@ -203,12 +203,13 @@ const topologyOptions = [
           ).setAudioDemoState?.("lab-audio", false);
         },
       });
+      graph = newGraph;
       const output = applyCurve(
         currentSource() === "sine" ? sineCycle(256) : pluckedStringExcerpt(),
         buildClippingCurve(currentTopology(), Number(driveInput.value)),
       );
-      graph.setLevelCompensation(levelCompensation(output, referenceOutput));
-      graph.start();
+      newGraph.setLevelCompensation(levelCompensation(output, referenceOutput));
+      await newGraph.start();
       (
         window as { setAudioDemoState?: (id: string, playing: boolean) => void }
       ).setAudioDemoState?.("lab-audio", true);

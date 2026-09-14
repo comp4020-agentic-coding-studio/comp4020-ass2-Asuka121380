@@ -8,7 +8,7 @@ import {
   type PickupPosition,
 } from "./chain";
 import { cabinetProfileParams, type CabinetProfile } from "./cabinet";
-import { renderPluckedString } from "./pluckedString";
+import { loadDiGuitarBuffer } from "./diSample";
 import { buildClippingCurve, type ClippingTopology } from "./waveshaping";
 
 // WaveShaperNode#curve is typed against an ArrayBuffer-backed Float32Array;
@@ -21,15 +21,13 @@ function asShaperCurve(curve: Float32Array): Float32Array<ArrayBuffer> {
 export type SourceKind = "sine" | "string";
 
 const SINE_FREQUENCY = 220;
-const STRING_FREQUENCY = 110;
-const STRING_DURATION_SECONDS = 1.6;
 const BASE_OUTPUT_GAIN = 0.2;
 
 export interface ClippingGraphOptions {
   source: SourceKind;
   topology: ClippingTopology;
   drive: number;
-  /** Called when a one-shot source (the plucked string) finishes on its own. */
+  /** Called when a one-shot source (the DI guitar recording) finishes on its own. */
   onEnded?: () => void;
 }
 
@@ -39,11 +37,15 @@ export interface ClippingGraphOptions {
  * draws the paired waveform/spectrum diagrams, so what a visitor sees and
  * hears always describe the same transformation.
  *
- * For the GUITAR SOURCE input, the audible path adds a small fixed
- * monitoring chain after the clipping stage (see `buildListeningChain`) —
- * a stand-in for "how distorted guitar is normally heard through something",
- * not a taught cabinet model. The LAB TONE path stays raw so the transfer-
- * function demonstration isn't softened by that chain.
+ * The GUITAR SOURCE input (`source: "string"`) plays the site's canonical DI
+ * guitar recording (`loadDiGuitarBuffer`, see `src/assets/audio/DI-SOURCE.md`)
+ * and adds a small fixed monitoring chain after the clipping stage (see
+ * `buildListeningChain`) — a stand-in for "how distorted guitar is normally
+ * heard through something", not a taught cabinet model. The LAB TONE input
+ * (`source: "sine"`) stays a plain oscillator, deliberately synthetic per
+ * `CLAUDE.md`'s audio policy: it's teaching the abstract clipping/transfer-
+ * function concept, not claiming to represent a real guitar, and raw so the
+ * demonstration isn't softened by the monitoring chain either.
  */
 export class ClippingGraph {
   private readonly drive: GainNode;
@@ -51,6 +53,7 @@ export class ClippingGraph {
   private readonly output: GainNode;
   private sourceNode: OscillatorNode | AudioBufferSourceNode | null = null;
   private started = false;
+  private cancelled = false;
 
   constructor(
     private readonly context: AudioContext,
@@ -78,9 +81,10 @@ export class ClippingGraph {
     this.output.connect(context.destination);
   }
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
+    this.cancelled = false;
 
     if (this.options.source === "sine") {
       const oscillator = this.context.createOscillator();
@@ -92,13 +96,8 @@ export class ClippingGraph {
       return;
     }
 
-    const samples = renderPluckedString({
-      sampleRate: this.context.sampleRate,
-      frequency: STRING_FREQUENCY,
-      durationSeconds: STRING_DURATION_SECONDS,
-    });
-    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
-    buffer.copyToChannel(Float32Array.from(samples), 0);
+    const buffer = await loadDiGuitarBuffer(this.context);
+    if (this.cancelled) return;
 
     const bufferSource = this.context.createBufferSource();
     bufferSource.buffer = buffer;
@@ -115,7 +114,12 @@ export class ClippingGraph {
   }
 
   stop(): void {
-    if (!this.started || !this.sourceNode) return;
+    if (!this.started) return;
+    this.cancelled = true;
+    if (!this.sourceNode) {
+      this.started = false;
+      return;
+    }
     this.sourceNode.onended = null;
     try {
       this.sourceNode.stop();
@@ -162,8 +166,6 @@ function buildListeningChain(context: AudioContext): { input: AudioNode; output:
 
 export type ModulationEffect = "tremolo" | "vibrato" | "chorus" | "flanger" | "phaser";
 
-const MODULATION_SOURCE_FREQUENCY = 110;
-const MODULATION_SOURCE_DURATION_SECONDS = 3.2;
 const MODULATION_OUTPUT_GAIN = 0.5;
 const PHASER_STAGES = 4;
 const PHASER_POLE_HZ = 800;
@@ -194,11 +196,11 @@ interface ModulationTarget {
 }
 
 /**
- * A one-shot plucked-string source run through a shared dry/wet modulation
- * network: an LFO (a plain OscillatorNode used purely as a control signal,
- * never connected to the destination) drives whichever parameter the
- * selected effect modulates — a GainNode's gain for tremolo, a DelayNode's
- * delayTime for vibrato/chorus/flanger, or a cascade of allpass
+ * The canonical DI guitar recording (see diSample.ts) run through a shared
+ * dry/wet modulation network: an LFO (a plain OscillatorNode used purely as
+ * a control signal, never connected to the destination) drives whichever
+ * parameter the selected effect modulates — a GainNode's gain for tremolo, a
+ * DelayNode's delayTime for vibrato/chorus/flanger, or a cascade of allpass
  * BiquadFilterNodes' frequency for phaser. Rate and Depth always mean "how
  * fast" and "how far" the LFO swings that parameter; Mix always means "how
  * much of the modulated copy blends back with the plain original" — the
@@ -213,6 +215,7 @@ export class ModulationGraph {
   private readonly target: ModulationTarget;
   private source: AudioBufferSourceNode | null = null;
   private started = false;
+  private cancelled = false;
 
   constructor(
     private readonly context: AudioContext,
@@ -279,17 +282,13 @@ export class ModulationGraph {
     return { wetInput: stageInput, params, baseValue: PHASER_POLE_HZ, depthScale: 500, centered: true };
   }
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
+    this.cancelled = false;
 
-    const samples = renderPluckedString({
-      sampleRate: this.context.sampleRate,
-      frequency: MODULATION_SOURCE_FREQUENCY,
-      durationSeconds: MODULATION_SOURCE_DURATION_SECONDS,
-    });
-    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
-    buffer.copyToChannel(Float32Array.from(samples), 0);
+    const buffer = await loadDiGuitarBuffer(this.context);
+    if (this.cancelled) return;
 
     const bufferSource = this.context.createBufferSource();
     bufferSource.buffer = buffer;
@@ -307,12 +306,17 @@ export class ModulationGraph {
   }
 
   stop(): void {
-    if (!this.started || !this.source) return;
+    if (!this.started) return;
+    this.cancelled = true;
+    if (!this.source) {
+      this.started = false;
+      return;
+    }
     this.source.onended = null;
     try {
       this.source.stop();
     } catch {
-      // Already stopped (e.g. the one-shot pluck just finished on its own).
+      // Already stopped (e.g. the one-shot recording just finished on its own).
     }
     this.source = null;
     this.started = false;
@@ -342,8 +346,6 @@ export class ModulationGraph {
 // together", not as a specific named algorithm.
 export type DelayMode = "echo" | "reverb";
 
-const DELAY_SOURCE_FREQUENCY = 110;
-const DELAY_SOURCE_DURATION_SECONDS = 1.1;
 const DELAY_OUTPUT_GAIN = 0.5;
 const ECHO_MAX_DELAY_SECONDS = 1;
 const MAX_FEEDBACK_GAIN = 0.88;
@@ -379,6 +381,7 @@ export class DelayGraph {
   private reverbBranches: ReverbBranch[] = [];
   private source: AudioBufferSourceNode | null = null;
   private started = false;
+  private cancelled = false;
 
   constructor(
     private readonly context: AudioContext,
@@ -428,17 +431,13 @@ export class DelayGraph {
     this.setParams(options.time, options.feedback, options.mix);
   }
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
+    this.cancelled = false;
 
-    const samples = renderPluckedString({
-      sampleRate: this.context.sampleRate,
-      frequency: DELAY_SOURCE_FREQUENCY,
-      durationSeconds: DELAY_SOURCE_DURATION_SECONDS,
-    });
-    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
-    buffer.copyToChannel(Float32Array.from(samples), 0);
+    const buffer = await loadDiGuitarBuffer(this.context);
+    if (this.cancelled) return;
 
     const bufferSource = this.context.createBufferSource();
     bufferSource.buffer = buffer;
@@ -455,12 +454,17 @@ export class DelayGraph {
   }
 
   stop(): void {
-    if (!this.started || !this.source) return;
+    if (!this.started) return;
+    this.cancelled = true;
+    if (!this.source) {
+      this.started = false;
+      return;
+    }
     this.source.onended = null;
     try {
       this.source.stop();
     } catch {
-      // Already stopped (e.g. the one-shot pluck just finished on its own).
+      // Already stopped (e.g. the one-shot recording just finished on its own).
     }
     this.source = null;
     this.started = false;
@@ -495,8 +499,6 @@ export class DelayGraph {
 // earlier". Master level is a plain gain stage placed after both
 // nonlinearities, never itself distorting — the concrete illustration of
 // why raising preamp gain and raising master level change different things.
-const AMP_SOURCE_FREQUENCY = 110;
-const AMP_SOURCE_DURATION_SECONDS = 1.6;
 const AMP_BASE_MASTER_GAIN = 0.6;
 const TONE_STACK_Q = 1 / Math.sqrt(2);
 
@@ -517,6 +519,7 @@ export class AmplifierGraph {
   private readonly masterGain: GainNode;
   private source: AudioBufferSourceNode | null = null;
   private started = false;
+  private cancelled = false;
 
   constructor(
     private readonly context: AudioContext,
@@ -541,17 +544,13 @@ export class AmplifierGraph {
     this.setParams(options.preampGain, options.toneHz, options.powerGain, options.masterLevel);
   }
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
+    this.cancelled = false;
 
-    const samples = renderPluckedString({
-      sampleRate: this.context.sampleRate,
-      frequency: AMP_SOURCE_FREQUENCY,
-      durationSeconds: AMP_SOURCE_DURATION_SECONDS,
-    });
-    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
-    buffer.copyToChannel(Float32Array.from(samples), 0);
+    const buffer = await loadDiGuitarBuffer(this.context);
+    if (this.cancelled) return;
 
     const bufferSource = this.context.createBufferSource();
     bufferSource.buffer = buffer;
@@ -568,12 +567,17 @@ export class AmplifierGraph {
   }
 
   stop(): void {
-    if (!this.started || !this.source) return;
+    if (!this.started) return;
+    this.cancelled = true;
+    if (!this.source) {
+      this.started = false;
+      return;
+    }
     this.source.onended = null;
     try {
       this.source.stop();
     } catch {
-      // Already stopped (e.g. the one-shot pluck just finished on its own).
+      // Already stopped (e.g. the one-shot recording just finished on its own).
     }
     this.source = null;
     this.started = false;
@@ -601,8 +605,6 @@ export class AmplifierGraph {
 // Delay/Reverb mode are switched by disconnecting and reconnecting a few
 // nodes, which does produce an audible pop — an accepted, realistic stand-in
 // for physically moving a pedal on a board.
-const CHAIN_SOURCE_FREQUENCY = 110;
-const CHAIN_SOURCE_DURATION_SECONDS = 2.4;
 const CHAIN_OUTPUT_GAIN = 0.5;
 const CHAIN_MOD_RATE_HZ = 4;
 const CHAIN_MOD_BASE_DELAY_SECONDS = 0.02;
@@ -670,6 +672,7 @@ export class CompleteChainGraph {
   private delayMode: DelayReverbMode;
   private sourceNode: AudioBufferSourceNode | null = null;
   private started = false;
+  private cancelled = false;
 
   constructor(
     private readonly context: AudioContext,
@@ -856,17 +859,13 @@ export class CompleteChainGraph {
     this.applyParams(next);
   }
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
+    this.cancelled = false;
 
-    const samples = renderPluckedString({
-      sampleRate: this.context.sampleRate,
-      frequency: CHAIN_SOURCE_FREQUENCY,
-      durationSeconds: CHAIN_SOURCE_DURATION_SECONDS,
-    });
-    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
-    buffer.copyToChannel(Float32Array.from(samples), 0);
+    const buffer = await loadDiGuitarBuffer(this.context);
+    if (this.cancelled) return;
 
     const bufferSource = this.context.createBufferSource();
     bufferSource.buffer = buffer;
@@ -883,12 +882,17 @@ export class CompleteChainGraph {
   }
 
   stop(): void {
-    if (!this.started || !this.sourceNode) return;
+    if (!this.started) return;
+    this.cancelled = true;
+    if (!this.sourceNode) {
+      this.started = false;
+      return;
+    }
     this.sourceNode.onended = null;
     try {
       this.sourceNode.stop();
     } catch {
-      // Already stopped (e.g. the one-shot pluck just finished on its own).
+      // Already stopped (e.g. the one-shot recording just finished on its own).
     }
     this.sourceNode = null;
     this.started = false;

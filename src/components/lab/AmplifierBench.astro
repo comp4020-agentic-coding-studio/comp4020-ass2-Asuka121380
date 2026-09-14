@@ -140,10 +140,10 @@ const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
       ).setAudioDemoState?.("amp-audio", false);
     }
 
-    function startAudio(): void {
+    async function startAudio(): Promise<void> {
       context = context ?? new AudioContext();
       const { preamp, tone, power, master } = currentParams();
-      graph = new AmplifierGraph(context, {
+      const newGraph = new AmplifierGraph(context, {
         preampGain: preamp,
         toneHz: tone,
         powerGain: power,
@@ -155,7 +155,9 @@ const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
           ).setAudioDemoState?.("amp-audio", false);
         },
       });
-      graph.start();
+      graph = newGraph;
+      await newGraph.start();
+      if (graph !== newGraph) return;
       (
         window as { setAudioDemoState?: (id: string, playing: boolean) => void }
       ).setAudioDemoState?.("amp-audio", true);
@@ -163,12 +165,12 @@ const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
 
     [preampInput, toneInput, powerInput, masterInput].forEach((input) => input.addEventListener("input", redraw));
 
-    toggle.addEventListener("click", () => {
+    toggle.addEventListener("click", async () => {
       if (graph) {
         stopAudio();
         return;
       }
-      startAudio();
+      await startAudio();
     });
 
     redraw();

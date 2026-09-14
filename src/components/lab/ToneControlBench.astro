@@ -83,7 +83,7 @@ const ticks = [100, 1000, 10000];
 
 <script>
   import { cutoffFrequency, lowpassMagnitudeResponse, logFrequencyAxis } from "../../lib/audio/filters";
-  import { renderPluckedString } from "../../lib/audio/pluckedString";
+  import { loadDiGuitarBuffer } from "../../lib/audio/diSample";
 
   const root = document.getElementById("tone-control-bench");
   if (root) {
@@ -102,11 +102,12 @@ const ticks = [100, 1000, 10000];
     const PLOT_TOP = 10;
     const PLOT_BOTTOM = 96;
     const OUTPUT_GAIN = 0.35;
-    const SOURCE_FREQUENCY = 220;
 
     let context: AudioContext | null = null;
     let source: AudioBufferSourceNode | null = null;
     let filter: BiquadFilterNode | null = null;
+    let pending = false;
+    let cancelled = false;
 
     function effectiveFarads(): number {
       const toneUf = Number(capacitanceInput.value) * 1e-6;
@@ -120,6 +121,8 @@ const ticks = [100, 1000, 10000];
     }
 
     function stopAudio(): void {
+      cancelled = true;
+      pending = false;
       source?.stop();
       source = null;
       filter = null;
@@ -150,19 +153,17 @@ const ticks = [100, 1000, 10000];
       input.addEventListener("input", redraw),
     );
 
-    toggle.addEventListener("click", () => {
-      if (source) {
+    toggle.addEventListener("click", async () => {
+      if (source || pending) {
         stopAudio();
         return;
       }
+      cancelled = false;
+      pending = true;
       context = context ?? new AudioContext();
-      const samples = renderPluckedString({
-        sampleRate: context.sampleRate,
-        frequency: SOURCE_FREQUENCY,
-        durationSeconds: 1.4,
-      });
-      const buffer = context.createBuffer(1, samples.length, context.sampleRate);
-      buffer.copyToChannel(Float32Array.from(samples), 0);
+      const buffer = await loadDiGuitarBuffer(context);
+      if (cancelled) return;
+      pending = false;
 
       filter = context.createBiquadFilter();
       filter.type = "lowpass";

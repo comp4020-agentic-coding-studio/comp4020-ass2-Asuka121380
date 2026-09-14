@@ -140,9 +140,9 @@ const effectOptions = [
       ).setAudioDemoState?.("modulation-audio", false);
     }
 
-    function startAudio(): void {
+    async function startAudio(): Promise<void> {
       context = context ?? new AudioContext();
-      graph = new ModulationGraph(context, {
+      const newGraph = new ModulationGraph(context, {
         effect: currentEffect(),
         rateHz: Number(rateInput.value),
         depth: Number(depthInput.value),
@@ -155,7 +155,9 @@ const effectOptions = [
           ).setAudioDemoState?.("modulation-audio", false);
         },
       });
-      graph.start();
+      graph = newGraph;
+      await newGraph.start();
+      if (graph !== newGraph) return;
       animationFrame = requestAnimationFrame(stepAnimation);
       (
         window as { setAudioDemoState?: (id: string, playing: boolean) => void }
@@ -163,11 +165,11 @@ const effectOptions = [
     }
 
     effectRadios.forEach((radio) =>
-      radio.addEventListener("change", () => {
+      radio.addEventListener("change", async () => {
         const wasPlaying = graph !== null;
         if (wasPlaying) stopAudio();
         updatePlot(0);
-        if (wasPlaying) startAudio();
+        if (wasPlaying) await startAudio();
       }),
     );
 
@@ -178,12 +180,12 @@ const effectOptions = [
       }),
     );
 
-    toggle.addEventListener("click", () => {
+    toggle.addEventListener("click", async () => {
       if (graph) {
         stopAudio();
         return;
       }
-      startAudio();
+      await startAudio();
     });
 
     updatePlot(0);

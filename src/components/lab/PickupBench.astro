@@ -53,7 +53,7 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
 
 <script>
   import { harmonicSeriesCycle, pickupHarmonicWeights } from "../../lib/audio/analysis";
-  import { renderPluckedString } from "../../lib/audio/pluckedString";
+  import { loadDiGuitarBuffer } from "../../lib/audio/diSample";
   import { drawSpectrum } from "../../lib/draw/spectrum";
   import { drawWaveform } from "../../lib/draw/waveform";
 
@@ -87,12 +87,16 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     let context: AudioContext | null = null;
     let source: AudioBufferSourceNode | null = null;
     let filter: BiquadFilterNode | null = null;
+    let pending = false;
+    let cancelled = false;
 
     function currentPreset(): "neck" | "bridge" {
       return (presetRadios.find((radio) => radio.checked)?.value ?? "neck") as "neck" | "bridge";
     }
 
     function stopAudio(): void {
+      cancelled = true;
+      pending = false;
       source?.stop();
       source = null;
       filter = null;
@@ -154,19 +158,17 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
       }),
     );
 
-    toggle.addEventListener("click", () => {
-      if (source) {
+    toggle.addEventListener("click", async () => {
+      if (source || pending) {
         stopAudio();
         return;
       }
+      cancelled = false;
+      pending = true;
       context = context ?? new AudioContext();
-      const samples = renderPluckedString({
-        sampleRate: context.sampleRate,
-        frequency: 110,
-        durationSeconds: 1.4,
-      });
-      const buffer = context.createBuffer(1, samples.length, context.sampleRate);
-      buffer.copyToChannel(Float32Array.from(samples), 0);
+      const buffer = await loadDiGuitarBuffer(context);
+      if (cancelled) return;
+      pending = false;
 
       filter = context.createBiquadFilter();
       filter.type = "lowpass";

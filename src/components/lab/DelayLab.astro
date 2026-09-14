@@ -137,9 +137,9 @@ const TICKS = [0, 0.5, 1, 1.5];
       ).setAudioDemoState?.("delay-audio", false);
     }
 
-    function startAudio(): void {
+    async function startAudio(): Promise<void> {
       context = context ?? new AudioContext();
-      graph = new DelayGraph(context, {
+      const newGraph = new DelayGraph(context, {
         mode: currentMode(),
         time: engineTimeValue(),
         feedback: Number(feedbackInput.value),
@@ -151,18 +151,20 @@ const TICKS = [0, 0.5, 1, 1.5];
           ).setAudioDemoState?.("delay-audio", false);
         },
       });
-      graph.start();
+      graph = newGraph;
+      await newGraph.start();
+      if (graph !== newGraph) return;
       (
         window as { setAudioDemoState?: (id: string, playing: boolean) => void }
       ).setAudioDemoState?.("delay-audio", true);
     }
 
     modeRadios.forEach((radio) =>
-      radio.addEventListener("change", () => {
+      radio.addEventListener("change", async () => {
         const wasPlaying = graph !== null;
         if (wasPlaying) stopAudio();
         updateReadout();
-        if (wasPlaying) startAudio();
+        if (wasPlaying) await startAudio();
       }),
     );
 
@@ -173,12 +175,12 @@ const TICKS = [0, 0.5, 1, 1.5];
       }),
     );
 
-    toggle.addEventListener("click", () => {
+    toggle.addEventListener("click", async () => {
       if (graph) {
         stopAudio();
         return;
       }
-      startAudio();
+      await startAudio();
     });
 
     updateReadout();
