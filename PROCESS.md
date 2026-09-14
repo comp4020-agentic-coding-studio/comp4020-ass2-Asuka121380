@@ -1463,6 +1463,35 @@ trimmed for the word count — that curation happens once, at submission time.
   is the reliable method going forward for this project's mobile visual
   QA.
 
+- **`0fea262`** — restructured the Week 3 Lab (`PickupBench.astro`) into a
+  top/left-center-right/bottom "processor faceplate" layout, per the
+  redesign spec's instruction that the lab should read as the processor
+  module itself rather than a stacked form. Wrapped the existing markup
+  (unchanged: every element id, the `<FootswitchGroup>`/`<Knob>`/
+  `<Waveform>`/`<Spectrum>`/`<AudioDemo>` components and their props, and
+  the entire `<script>` block's Web Audio graph and canvas-redraw logic)
+  into five region `<div>`s — top (label strip + preset footswitches + the
+  Input/Process/Output signal row), left (the position knob), center (the
+  waveform readout), right (the spectrum readout), bottom (the text
+  readout, play/compare row, and scope note) — with a mobile-first single
+  column (the wrappers are `display: contents` below 56rem, so children
+  fall into the plain flex column in source order, unchanged from before)
+  and a CSS Grid (`grid-template-areas: "top top top" / "left center
+  right" / "bottom bottom bottom"`) activated at the same `min-width: 56rem`
+  breakpoint the other Rig* components use. Checked: `pnpm check` green
+  (typecheck 0 errors, 28-page build with axe/link checks clean, 5/5
+  vitest). Verified visually via CDP screenshots (`Page.captureScreenshot`
+  at an explicit device-metrics override, per the method established
+  above) at both 1440px (confirms the knob/waveform/spectrum three-column
+  faceplate with dividers) and 390px (confirms the single-column stack,
+  and via direct `window.innerWidth`/`document.documentElement.scrollWidth`
+  equality that there is no horizontal overflow). Also drove the live page
+  over CDP `Runtime.evaluate` to check the underlying interaction survived
+  the markup change unmodified: checking the Bridge preset radio still
+  snaps `#pickup-position`'s value to 0.08 and updates `#pickup-readout`'s
+  text, and toggling `#pickup-compare` still reflects in the DOM — all via
+  the same ids the `<script>` block already queried, none of which moved.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
