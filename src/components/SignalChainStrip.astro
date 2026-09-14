@@ -33,12 +33,29 @@ const { current } = Astro.props;
 
 <style>
   .signal-chain {
+    position: relative;
     margin-block: 2rem;
     padding: 0.75rem 1rem;
     border: 1px solid var(--at-border);
     border-radius: var(--at-border-radius);
     background: var(--at-bg-alt);
     overflow-x: auto;
+  }
+
+  /* Pinned to the container's own box (not its scrolled content), so this
+     stays visible at the trailing edge whenever the 12-stage strip actually
+     overflows, and is imperceptible against --at-bg-alt when it doesn't —
+     a plain visible-scroll affordance, same idea as SignalJourney's. */
+  .signal-chain::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2rem;
+    border-radius: 0 var(--at-border-radius) var(--at-border-radius) 0;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--at-bg-alt));
   }
 
   .signal-chain ol {
