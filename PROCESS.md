@@ -79,6 +79,31 @@ smoothed over here.
 Chronological working log, kept alongside the final narrative above. Not
 trimmed for the word count — that curation happens once, at submission time.
 
+- [`f7b9ad0`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/f7b9ad072b6aa4bf0d620db87b7df0e739ecd073) —
+  revised `CLAUDE.md`'s audio-material policy ahead of a full-site visual and
+  interaction refactor. Before this commit, the harness said to "start
+  synthetic" for all audio and only reach for a real guitar recording as a
+  deliberate exception. A full audit of every lab across all 12 weeks (see
+  the entries below) found that rule working well for abstract DSP concepts
+  (waveform families, harmonic series, transfer functions) but leaving
+  several guitar-specific demonstrations — clipping, tone-stack filtering,
+  modulation, delay/reverb, amplifier/cabinet response — sounding like an
+  oscillator rather than a guitar, even though those demos exist specifically
+  to teach what an actual guitar signal does. Why: this was raised and
+  confirmed as a deliberate harness revision, not a one-off exception —
+  abstract signal/DSP concepts keep procedural synthesis (the plucked-string
+  Karplus-Strong model among them, since the model itself is often the
+  teaching point), while any demo claiming to represent real electric-guitar
+  tone should use one canonical clean/dry guitar DI recording processed by
+  local browser DSP, legally sourced (CC0/public domain preferred, documented
+  where used) and reused across every relevant lab so a student attributes
+  what they hear to the processing, not to a different take or instrument.
+  Checked: re-read the revised `CLAUDE.md` section in full before treating it
+  as authoritative; `pnpm check` stayed green (this is a documentation-only
+  change with no code touched). The redesign plan that follows in this log
+  sources and integrates that canonical DI recording as part of the audio
+  architecture work, rather than as a separate, later pass.
+
 - [`61ed2d7`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/61ed2d7a9b9685f602c063d58ff09048a90d3322) —
   renamed the curriculum reference from `SLOP0721.md`/`SLOP0721` to
   `SLOP2186.md`/`SLOP2186` throughout the project (the reference document
