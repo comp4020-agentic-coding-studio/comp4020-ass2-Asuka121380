@@ -7,8 +7,11 @@
 // strips the vendor theme's rail and 48rem content grid (see
 // src/styles/canvas-reset.css) so this page owns its own width and margins
 // rather than working around the theme's. One continuous dark workspace:
-// hero (masthead + the real 12-week signal chain as backbone) -> tone
-// analysis -> hear the difference -> assessment chain -> practical links.
+// hero (masthead + a large guitar photograph) -> rig overview (the real
+// 12-week signal chain, its own composition) -> tone analysis -> hear the
+// difference -> assessment chain -> practical links. The shared nav also
+// gets a course-first identity on this page (see canvas-reset.css) via the
+// `name`/`logo*` overrides below, scoped to just this page's props.
 import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
 import heroImage from "../assets/images/hero-guitar-strings.jpg";
 import { courseMeta } from "../course-config";
@@ -27,6 +30,11 @@ import "../styles/canvas-reset.css";
   description={courseMeta.description}
   mainAttrs={{ "data-canvas": true }}
   {...siteConfig}
+  name={`${courseMeta.code} / ${courseMeta.title.toUpperCase()}`}
+  logo={undefined}
+  logoDark={undefined}
+  logoCompact={undefined}
+  logoCompactDark={undefined}
 >
   <RigFrame>
     <RigHero

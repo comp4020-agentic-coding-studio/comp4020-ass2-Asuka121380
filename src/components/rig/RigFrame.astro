@@ -16,9 +16,9 @@
 // should reach for a per-section "wide" breakout hack; there is no grid
 // left to escape.
 //
-// The .rig-frame marker class also drives a body:has() override (below)
-// that compacts the vendored theme's Nav on this page only, without
-// touching Nav.astro/BaseLayout.astro (both shared site-wide, off-limits).
+// The shared <nav> is a sibling of <main>, not a descendant of this frame,
+// so its own compact/dark treatment lives in src/styles/canvas-reset.css
+// (keyed off [data-canvas], not .rig-frame) rather than here.
 ---
 
 <div class="rig-frame">
@@ -100,18 +100,5 @@
 
   .rig-frame > section:last-child {
     padding-block-end: clamp(3rem, 6vw, 5rem);
-  }
-
-  /* Compact the site-wide sticky Nav on this page only, via :has() rather
-     than editing the vendored Nav.astro/BaseLayout.astro — the same
-     technique the theme's own components.css already relies on
-     (.at-nav-brand:has(...)), so it's an established, safe pattern here. */
-  body:has(.rig-frame) .at-nav {
-    padding-block: 0.65rem;
-  }
-
-  body:has(.rig-frame) .at-nav picture,
-  body:has(.rig-frame) .at-nav img {
-    max-height: 1.75rem;
   }
 </style>

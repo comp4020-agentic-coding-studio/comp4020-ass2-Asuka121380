@@ -19,6 +19,7 @@ import RelatedContent from "astro-course-university/components/RelatedContent.as
 import { withBase } from "astro-theme-university/url";
 import TeachingTeam from "../../components/TeachingTeam.astro";
 import { formatCourseDate } from "../../lib/dates";
+import { courseMeta } from "../../course-config";
 import { graphCollections, siteConfig } from "../../site-config";
 import "../../styles/canvas-reset.css";
 
@@ -37,6 +38,11 @@ const teacherOverrides = (lecture.data as { teacherOverrides?: Record<string, st
   description={lecture.data.description ?? undefined}
   mainAttrs={{ "data-canvas": true }}
   {...siteConfig}
+  name={`${courseMeta.code} / ${courseMeta.title.toUpperCase()}`}
+  logo={undefined}
+  logoDark={undefined}
+  logoCompact={undefined}
+  logoCompactDark={undefined}
 >
   <Content />
   {

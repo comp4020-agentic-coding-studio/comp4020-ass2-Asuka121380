@@ -195,16 +195,4 @@ const weekCode = `WK${String(week).padStart(2, "0")}`;
   .rig-module-frame p {
     line-height: 1.7;
   }
-
-  /* Compact the site-wide sticky Nav on this page only, same technique as
-     RigFrame.astro uses for the Homepage — never edits the vendored
-     Nav.astro/BaseLayout.astro. */
-  body:has(.rig-module-frame) .at-nav {
-    padding-block: 0.65rem;
-  }
-
-  body:has(.rig-module-frame) .at-nav picture,
-  body:has(.rig-module-frame) .at-nav img {
-    max-height: 1.75rem;
-  }
 </style>
