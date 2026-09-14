@@ -1,7 +1,13 @@
 ---
 import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
-import SessionsGrid from "../../components/SessionsGrid.astro";
+import { getPublishedCollection } from "astro-course-university/content";
+import { withBase } from "astro-theme-university/url";
+import EditorialFrame from "../../components/home/EditorialFrame.astro";
+import EditorialBand from "../../components/home/EditorialBand.astro";
+import { formatCourseDate } from "../../lib/dates";
 import { sessionLabels, siteConfig } from "../../site-config";
+
+const sessions = (await getPublishedCollection("sessions")).sort((a, b) => a.data.week - b.data.week);
 ---
 
 <ContentLayout
@@ -9,10 +15,97 @@ import { sessionLabels, siteConfig } from "../../site-config";
   description={`The twelve-week teaching schedule: what happens in each ${sessionLabels.singular.toLowerCase()}, what to prepare, and what leaves the room.`}
   {...siteConfig}
 >
-  <p>
-    The internal collection and URL stay <code>sessions</code>. Set the visible
-    singular and plural names once in <code>src/site-config.ts</code> and use
-    the language your course deserves everywhere readers see it.
-  </p>
-  <SessionsGrid />
+  <EditorialFrame>
+    <EditorialBand tone="dark" label={sessionLabels.plural}>
+      <ol class="session-timeline">
+        {
+          sessions.map((session) => (
+            <li class="session-timeline-item">
+              <a class="session-timeline-link" href={withBase(`/sessions/${session.id}/`)}>
+                <span class="session-timeline-week">Week {String(session.data.week).padStart(2, "0")}</span>
+                <span class="session-timeline-body">
+                  <span class="session-timeline-title">{session.data.title}</span>
+                  <span class="session-timeline-date">{formatCourseDate(session.data.date)}</span>
+                  {session.data.description && <span class="session-timeline-desc">{session.data.description}</span>}
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </EditorialBand>
+  </EditorialFrame>
 </ContentLayout>
+
+<style>
+  .session-timeline {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0;
+  }
+
+  .session-timeline-item {
+    border-top: 1px solid var(--editorial-line-on-charcoal, var(--at-divider));
+  }
+
+  .session-timeline-item:first-child {
+    border-top: none;
+  }
+
+  .session-timeline-link {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: 0.4rem 1.25rem;
+    padding-block: 1rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .session-timeline-week {
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--editorial-accent, var(--at-accent));
+    padding-top: 0.2rem;
+  }
+
+  .session-timeline-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .session-timeline-title {
+    font-weight: 700;
+    font-size: 1.15rem;
+    transition: color 0.15s ease;
+  }
+
+  .session-timeline-link:hover .session-timeline-title,
+  .session-timeline-link:focus-visible .session-timeline-title {
+    color: var(--editorial-accent, var(--at-accent));
+  }
+
+  .session-timeline-date {
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    color: var(--editorial-on-charcoal-soft, var(--at-text-secondary));
+  }
+
+  .session-timeline-desc {
+    color: var(--editorial-on-charcoal-soft, var(--at-text-secondary));
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 34rem;
+  }
+
+  @media (max-width: 30rem) {
+    .session-timeline-link {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

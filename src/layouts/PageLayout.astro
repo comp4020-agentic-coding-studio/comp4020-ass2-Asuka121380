@@ -1,8 +1,15 @@
 ---
 import MdxPageLayout from "astro-theme-university/layouts/MdxPageLayout.astro";
 import { siteConfig } from "../site-config";
+
+// Pages that build their own Editorial-register intro (kicker + h1 + lede)
+// set `lead: false` in frontmatter to suppress the theme's default lead
+// paragraph, which would otherwise render outside — and visually clash
+// with — that self-contained intro. `description` still reaches BaseLayout
+// for the meta tag either way.
+const { frontmatter } = Astro.props as { frontmatter?: { lead?: boolean } };
 ---
 
-<MdxPageLayout siteConfig={siteConfig} {...Astro.props}>
+<MdxPageLayout siteConfig={siteConfig} {...Astro.props} lead={frontmatter?.lead ?? true}>
   <slot />
 </MdxPageLayout>

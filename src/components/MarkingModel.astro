@@ -21,13 +21,57 @@ const { marking } = Astro.props;
   {marking.mode === "holistic" ? (
     <p>{marking.description}</p>
   ) : (
-    <table>
-      <thead><tr><th scope="col">Criterion</th><th scope="col">Weight</th></tr></thead>
-      <tbody>
-        {marking.criteria.map((criterion) => (
-          <tr><td>{criterion.name}</td><td>{criterion.weight}%</td></tr>
-        ))}
-      </tbody>
-    </table>
+    <ul class="marking-weights">
+      {marking.criteria.map((criterion) => (
+        <li class="marking-weights-row">
+          <div class="marking-weights-label">
+            <span>{criterion.name}</span>
+            <span class="marking-weights-value">{criterion.weight}%</span>
+          </div>
+          <div class="marking-weights-bar">
+            <div class="marking-weights-fill" style={{ width: `${criterion.weight}%` }} />
+          </div>
+        </li>
+      ))}
+    </ul>
   )}
 </section>
+
+<style>
+  .marking-weights {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .marking-weights-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .marking-weights-value {
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    color: var(--editorial-accent, var(--at-accent));
+    flex: none;
+  }
+
+  .marking-weights-bar {
+    margin-top: 0.35rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--editorial-line-on-paper, var(--at-border));
+    overflow: hidden;
+  }
+
+  .marking-weights-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--editorial-accent, var(--at-accent));
+  }
+</style>

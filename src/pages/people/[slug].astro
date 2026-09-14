@@ -2,6 +2,8 @@
 import { render } from "astro:content";
 import { getPublishedCollection } from "astro-course-university/content";
 import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
+import EditorialFrame from "../../components/home/EditorialFrame.astro";
+import EditorialBand from "../../components/home/EditorialBand.astro";
 import { siteConfig } from "../../site-config";
 
 export async function getStaticPaths() {
@@ -37,38 +39,42 @@ const description = person.data.description;
   heroImageAlt={photoAlt}
   {...siteConfig}
 >
-  <dl>
-    {roleLabel && (
-      <>
-        <dt>Role</dt>
-        <dd>{roleLabel}</dd>
-      </>
-    )}
-    {person.data.affiliation && (
-      <>
-        <dt>Affiliation</dt>
-        <dd>{person.data.affiliation}</dd>
-      </>
-    )}
-    {person.data.email && (
-      <>
-        <dt>Email</dt>
-        <dd>
-          <a href={`mailto:${person.data.email}`}>{person.data.email}</a>
-        </dd>
-      </>
-    )}
-    {person.data.url && (
-      <>
-        <dt>Web</dt>
-        <dd>
-          <a href={person.data.url}>{person.data.url}</a>
-        </dd>
-      </>
-    )}
-    <dt>Contact</dt>
-    <dd>{person.data.contact}</dd>
-  </dl>
+  <EditorialFrame>
+    <EditorialBand tone="light" label={`${person.data.title} details`}>
+      <dl>
+        {roleLabel && (
+          <>
+            <dt>Role</dt>
+            <dd>{roleLabel}</dd>
+          </>
+        )}
+        {person.data.affiliation && (
+          <>
+            <dt>Affiliation</dt>
+            <dd>{person.data.affiliation}</dd>
+          </>
+        )}
+        {person.data.email && (
+          <>
+            <dt>Email</dt>
+            <dd>
+              <a href={`mailto:${person.data.email}`}>{person.data.email}</a>
+            </dd>
+          </>
+        )}
+        {person.data.url && (
+          <>
+            <dt>Web</dt>
+            <dd>
+              <a href={person.data.url}>{person.data.url}</a>
+            </dd>
+          </>
+        )}
+        <dt>Contact</dt>
+        <dd>{person.data.contact}</dd>
+      </dl>
 
-  <Content />
+      <Content />
+    </EditorialBand>
+  </EditorialFrame>
 </ContentLayout>

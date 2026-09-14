@@ -73,6 +73,50 @@
     opacity: 0.6;
   }
 
+  .editorial-frame .editorial-callout {
+    border-left: 3px solid var(--editorial-accent);
+    background: var(--editorial-paper-raised);
+    border-radius: 0 var(--at-border-radius) var(--at-border-radius) 0;
+    padding: 0.9rem 1.1rem;
+    margin-block: 1.25rem;
+    color: var(--editorial-ink);
+  }
+
+  .editorial-frame .editorial-band--dark .editorial-callout {
+    background: var(--editorial-charcoal-raised);
+    color: var(--editorial-on-charcoal);
+  }
+
+  .editorial-frame .editorial-callout p {
+    margin: 0;
+  }
+
+  .editorial-frame .editorial-scope-note {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-size: var(--at-font-size-sm);
+    color: var(--editorial-ink-soft);
+    border: 1px dashed var(--editorial-line-on-paper);
+    border-radius: var(--at-border-radius);
+    padding: 0.5rem 0.75rem;
+    margin-block: 1rem;
+  }
+
+  .editorial-frame .editorial-band--dark .editorial-scope-note {
+    color: var(--editorial-on-charcoal-soft);
+    border-color: var(--editorial-line-on-charcoal);
+  }
+
+  .editorial-frame .editorial-scope-note::before {
+    content: "SCOPE";
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.08em;
+    color: var(--editorial-accent);
+    flex: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .editorial-frame * {
       animation-duration: 0.001ms !important;

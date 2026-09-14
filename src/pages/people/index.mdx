@@ -1,9 +1,25 @@
 ---
 title: People
 description: "Who teaches the course, and how to reach them."
-heroTitle: People
+lead: false
 ---
 
+import EditorialFrame from "../../components/home/EditorialFrame.astro";
+import EditorialBand from "../../components/home/EditorialBand.astro";
 import PeopleGrid from "../../components/PeopleGrid.astro";
 
+<EditorialFrame>
+<EditorialBand tone="light" label="People">
+
+<p class="editorial-kicker">Teaching team</p>
+
+# People
+
+<p class="lead">
+Who teaches SLOP2186, and how to reach them.
+</p>
+
 <PeopleGrid />
+
+</EditorialBand>
+</EditorialFrame>
