@@ -1360,6 +1360,56 @@ trimmed for the word count — that curation happens once, at submission time.
   Checked: `pnpm check` green; `pnpm build` confirms week-03 still builds
   with no axe violations and no broken links.
 
+- [`a2a2e04`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/a2a2e04) —
+  re-themed the shared site nav for the two canvas pages (Homepage, Week 3),
+  centralized in `canvas-reset.css`. Why: the nav is a sibling of `<main>`,
+  not a descendant of `RigFrame`/`RigModuleFrame`, so the `--at-*` custom-
+  property remap scoped inside those components never reached it — the nav
+  kept rendering as a large white institutional band disconnected from the
+  dark rig underneath it, the exact problem the user's spec called out.
+  Fixed with a single `body:has(.at-main[data-canvas])` rule, high enough in
+  the DOM to reach both the nav and main simultaneously, and removed the two
+  duplicate/partial nav-compaction rules that had been living inside
+  `RigFrame.astro` and `RigModuleFrame.astro` instead. Also gave the
+  Homepage and Week 3 a course-first nav identity — `name`/`logo`/
+  `logoDark`/`logoCompact`/`logoCompactDark` props overridden on
+  `BaseLayout` after `{...siteConfig}` so they win, swapping the Slop
+  University logo for the text wordmark "SLOP2186 / THE SCIENCE OF GUITAR
+  TONE" — without touching the vendored `Nav.astro`/`BaseLayout.astro` or
+  renaming any real site-wide nav link label. Confirmed via grep that
+  `Footer.astro` destructures but never renders `name`, so this override has
+  no visible effect on the shared footer on either page. Checked: `pnpm
+  check` green (typecheck, build+axe across all 28 pages, link-check,
+  vitest spec).
+
+- [`8f8dc7c`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/8f8dc7c) —
+  rebuilt the Homepage Hero and split the 12-week signal chain out into its
+  own `RigOverview.astro` component, replacing `SignalChainNav.astro`. Why:
+  the previous hero's guitar image was a small framed thumbnail rather than
+  the guitar reading as "the input device of the system," and the 12-week
+  chain needed to become its own signal-chain-rack composition rather than
+  living inside the hero. `RigHero.astro` now composes a strong left
+  (masthead)/right (large, unframed, aggressively-cropped macro photograph)
+  relationship, with a physical→electrical INPUT/OUTPUT signal strip along
+  the bottom (an amber plucked-string trace transitioning to a cyan
+  pickup-sensed trace) previewing Week 3's own subject as a motif rather
+  than explaining it. `RigOverview.astro` renders all 12 weeks as an
+  effect-slot-style rack (not cards, not a timeline): each stage's inline
+  SVG trace is generated at build time from the same lab-grade signal
+  primitives (`harmonicSeriesCycle`, `pickupHarmonicWeights`,
+  `pluckHarmonicWeights`, `buildClippingCurve`, etc.) the real weekly labs
+  use, so a shape seen here matches what the student will later see in that
+  week's own lab — with two small, explicitly-commented exceptions
+  (amplitude-modulated sine for MODULATION, a 3-tap decaying echo sum for
+  DELAY/REVERB) where no existing lab primitive fit. Layout is mobile-first
+  (grid recomposing at `34rem`) and only becomes a true horizontal rack at a
+  wide `72rem` desktop breakpoint, so there's no page-level horizontal
+  scroll on mobile. Hover/focus-visible reveals each stage's description and
+  brightens every upstream node the signal has "already passed through," via
+  a `:has()` sibling-combinator selector — zero JavaScript, fully functional
+  as plain links without CSS. Checked: `pnpm check` green (typecheck,
+  build+axe across all 28 pages, link-check, vitest spec).
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
