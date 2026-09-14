@@ -1410,6 +1410,59 @@ trimmed for the word count — that curation happens once, at submission time.
   as plain links without CSS. Checked: `pnpm check` green (typecheck,
   build+axe across all 28 pages, link-check, vitest spec).
 
+- **`5297445`** — Fixed a real layout bug in `RigModuleOpener.astro` (Week 3
+  Module Hero): the `<ul class="rig-opener-annotations">` overlay used
+  `position: absolute; inset: 0` relative to the `<figure>`, but
+  `<figcaption>` is a sibling inside that same figure, so the figure's box
+  (and `inset: 0`) included the caption's height, not just the photo's. At
+  desktop widths, where the figure is allowed to grow past its mobile
+  28rem cap, this pushed the `--y: 80%` "COIL" label past the bottom edge
+  of the photo into the caption row instead of landing on the coil in the
+  image. Fixed by wrapping just the `<Image>` and the annotations `<ul>` in
+  a new `.rig-opener-image-wrap` (`position: relative`), leaving
+  `<figcaption>` outside it, so the percentage coordinates are relative to
+  the image only. Found and confirmed via a real rendered screenshot at
+  1440px (Chrome DevTools Protocol `Page.captureScreenshot` at an
+  explicit, CDP-verified viewport — see the tooling note below) showing
+  COIL floating below the photo next to the credit line; re-screenshotted
+  after the fix at both 1440px and 390px to confirm the label now sits on
+  the coil in both. Checked: `pnpm check` green.
+
+- **Diagnostic dead-end, no code change** — spent a long stretch chasing
+  what looked like a broken two-column grid on the Homepage Hero
+  (`RigHero.astro`'s `.rig-hero-grid`, `grid-template-columns: 1.05fr 1fr`
+  at `min-width: 56rem`): every headless-Chrome screenshot at 900–2000px
+  showed it stacked as a single column, while an isolated `file://` copy
+  of the exact same extracted CSS+HTML rendered correctly as two columns.
+  Used the Chrome DevTools Protocol (a second headless Chrome launched
+  with `--remote-debugging-port` and `--remote-allow-origins=*`, driven
+  from a small Python/`websocket-client` script) to pull the live page's
+  actual `getComputedStyle`/stylesheet contents, which showed the
+  browser's loaded `RigHero.astro?...lang.css` module still contained an
+  *old* iteration of the component (`.rig-hero-chain`/`.rig-hero-source`,
+  from before the hero/rig-overview split) even though a fresh `curl` of
+  the same URL's SSR HTML had the current, correct CSS inlined. Root
+  cause: the long-running `astro dev` process (started the previous
+  Thursday, never restarted across many edits since) had a stale Vite CSS
+  module transform cached for that specific `?astro&type=style&...`
+  endpoint, out of sync with its own SSR renderer. Restarting the dev
+  server fixed it immediately — confirmed via CDP that `.rig-hero-grid`
+  now computes `display: grid` with two real tracks at 1440px, and via a
+  CDP screenshot that it renders correctly. No source change was needed;
+  `RigHero.astro`'s CSS was correct all along. Also discovered along the
+  way: headless Chrome's `--screenshot --window-size=390,H` CLI flag does
+  not reliably honour viewport widths below ~500px (it renders at a wider
+  internal viewport, roughly 500px, then crops the output PNG to the
+  requested size instead of scaling it) — this had made a perfectly fine
+  mobile layout look like it had a horizontal-overflow bug. Switched to
+  driving screenshots through CDP directly
+  (`Emulation.setDeviceMetricsOverride` + `Page.captureScreenshot`) for
+  any viewport narrower than ~500px, which reports/renders the requested
+  width accurately (confirmed 390px both in `sips` pixel dimensions and in
+  `window.innerWidth`/`getBoundingClientRect` read back over CDP) — this
+  is the reliable method going forward for this project's mobile visual
+  QA.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
