@@ -1214,6 +1214,54 @@ trimmed for the word count — that curation happens once, at submission time.
   compiled stylesheet. Not yet propagated, and not intended to be yet, to
   the other 11 lecture weeks or to sessions/assessments/people/policies.
 
+- `1228089` — After the signal-processing-environment redesign, the user
+  reported seeing the same underlying layout grammar recur across every
+  redesign attempt (a persistent left rail, a narrow centred column, large
+  fixed margins, dark rectangular bands, framed cards/panels, rigid section
+  geometry, images as rectangular blocks, crude generated SVGs) despite
+  each attempt using different names/colours, and asked for a read-only
+  audit of the cause before any further redesign work. Audited the vendored
+  `astro-theme-university` package directly (`base.css`, `components.css`,
+  `BaseLayout.astro`) alongside our own shared components
+  (`EditorialFrame`/`EditorialBand`, `BenchFrame`/`BenchBand`, and the
+  Week-3 `Rig*` set) and `spec/*.test.ts`. Found the pattern traces to two
+  layers: (1) unconditional vendored-theme CSS — `body`'s fixed 5-column
+  `--at-content-width: 48rem` grid applied twice (body→`.at-main`,
+  `.at-main`→its own children), a permanent `body::after` 1px vertical
+  accent line on every page, and an unconditional `.at-footer-band` black
+  section — none of which any page component has ever removed or
+  overridden, only worked around locally with `calc(100vw…)` breakout
+  hacks (`bench-wide`/`rig-wide`/`editorial-wide`); (2) our own components
+  copying the same card/band/rail grammar forward under new names each
+  redesign — confirmed directly, including the honest finding that the
+  just-built `RigModuleFrame`/`RigModuleBand` reproduce `BenchFrame`'s
+  exact card/callout classes and `EditorialBand`'s alternating-band
+  pattern, plus a literal small vertical "connector" rail before every
+  band, despite being pitched as a fresh composition. `spec/*.test.ts` was
+  confirmed to contain no visual/layout checks (only content/data
+  integrity), so none of this is assignment-required; it's accumulated,
+  unquestioned decision-making. Reported all five audit findings to the
+  user, then — pre-authorized regardless of outcome — revised
+  `CLAUDE.md`'s visual-identity section: removed the "signal-processing-
+  environment identity for Homepage and Week 3" subsection (itself
+  prescriptive: a specific palette, a card-judgment rule, banned
+  decoration), installed the user's verbatim visual-harness principle (no
+  existing layout/component is a required baseline; re-composition over
+  incremental restyling; SVG/cards/centred columns are not defaults), and
+  tightened the visual-material rule (real photography/existing diagrams
+  for real objects; dynamic generation reserved for phenomena/data, not a
+  default). Left every item on the user's explicit keep-list (course
+  structure, assessment weights, accessibility, responsive behaviour,
+  licensing/attribution, functional requirements) untouched. Deliberately
+  did not delete or modify any component file this commit — `BenchFrame`/
+  `BenchBand` are still load-bearing for all 12 lecture weeks, and no new
+  redesign is authorized yet — only confirmed and documented that none of
+  these components are structurally mandatory (nothing in routing/content
+  collections requires them) and reported that finding back to the user
+  rather than acting on it unilaterally. Checked: `pnpm check` green
+  (typecheck, build with axe + broken-link check across 28 pages, vitest
+  spec suite) before committing a documentation-only change.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
