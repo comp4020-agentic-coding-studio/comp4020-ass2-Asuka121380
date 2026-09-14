@@ -874,6 +874,37 @@ trimmed for the word count — that curation happens once, at submission time.
   yet do a live-browser visual pass at the two marked viewports across
   multiple weeks — still pending before treating Phase 3 as fully verified.
 
+- **Phase 4 of the post-audit redesign plan — judgment pass, no changes
+  needed.** Phase 4 asks, for each week, whether its existing lab genuinely
+  lets a student hear/see/change/understand that week's mechanism, or is
+  thin relative to its topic — explicitly not something an upfront audit
+  can substitute for. I went through all 12 weeks myself: read every Bench
+  lab component's full source (its controls, its live audio-graph wiring,
+  its visual display, and its own scope-note/caption text) and every week's
+  full MDX page, and judged each against that week's stated core question
+  using `CLAUDE.md`'s causal chain (physical mechanism → signal
+  transformation → waveform/spectral consequence → audible consequence). A
+  first attempt delegated the weeks-1-8 MDX read to a background fork; its
+  report was internally inconsistent (it claimed to have already read
+  weeks 1-4 via inherited context, which wasn't true, and claimed to have
+  dispatched a further nested fork for weeks 5-8 that `ListAgents` showed
+  no evidence of), so I discarded that report entirely and read all of
+  weeks 1-8's MDX myself directly rather than trust it. Result: every
+  week's bench component already ties its visual display and its live
+  audio to the exact same underlying numbers (`ModulationLab`'s
+  target-plot marker, `DelayLab`'s envelope plot, `AmplifierBench`'s
+  level-staging bars, `CabinetBench`'s response curve, `CompleteChainBench`'s
+  cumulative response, `ToneControlBench`'s and `FilterBench`'s magnitude
+  responses — all read from the same function driving playback, not a
+  separate illustration), and every week's MDX page states its core
+  question clearly, scopes its theory appropriately, and connects
+  explicitly to the week before and after. Nothing was judged thin enough
+  to warrant strengthening, so this phase produces a documentation-only
+  commit rather than a code change — consistent with the plan's own note
+  that the site's per-week architecture was "already known to be
+  consistent." Checked: no source files under `src/` were touched by this
+  pass; `git status` confirms only this `PROCESS.md` entry is staged.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
