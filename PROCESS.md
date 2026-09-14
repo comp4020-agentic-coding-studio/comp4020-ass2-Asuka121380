@@ -874,8 +874,8 @@ trimmed for the word count — that curation happens once, at submission time.
   yet do a live-browser visual pass at the two marked viewports across
   multiple weeks — still pending before treating Phase 3 as fully verified.
 
-- **Phase 4 of the post-audit redesign plan — judgment pass, no changes
-  needed.** Phase 4 asks, for each week, whether its existing lab genuinely
+- **`602b176`** — Phase 4 of the post-audit redesign plan — judgment pass,
+  no changes needed. Phase 4 asks, for each week, whether its existing lab genuinely
   lets a student hear/see/change/understand that week's mechanism, or is
   thin relative to its topic — explicitly not something an upfront audit
   can substitute for. I went through all 12 weeks myself: read every Bench
