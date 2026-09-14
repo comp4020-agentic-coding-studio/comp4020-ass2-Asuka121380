@@ -1262,6 +1262,104 @@ trimmed for the word count — that curation happens once, at submission time.
   (typecheck, build with axe + broken-link check across 28 pages, vitest
   spec suite) before committing a documentation-only change.
 
+- `299024e` — Following on from the prior audit and the user's explicit
+  cleanup instruction ("remove the visual influence of astro-theme-university
+  from these prototype pages at the root level... do not work around these
+  styles locally again"), reset the vendor theme's visual shell at the root
+  for the Homepage rather than patching around it. Added
+  `src/styles/canvas-reset.css`: `body:has(.at-main[data-canvas])::after {
+  display: none; }` neutralises the permanent 1px accent rail, and
+  `.at-main[data-canvas] { display: block; grid-column: full; padding-block:
+  0; min-height: 0; }` drops the vendor's 48rem content grid for any page
+  that opts in — used via `BaseLayout`'s sanctioned `mainAttrs` prop
+  (`mainAttrs={{"data-canvas": true}}`), so no vendored file is edited. Both
+  selectors were checked for specificity against the vendor's own rules
+  before relying on them instead of `!important`. With that grid gone,
+  `RigFrame.astro` now explicitly owns the Homepage's `padding-inline`/
+  `max-width`/`margin-inline` directly, so the `calc(100vw...)`-based
+  `.rig-wide` breakout hack (and `.rig-module`/`.rig-scope-note`, confirmed
+  by grep to have zero usages anywhere) could be deleted outright.
+  Recomposed the hero itself per "the course is the rig": rewrote
+  `SignalChainNav.astro` from a vertical rack to a single horizontal spine
+  (a pedalboard signal path threaded on one line) and `RigHero.astro` to
+  dock the real guitar-strings photo at the chain's own INPUT end with one
+  honest waveform trace (`pluckHarmonicWeights`/`waveformPath`, the same
+  source `ToneAnalysis` already uses), replacing the former CTA button,
+  module-pill list, and "12 weeks" line — the chain is now the page's own
+  structural backbone and its own navigation. Deliberately left
+  `ToneAnalysis`/`HearTheDifference`/`AssessmentChain`/`PracticalLinks`
+  unmodified after checking each is already non-card/non-boxed. Checked:
+  `pnpm check` green (typecheck, build with axe across 28 pages, broken-link
+  check, vitest spec); confirmed in the built HTML that `data-canvas="true"`
+  and `grid-column:full` only apply to the Homepage's `<main>`, and that
+  every other page's `<main>` is unaffected.
+
+- `8c1b4a0` — Continuing the same instruction for Week 3 ("the week is a
+  module... do not begin with the old course-page H1/date structure"), gave
+  Week 3 its own route, `src/pages/lectures/week-03.astro`, so it can skip
+  `astro-theme-university`'s `ContentLayout`, which unconditionally renders a
+  generic `<h1>{title}</h1>` + date + `<p class="lead">` before any page
+  content. The new route fetches the `week-03` entry directly via
+  `getPublishedCollection` and renders through `BaseLayout` (with the same
+  `mainAttrs={{"data-canvas": true}}` reset as the Homepage) instead of
+  `ContentLayout`, so the MDX body's own `RigModuleOpener` — MODULE 03 /
+  PICKUP / FROM VIBRATION TO VOLTAGE — is the first thing on the page.
+  `src/pages/lectures/[slug].astro`'s `getStaticPaths` now excludes
+  `"week-03"` via a filter on `getPublishedCollection` so the two routes
+  don't collide; confirmed by reading the file that every other week's
+  route, props, and rendering are otherwise untouched. The date/slides line
+  `ContentLayout` would have printed before the content was kept (per the
+  user's explicit "do not destructively remove functional course
+  infrastructure" instruction) but moved to a quiet paragraph after
+  `<Content/>`, alongside `TeachingTeam`/`RelatedContent`, in a footer
+  wrapper that reintroduces the theme's normal reading width for just that
+  block — landing at the close of the page rather than its opener satisfies
+  "don't begin with the old H1/date structure" while keeping the information
+  itself alive. Checked: `pnpm check` green; `pnpm build` confirms
+  `/lectures/week-03/` is emitted by the new route (not `[slug].astro`) with
+  no broken links and no axe violations, and that every other week's URL and
+  rendered output is byte-for-byte unchanged.
+
+- `d91e2b9` — Rebuilt Week 3's module/lab layer to match, since
+  `RigModuleFrame.astro` (a deliberately new, parallel, Week-3-exclusive
+  component, confirmed by reading it never imports `BenchFrame`) still
+  reproduced the vendor-adjacent grammar the user's cleanup instruction
+  targets: a `.bench-wide` `calc(100vw...)` viewport-breakout hack, and a
+  bordered, grid-textured `.bench-module` "card." With `[data-canvas]`
+  removing the vendor grid's inline gutters entirely for this page, the
+  frame itself had no `padding-inline` of its own — content sat flush
+  against the viewport edge, the exact gap the breakout hack existed to
+  paper over locally. Gave `.rig-module-frame` the same `padding-inline`/
+  `max-width`/`margin-inline` ownership `RigFrame` already has for the
+  Homepage, and deleted the now-unneeded `.bench-wide` rule from both
+  `RigModuleFrame` and `RigModuleBand`'s inner wrapper (confirmed by grep
+  this was the only remaining live usage; `CausalChainStrip.astro`, a
+  shared, unedited diagram component, still applies a `bench-wide` class
+  itself, but it is now inert inside this frame rather than styled — a
+  harmless side effect of removing the breakout, not a regression, since
+  `.causal-chain`'s own layout already fills its container). Flattened
+  `.bench-module` from a bordered/grid-textured box to a single top rule
+  per the user's Section 9 instruction ("no giant glowing panels, no cyan
+  borders around everything, no nested-card hell") — a processor module now
+  reads as a labelled region of the band's own surface, not a box floating
+  on it. Restyled `PickupBench.astro`'s wrapper to match — dropped
+  `bench-module`, added a compact Input/Process/Output row (String → Pickup
+  → Signal) above the existing position knob/waveform/spectrum/play
+  controls, matching the user's literal LAB 03 composition — without
+  touching any of its Web Audio or Canvas logic; every element `id` the
+  script queries was left unchanged and re-verified against the script after
+  editing. Reviewed `PickupDiagram.astro`/`CoilComparisonDiagram.astro`
+  (the user's Section 10 preference for real photography over hand-drawn
+  SVG) and deliberately left both as-is: the real pickup photo already
+  carries "what physically exists," and their SVGs illustrate genuinely
+  dynamic/abstract phenomena (flux change as the string moves; single-coil
+  versus humbucker interference-cancellation topology) rather than
+  duplicating the photo, so forcing a replacement would violate the
+  underlying "don't invent references/detail beyond what's needed" and
+  "custom graphics for dynamic phenomena" rules rather than serve them.
+  Checked: `pnpm check` green; `pnpm build` confirms week-03 still builds
+  with no axe violations and no broken links.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
