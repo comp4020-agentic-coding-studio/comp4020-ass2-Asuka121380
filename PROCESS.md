@@ -751,6 +751,43 @@ trimmed for the word count — that curation happens once, at submission time.
   horizontal-scroll behaviour on a narrow viewport — is still worth doing
   before treating this fully verified.
 
+- **`2f40941`** — Phase 1 of the post-audit redesign plan: fixed a real
+  canvas rendering bug and added an opt-in "Compare mode." Root cause,
+  confirmed by direct source read of `src/lib/draw/waveform.ts` and
+  `spectrum.ts`: both functions did `if (style.background) { fillRect }
+  else { clearRect }`, so the literal string `"transparent"` — used by
+  every canvas-based bench — was truthy and took the `fillRect` branch, a
+  no-op paint that never erased the previous frame. Every parameter change
+  on an affected bench therefore drew a new trace on top of the old one
+  instead of replacing it. Fixed by always calling `clearRect` first,
+  unconditionally, then optionally filling a background afterward — clearing
+  and filling are separate steps regardless of what background is
+  requested. Also added an optional 4th parameter (`previousSamples`/
+  `previousMagnitudes`) plus a `previousStroke` style property so a bench
+  can show a deliberate, explicit before/after comparison (dashed trace for
+  waveforms, outlined bars for spectra) instead of silent accumulation.
+  Wired this as a "Compare to previous setting/position" checkbox into
+  `GainClippingBench` (week 5) and `PickupBench` (week 3) — the two benches
+  where a before/after comparison is most pedagogically useful, per the
+  plan's instruction to add it to 1–2 benches deliberately rather than
+  mechanically to all of them. Each wired component tracks exactly one
+  frame of history (`lastOutput`/`lastSpectrum`, `lastCycle`/`lastWeights`)
+  that updates on every redraw regardless of the checkbox's state, so
+  switching Compare on immediately shows a diff against the setting just
+  left rather than requiring a further change first. Checked: grepped all
+  13 call sites of `drawWaveform`/`drawSpectrum` and confirmed all use
+  positional arguments with no 4th parameter, so the new parameter is fully
+  backward-compatible — the other 11 canvas-based benches (week 1's
+  `WaveformFamilyLab`, week 2's `StringBench`, week 6's `ClippingLab` +
+  `Waveform.astro` + `Spectrum.astro`) get the clearing fix for free without
+  any Compare UI. Ran `pnpm check` twice (once after the shared draw-function
+  fix, once again after wiring the two benches) — both green: typecheck,
+  build with axe reporting no accessibility violations across 28 pages, no
+  broken links, deck-structure check clean, 5/5 vitest tests. Fetched the
+  live week-03 and week-05 pages from the running dev server and confirmed
+  both new checkboxes (`#pickup-compare`, `#gain-compare`) render with their
+  labels ("Compare to previous position" / "Compare to previous setting").
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
