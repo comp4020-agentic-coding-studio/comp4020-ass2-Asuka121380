@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -34,6 +35,21 @@ export const completeChain = [
   "Air",
   "Listener",
 ];
+
+<LectureIntro week={12} topic="ENGINEERING THE COMPLETE TONE">
+
+## Given a desired guitar sound, how can we reason backwards and design a signal chain to create it?
+
+<p class="lecture-connection">
+Week 11 completed the physical signal path this course has followed since
+week 1 — string, pickup, circuit, effects, amplifier, speaker, cabinet, air.
+This final week reverses direction: instead of asking what a given stage
+does to a signal, it starts from a target sound and asks which stages, in
+which order, would produce it — the same causal chain the whole course has
+used, run backwards.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={12} topic="ENGINEERING THE COMPLETE TONE">
 

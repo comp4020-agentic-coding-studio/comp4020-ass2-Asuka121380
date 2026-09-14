@@ -9,6 +9,7 @@ teachers:
   - marisol-quaye
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -18,6 +19,22 @@ import ReflectionEnvelopeDiagram from "../../components/diagrams/ReflectionEnvel
 import DelayLab from "../../components/lab/DelayLab.astro";
 import SignalChainStrip from "../../components/SignalChainStrip.astro";
 import TakeawaysList from "../../components/TakeawaysList.astro";
+
+<LectureIntro week={9} topic="DELAY & REVERB">
+
+## How can delayed copies of a signal create the perception of echo, distance, and acoustic space?
+
+<p class="lecture-connection">
+Week 8 used very short modulated delays purely for interference — chorus,
+flanging, vibrato. This week expands delay into a general mechanism for
+echo and spatial processing: the same delay line, recirculated through
+feedback and, for reverb, run in parallel at multiple unrelated lengths.
+Everything so far has happened before the signal is ever amplified. Week 10
+takes that signal into the next real stage of the guitar chain: the
+amplifier.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={9} topic="DELAY & REVERB">
 

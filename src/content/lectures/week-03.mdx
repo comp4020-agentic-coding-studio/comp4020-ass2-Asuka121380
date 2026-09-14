@@ -9,6 +9,7 @@ teachers:
   - marisol-quaye
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -17,6 +18,20 @@ import CoilComparisonDiagram from "../../components/diagrams/CoilComparisonDiagr
 import PickupBench from "../../components/lab/PickupBench.astro";
 import SignalChainStrip from "../../components/SignalChainStrip.astro";
 import TakeawaysList from "../../components/TakeawaysList.astro";
+
+<LectureIntro week={3} topic="THE PICKUP">
+
+## How does a magnetic pickup convert string motion into an electrical signal?
+
+<p class="lecture-connection">
+Week 2 explained the spatial vibration modes a string supports. This week
+shows that pickup placement effectively samples those modes, converting
+motion at one specific point into a voltage. Week 4 follows that voltage
+into the guitar's own passive circuit, where resistance and capacitance
+start reshaping it before it ever leaves the instrument.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={3} topic="THE PICKUP">
 

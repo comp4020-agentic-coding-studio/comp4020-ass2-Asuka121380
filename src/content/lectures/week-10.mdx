@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -31,6 +32,22 @@ export const amplifierStages = [
   { label: "Power amp", caption: "gain + softer saturation" },
   { label: "Speaker →", caption: "Week 11" },
 ];
+
+<LectureIntro week={10} topic="THE AMPLIFIER">
+
+## Why is a guitar amplifier more than a device that simply makes a signal louder?
+
+<p class="lecture-connection">
+Weeks 5 through 9 covered every transformation this course teaches that
+happens before amplification: gain, clipping, filtering, modulation, delay
+and reverb. This week shows that the amplifier itself isn't a separate kind
+of thing — it's a further, small signal chain repeating several of those
+same processes in its own arrangement. But an amplifier's electrical output
+still isn't sound in the air. Week 11 follows the signal through its last
+physical stage: the loudspeaker and cabinet.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={10} topic="THE AMPLIFIER">
 

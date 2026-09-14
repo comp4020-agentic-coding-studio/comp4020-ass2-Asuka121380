@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -18,6 +19,23 @@ import CabinetResponseDiagram from "../../components/diagrams/CabinetResponseDia
 import CabinetBench from "../../components/lab/CabinetBench.astro";
 import SignalChainStrip from "../../components/SignalChainStrip.astro";
 import TakeawaysList from "../../components/TakeawaysList.astro";
+
+<LectureIntro week={11} topic="SPEAKER, CABINET AND AIR">
+
+## Why can the same amplifier sound dramatically different through different speakers and cabinets?
+
+<p class="lecture-connection">
+Week 10 ended at the electrical power output of the amplifier. This week
+converts that signal into acoustic sound: a loudspeaker's mechanical
+motion, shaped further by the cabinet it sits in and, when recorded, by a
+microphone's position. The complete physical signal path — string, pickup,
+circuit, effects, amplifier, speaker, cabinet, air — is now established.
+Week 12 returns to the question this course opened with, and asks how to
+reason backwards from a desired sound to a deliberately engineered signal
+chain across all of it.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={11} topic="SPEAKER, CABINET AND AIR">
 

@@ -9,6 +9,7 @@ teachers:
   - marisol-quaye
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -26,6 +27,21 @@ export const eqAfterStages = [
   { label: "Gain / clipping", caption: "generates new harmonic content" },
   { label: "EQ", caption: "shapes a spectrum that already includes those new harmonics" },
 ];
+
+<LectureIntro week={7} topic="FILTERS & EQ">
+
+## Once a signal contains many frequencies, how can a circuit reshape its tonal balance?
+
+<p class="lecture-connection">
+Week 6 generated new frequencies through nonlinear clipping. This week
+studies the tool for deliberately reshaping frequency content — filters,
+EQ, and tone stacks — and where a filter sits relative to a distortion
+stage changes what it actually does. Every transformation covered so far
+has been relatively static: set a cutoff, a gain, a clipping shape, and it
+stays put. Week 8 introduces parameters that change continuously over time.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={7} topic="FILTERS & EQ">
 

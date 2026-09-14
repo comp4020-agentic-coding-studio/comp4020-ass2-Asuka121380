@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -18,6 +19,22 @@ import NotchResponseDiagram from "../../components/diagrams/NotchResponseDiagram
 import ModulationLab from "../../components/lab/ModulationLab.astro";
 import SignalChainStrip from "../../components/SignalChainStrip.astro";
 import TakeawaysList from "../../components/TakeawaysList.astro";
+
+<LectureIntro week={8} topic="MODULATION">
+
+## How can continuously changing delay, phase, pitch, or amplitude create the sensation of movement?
+
+<p class="lecture-connection">
+Week 7 shaped frequency response using mostly static filters — set a
+cutoff and it stays there. This week makes that kind of transformation
+time-dependent: an LFO continuously varying a gain, a delay, or a filter's
+corner frequency. Chorus and flanging already need a short delay line to
+work. Week 9 takes that same idea of a delayed copy of the signal and
+expands it into echoes, feedback systems, and the illusion of physical
+space.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={8} topic="MODULATION">
 

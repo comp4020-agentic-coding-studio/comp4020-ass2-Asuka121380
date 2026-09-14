@@ -1,0 +1,84 @@
+---
+// The Editorial-register overture that opens every lecture week, before the
+// week's own BenchFrame content begins. Reuses the homepage's Editorial
+// register (EditorialFrame/EditorialBand) rather than inventing a third
+// design system, and always renders as the same shape: a kicker matching
+// BenchFrame's own "SLOP2186 · WK0X · TOPIC" status-strip reading (so the
+// two registers read as one instrument's overture and body, not two
+// unrelated pages stitched together), a slot for the week's core question
+// stated in plain editorial voice plus its one-line connection to the
+// previous/next week, and a closing "-> ENTERING THE BENCH" transition
+// marker. The marker's own background blends from the Editorial dark tone
+// into BenchFrame's opening paper tone (--bench-paper-bg, a global custom
+// property defined in BenchFrame.astro) so the switch from Editorial into
+// Bench & Booth reads as one deliberate move, mirroring how BenchBand.astro
+// already blends its own theory<->bench seams.
+import EditorialFrame from "./home/EditorialFrame.astro";
+import EditorialBand from "./home/EditorialBand.astro";
+
+interface Props {
+  week: number;
+  topic: string;
+}
+
+const { week, topic } = Astro.props;
+const weekCode = `WK${String(week).padStart(2, "0")}`;
+---
+
+<EditorialFrame>
+  <EditorialBand tone="dark" label={`Week ${week} introduction`}>
+    <p class="editorial-kicker">SLOP2186 · {weekCode} · {topic}</p>
+    <div class="lecture-intro-body">
+      <slot />
+    </div>
+  </EditorialBand>
+  <p class="lecture-transition-marker" aria-hidden="true">
+    <span class="lecture-transition-arrow">&rarr;</span> ENTERING THE BENCH
+  </p>
+</EditorialFrame>
+
+<style is:global>
+  .lecture-intro-body h2 {
+    font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+    line-height: 1.25;
+    max-width: 34rem;
+  }
+
+  .lecture-intro-body .lecture-connection {
+    max-width: 34rem;
+    color: var(--editorial-on-charcoal-soft);
+    font-size: var(--at-font-size-sm);
+  }
+
+  .lecture-transition-marker {
+    margin: 0;
+    padding-block: 1.1rem;
+    text-align: center;
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.14em;
+    color: var(--bench-phosphor-ink, var(--editorial-accent));
+    background: linear-gradient(to bottom, var(--editorial-charcoal), var(--bench-paper-bg, var(--editorial-paper)) 92%);
+  }
+
+  .lecture-transition-arrow {
+    display: inline-block;
+    animation: lecture-transition-nudge 1.6s ease-in-out infinite;
+  }
+
+  @keyframes lecture-transition-nudge {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(3px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lecture-transition-arrow {
+      animation: none;
+    }
+  }
+</style>

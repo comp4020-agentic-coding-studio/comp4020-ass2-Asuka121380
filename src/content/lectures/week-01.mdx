@@ -9,6 +9,7 @@ teachers:
   - marisol-quaye
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -27,6 +28,20 @@ export const chainStages = [
   { label: "Room", caption: "the sound propagates and reflects" },
   { label: "Listener", caption: "perceives the result" },
 ];
+
+<LectureIntro week={1} topic="TONE">
+
+## What do we actually mean when we say that two guitars have different "tone"?
+
+<p class="lecture-connection">
+There's no previous week to build on here — this is the course's starting
+point. Everyone already hears that two guitars "sound different"; the job
+from here is turning that vague claim into something measurable. Next week
+starts at the very beginning of the signal chain, asking where those
+harmonics physically come from before any electronics are involved.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={1} topic="TONE">
 

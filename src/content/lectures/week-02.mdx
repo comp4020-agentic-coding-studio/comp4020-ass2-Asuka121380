@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -16,6 +17,20 @@ import StandingWaveDiagram from "../../components/diagrams/StandingWaveDiagram.a
 import StringBench from "../../components/lab/StringBench.astro";
 import SignalChainStrip from "../../components/SignalChainStrip.astro";
 import TakeawaysList from "../../components/TakeawaysList.astro";
+
+<LectureIntro week={2} topic="THE STRING">
+
+## What decides the pitch a plucked string produces, before any pickup or circuit gets involved?
+
+<p class="lecture-connection">
+Week 1 introduced harmonics and spectra in the abstract, comparing waveforms
+that already existed. This week goes to where those harmonics physically
+come from: the standing waves a vibrating string supports. Week 3 picks up
+right where this leaves off, asking how a magnetic pickup turns that motion
+into the voltage the rest of the signal chain works with.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={2} topic="THE STRING">
 

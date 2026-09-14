@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -25,6 +26,21 @@ export const circuitStages = [
   { label: "Cable", caption: "adds its own capacitance" },
   { label: "Amp input", caption: "sees whatever survives the trip" },
 ];
+
+<LectureIntro week={4} topic="THE CIRCUIT">
+
+## Why can passive components inside a guitar significantly change its tone?
+
+<p class="lecture-connection">
+Week 3 followed the string's motion into a voltage at the pickup. This week
+follows that voltage a little further, into the volume and tone
+potentiometers and capacitor already sitting inside the instrument, before
+it reaches a cable or an amplifier. Week 5 leaves the guitar's own passive
+circuit behind and starts on active, powered stages — the first of which
+can push a signal hard enough to stop behaving linearly at all.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={4} topic="THE CIRCUIT">
 

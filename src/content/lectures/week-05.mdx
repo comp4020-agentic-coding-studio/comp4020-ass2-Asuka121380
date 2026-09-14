@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -23,6 +24,22 @@ import { buildClippingCurve } from "../../lib/audio/waveshaping";
 export const linearCurve = Array.from({ length: 1024 }, (_, i) => (i / 1023) * 2 - 1);
 export const softCurve = Array.from(buildClippingCurve("symmetric-soft", 5));
 export const hardCurve = Array.from(buildClippingCurve("hard", 3));
+
+<LectureIntro week={5} topic="GAIN & CLIPPING">
+
+## What physically happens when an audio signal becomes distorted?
+
+<p class="lecture-connection">
+Week 4 focused on linear filtering inside the guitar's own passive circuit —
+reshaping frequency content without adding anything new. This week
+introduces nonlinear signal transformation: past a headroom limit, a
+stage's output stops being a scaled copy of its input, and new harmonics
+appear. For now, clipping stays an abstract mathematical function — a curve
+applied to a sine wave. Week 6 builds that same function out of a real gain
+stage and real clipping components.
+</p>
+
+</LectureIntro>
 
 <BenchFrame week={5} topic="GAIN & CLIPPING">
 

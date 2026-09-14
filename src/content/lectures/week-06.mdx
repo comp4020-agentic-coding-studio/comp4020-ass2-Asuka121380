@@ -12,6 +12,7 @@ teacherOverrides:
 slides: /decks/week-06/
 ---
 
+import LectureIntro from "../../components/LectureIntro.astro";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -30,7 +31,22 @@ export const symmetricCurve = Array.from(buildClippingCurve("symmetric-soft", 4)
 export const asymmetricCurve = Array.from(buildClippingCurve("asymmetric-soft", 4));
 export const hardCurve = Array.from(buildClippingCurve("hard", 4));
 
-<BenchFrame>
+<LectureIntro week={6} topic="NONLINEARITY">
+
+## Why does clipping sound different from circuit to circuit?
+
+<p class="lecture-connection">
+Week 5 introduced clipping as a mathematical transformation — an input-output
+curve that stops being a straight line once a signal exceeds a system's
+headroom. This week implements that transformation with real circuit
+elements: gain stages, diodes, and the different contexts a nonlinear
+element can sit in. Week 7 turns to the other main tool for reshaping a
+signal that's now rich in new frequencies: filters, EQ, and tone stacks.
+</p>
+
+</LectureIntro>
+
+<BenchFrame week={6} topic="NONLINEARITY">
 
 <BenchBand mode="theory" label="ANALYSIS DESK">
 
