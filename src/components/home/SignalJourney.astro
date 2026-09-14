@@ -1,0 +1,156 @@
+---
+// The homepage's interactive front door into the 12-week structure: one
+// stage per week, in signal order, each a real link into that week's
+// lecture. Reuses SignalChainStrip's canonical stage vocabulary (see
+// src/components/SignalChainStrip.astro) extended with the one-line
+// physical description each week already opens with, so this isn't a new,
+// competing taxonomy — it's the same 12-link chain, given room to breathe.
+import { withBase } from "astro-theme-university/url";
+
+interface Stage {
+  label: string;
+  detail: string;
+  week: number;
+  slug: string;
+}
+
+const STAGES: Stage[] = [
+  { label: "Player", detail: "A string is set vibrating.", week: 1, slug: "week-01" },
+  { label: "String", detail: "Standing waves fix pitch and harmonic content.", week: 2, slug: "week-02" },
+  { label: "Pickup", detail: "Motion becomes a voltage.", week: 3, slug: "week-03" },
+  { label: "Circuit", detail: "Passive tone and volume shape it first.", week: 4, slug: "week-04" },
+  { label: "Gain", detail: "Amplification pushes the signal toward its limits.", week: 5, slug: "week-05" },
+  { label: "Clipping", detail: "Nonlinear stages reshape the waveform itself.", week: 6, slug: "week-06" },
+  { label: "Filter", detail: "EQ and tone stacks reweight the spectrum.", week: 7, slug: "week-07" },
+  { label: "Modulation", detail: "A slow control creates a sense of motion.", week: 8, slug: "week-08" },
+  { label: "Delay / reverb", detail: "Echoes and reflections build space.", week: 9, slug: "week-09" },
+  { label: "Amplifier", detail: "A staged chain of gain, filtering and clipping, again.", week: 10, slug: "week-10" },
+  { label: "Speaker", detail: "A cabinet colours the signal one last time.", week: 11, slug: "week-11" },
+  { label: "Ear", detail: "A listener perceives the result as tone.", week: 12, slug: "week-12" },
+];
+---
+
+<div class="signal-journey">
+  <p class="signal-journey-caption">
+    Twelve weeks, one signal. Follow it stage by stage — each stop opens the week that covers it.
+  </p>
+  <ol class="signal-journey-rail">
+    {
+      STAGES.map((stage, i) => (
+        <li class="signal-journey-stage">
+          <a href={withBase(`/lectures/${stage.slug}/`)} class="signal-journey-link">
+            <span class="signal-journey-index">{String(stage.week).padStart(2, "0")}</span>
+            <span class="signal-journey-label">{stage.label}</span>
+            <span class="signal-journey-detail">{stage.detail}</span>
+          </a>
+          {i < STAGES.length - 1 && (
+            <span class="signal-journey-arrow" aria-hidden="true">
+              &rarr;
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  .signal-journey-caption {
+    max-width: 38rem;
+    color: var(--at-text-secondary);
+    margin-block-end: 1.5rem;
+  }
+
+  .signal-journey-rail {
+    display: flex;
+    align-items: stretch;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0 0 1rem;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .signal-journey-stage {
+    display: flex;
+    align-items: center;
+    flex: none;
+  }
+
+  .signal-journey-link {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    width: 11rem;
+    padding: 1rem 1rem 1.1rem;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg-alt);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+  }
+
+  .signal-journey-link:hover,
+  .signal-journey-link:focus-visible {
+    border-color: var(--editorial-accent, var(--at-accent));
+    background: color-mix(in oklch, var(--editorial-accent, var(--at-accent)) 10%, var(--at-bg-alt));
+    transform: translateY(-2px);
+  }
+
+  .signal-journey-index {
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    color: var(--editorial-accent, var(--at-accent));
+    letter-spacing: 0.06em;
+  }
+
+  .signal-journey-label {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+
+  .signal-journey-detail {
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+    line-height: 1.4;
+  }
+
+  .signal-journey-arrow {
+    flex: none;
+    padding-inline: 0.5rem;
+    color: var(--at-text-muted);
+    align-self: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .signal-journey-rail {
+      scroll-behavior: auto;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .signal-journey-rail {
+      flex-direction: column;
+      overflow-x: visible;
+    }
+
+    .signal-journey-stage {
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+
+    .signal-journey-link {
+      width: 100%;
+    }
+
+    .signal-journey-arrow {
+      align-self: center;
+      transform: rotate(90deg);
+      padding-block: 0.25rem;
+    }
+  }
+</style>

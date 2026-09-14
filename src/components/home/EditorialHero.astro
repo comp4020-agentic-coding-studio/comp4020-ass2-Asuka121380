@@ -1,0 +1,165 @@
+---
+// The homepage's cinematic hero: full-bleed image, a warm-charcoal scrim for
+// legibility, and a large editorial title treatment distinct from the plain
+// ContentLayout hero the rest of the site uses. index.astro renders this
+// itself (via BaseLayout, not ContentLayout) precisely so it can take over
+// hero markup completely rather than fight the theme's default one.
+import { Image } from "astro:assets";
+import { withBase } from "astro-theme-university/url";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  kicker: string;
+  title: string;
+  lede: string;
+  tags: string[];
+  image: ImageMetadata;
+}
+
+const { kicker, title, lede, tags, image } = Astro.props;
+---
+
+<section class="editorial-hero editorial-wide" aria-label={title}>
+  <div class="editorial-hero-media" aria-hidden="true">
+    <Image src={image} alt="" widths={[768, 1536, 2560]} sizes="100vw" format="avif" loading="eager" fetchpriority="high" class="editorial-hero-image" />
+    <div class="editorial-hero-scrim"></div>
+  </div>
+
+  <div class="editorial-hero-content">
+    <p class="editorial-kicker">{kicker}</p>
+    <h1 class="editorial-hero-title">{title}</h1>
+    <p class="editorial-hero-lede">{lede}</p>
+    <ul class="editorial-hero-tags" aria-label="Course tags">
+      {tags.map((tag) => <li>{tag}</li>)}
+    </ul>
+    <a class="editorial-hero-cta" href="#signal-journey">
+      Follow the signal, string to ear
+      <span aria-hidden="true">&darr;</span>
+    </a>
+  </div>
+</section>
+
+<p class="visually-hidden">
+  <a href={withBase("/lectures/")}>Skip the hero and go straight to the lecture list</a>
+</p>
+
+<style>
+  .editorial-hero {
+    position: relative;
+    display: grid;
+    min-height: min(46rem, 92svh);
+    border-radius: 0;
+    overflow: clip;
+    color: var(--editorial-on-charcoal);
+    isolation: isolate;
+  }
+
+  .editorial-hero-media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  .editorial-hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 35%;
+  }
+
+  .editorial-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, oklch(15% 0.02 50 / 55%) 0%, oklch(15% 0.02 50 / 78%) 55%, oklch(15% 0.02 50 / 94%) 100%),
+      linear-gradient(90deg, oklch(15% 0.02 50 / 92%) 0%, oklch(15% 0.02 50 / 35%) 55%);
+  }
+
+  .editorial-hero-content {
+    align-self: end;
+    max-width: 44rem;
+    padding-block: clamp(2.5rem, 8vw, 5rem) clamp(2.5rem, 6vw, 4rem);
+    padding-inline-start: 0.1rem;
+  }
+
+  .editorial-kicker {
+    color: var(--editorial-accent);
+    margin-block-end: 1rem;
+  }
+
+  .editorial-hero-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    font-weight: 800;
+    margin: 0 0 1rem;
+    color: var(--editorial-on-charcoal);
+  }
+
+  .editorial-hero-lede {
+    font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+    line-height: 1.55;
+    color: var(--editorial-on-charcoal-soft);
+    max-width: 38rem;
+    margin: 0 0 1.5rem;
+  }
+
+  .editorial-hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0 0 2rem;
+    list-style: none;
+  }
+
+  .editorial-hero-tags li {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--editorial-line-on-charcoal);
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--editorial-on-charcoal-soft);
+  }
+
+  .editorial-hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--editorial-on-charcoal);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid var(--editorial-accent);
+    padding-block-end: 0.2rem;
+    transition: gap 0.2s ease;
+  }
+
+  .editorial-hero-cta:hover,
+  .editorial-hero-cta:focus-visible {
+    gap: 0.9rem;
+  }
+
+  .editorial-hero-cta span {
+    color: var(--editorial-accent);
+    animation: editorial-cta-bob 1.6s ease-in-out infinite;
+  }
+
+  @keyframes editorial-cta-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(0.2em); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .editorial-hero-cta span {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .editorial-hero {
+      min-height: min(38rem, 88svh);
+    }
+  }
+</style>

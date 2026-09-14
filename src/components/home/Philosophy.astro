@@ -1,0 +1,92 @@
+---
+// The course philosophy, verbatim in spirit from CLAUDE.md/SLOP2186.md,
+// given an editorial pull-quote treatment rather than another paragraph of
+// body text — this idea is the one thing the whole site is arguing for.
+const CHAIN = ["Physical mechanism", "Signal transformation", "Waveform / spectral consequence", "Audible consequence"];
+---
+
+<div class="philosophy">
+  <blockquote class="philosophy-quote">
+    Guitar tone is an engineering system, not a set of vibes.
+  </blockquote>
+  <p class="philosophy-body">
+    Every week reasons through the same causal chain, and pushes past subjective language — "warm", "bright",
+    "aggressive" — toward what physically or electrically changed, and what that did to the waveform, the spectrum,
+    or the sound in time.
+  </p>
+  <ol class="philosophy-chain">
+    {
+      CHAIN.map((step, i) => (
+        <li>
+          <span class="philosophy-chain-index">{i + 1}</span>
+          <span>{step}</span>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  .philosophy {
+    max-width: 46rem;
+  }
+
+  .philosophy-quote {
+    margin: 0 0 1.25rem;
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .philosophy-body {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--editorial-on-charcoal-soft, var(--at-text-secondary));
+    margin-block-end: 2rem;
+  }
+
+  .philosophy-chain {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+
+  .philosophy-chain li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex: 1 1 12rem;
+    font-size: var(--at-font-size-sm);
+    padding-inline-end: 1rem;
+  }
+
+  .philosophy-chain-index {
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--editorial-accent, var(--at-accent));
+    color: var(--editorial-accent, var(--at-accent));
+    font-family: var(--at-font-mono);
+    font-size: 0.75rem;
+  }
+
+  .philosophy-chain li:not(:last-child)::after {
+    content: "→";
+    margin-inline-start: 0.6rem;
+    color: var(--at-text-muted);
+  }
+
+  @media (max-width: 40rem) {
+    .philosophy-chain li:not(:last-child)::after {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,133 @@
+---
+// The fixed Analyse → Manipulate → Design progression (see CLAUDE.md /
+// SLOP2186.md — not this component's to invent), rendered from the live
+// assessments collection so titles, weights and links can't drift from
+// src/content/assessments/*.md.
+import { getPublishedCollection } from "astro-course-university/content";
+import { withBase } from "astro-theme-university/url";
+
+const VERBS = ["Analyse", "Manipulate", "Design"] as const;
+
+const assessments = (await getPublishedCollection("assessments")).sort((a, b) => a.data.week - b.data.week);
+---
+
+<ol class="assessment-progression">
+  {
+    assessments.map((assessment, i) => (
+      <li class="assessment-step">
+        <span class="assessment-verb">{VERBS[i] ?? ""}</span>
+        <a class="assessment-card" href={withBase(`/assessments/${assessment.id}/`)}>
+          <span class="assessment-title">{assessment.data.title}</span>
+          <span class="assessment-weight">{assessment.data.weight}% of final grade</span>
+          {assessment.data.description && <span class="assessment-desc">{assessment.data.description}</span>}
+        </a>
+        {i < assessments.length - 1 && (
+          <span class="assessment-arrow" aria-hidden="true">
+            &rarr;
+          </span>
+        )}
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .assessment-progression {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .assessment-step {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+    flex: 1 1 14rem;
+  }
+
+  .assessment-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+    padding: 1.25rem 1.35rem;
+    border: 1px solid var(--editorial-line-on-charcoal, var(--at-border));
+    border-radius: var(--at-border-radius);
+    background: var(--editorial-charcoal-raised, var(--at-bg-alt));
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .assessment-card:hover,
+  .assessment-card:focus-visible {
+    border-color: var(--editorial-accent, var(--at-accent));
+    transform: translateY(-2px);
+  }
+
+  .assessment-verb {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--editorial-accent, var(--at-accent));
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+
+  .assessment-title {
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+
+  .assessment-weight {
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.04em;
+    color: var(--editorial-accent, var(--at-accent));
+  }
+
+  .assessment-desc {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--editorial-on-charcoal-soft, var(--at-text-secondary));
+  }
+
+  .assessment-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--at-text-muted);
+    flex: none;
+  }
+
+  @media (max-width: 55rem) {
+    .assessment-progression {
+      flex-direction: column;
+    }
+
+    .assessment-arrow {
+      display: none;
+    }
+
+    .assessment-step {
+      flex-direction: column;
+    }
+
+    .assessment-verb {
+      writing-mode: horizontal-tb;
+      transform: none;
+      justify-content: flex-start;
+      padding-block: 0.25rem 0;
+    }
+  }
+</style>

@@ -1,0 +1,84 @@
+---
+// The "Editorial" register: a cinematic, magazine-style reading of the same
+// brand hue the rest of the site already uses (--at-primary is Slop
+// University's gold, see astro-theme-slop/slop.css) rather than a second,
+// unrelated palette. Warm charcoal stands in for Bench & Booth's dark
+// "panel" bands and warm cream for its light "paper" bands, so the homepage
+// reads as a distinct but related register — not a third, disconnected
+// design system. Wrap the whole homepage body in this once; EditorialBand
+// and every home/* component assume these tokens exist.
+---
+
+<div class="editorial-frame">
+  <slot />
+</div>
+
+<style is:global>
+  .editorial-frame {
+    --editorial-ink: oklch(24% 0.02 55);
+    --editorial-ink-soft: oklch(24% 0.02 55 / 72%);
+    --editorial-paper: oklch(97% 0.014 80);
+    --editorial-paper-raised: oklch(93% 0.02 75);
+    --editorial-charcoal: oklch(19% 0.016 50);
+    --editorial-charcoal-raised: oklch(25% 0.02 50);
+    --editorial-on-charcoal: oklch(95% 0.01 70);
+    --editorial-on-charcoal-soft: oklch(95% 0.01 70 / 74%);
+    --editorial-line-on-paper: oklch(45% 0.03 60 / 22%);
+    --editorial-line-on-charcoal: oklch(85% 0.02 70 / 20%);
+    --editorial-accent: var(--at-primary);
+    --editorial-accent-soft: color-mix(in oklch, var(--at-primary) 16%, transparent);
+
+    /* Same 100vw-scrollbar correction Bench & Booth uses for its own
+       full-bleed bands (see BenchFrame.astro) — reproduced locally so this
+       register doesn't depend on Bench markup being present on the page. */
+    --editorial-scrollbar-gutter: calc(100vw - 100%);
+
+    /* Base register is the light "desk" read, matching an .editorial-band
+       that opens on tone="light" so there's no seam before the first band. */
+    --at-bg: var(--editorial-paper);
+    --at-bg-alt: var(--editorial-paper-raised);
+    --at-bg-elevated: var(--editorial-paper-raised);
+    --at-border: var(--editorial-line-on-paper);
+    --at-divider: var(--editorial-line-on-paper);
+    --at-text: var(--editorial-ink);
+    --at-text-secondary: var(--editorial-ink-soft);
+    --at-text-muted: var(--editorial-ink-soft);
+    --at-heading: var(--editorial-ink);
+    --at-accent: var(--editorial-accent);
+    display: flow-root;
+  }
+
+  .editorial-frame .editorial-wide {
+    width: calc(100vw - var(--editorial-scrollbar-gutter));
+    max-width: min(90rem, 100vw - var(--editorial-scrollbar-gutter) - 2 * var(--at-gutter));
+    margin-inline: calc(50% - 50vw + var(--editorial-scrollbar-gutter) / 2);
+    box-sizing: border-box;
+  }
+
+  .editorial-frame .editorial-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+
+  .editorial-frame .editorial-kicker::before {
+    content: "";
+    width: 1.5rem;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .editorial-frame * {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>

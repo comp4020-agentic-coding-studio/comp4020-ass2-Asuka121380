@@ -1,75 +1,73 @@
 ---
-import Card from "astro-theme-university/components/Card.astro";
-import CardGrid from "astro-theme-university/components/CardGrid.astro";
-import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
+// The homepage renders through BaseLayout directly, not ContentLayout: the
+// cinematic hero below replaces the theme's default heroImage/heroTitle
+// treatment entirely (EditorialHero), so nothing here should trigger the
+// theme's own Hero component. Everything from the hero down lives in the
+// "Editorial" register (EditorialFrame/EditorialBand) — see
+// src/components/home/EditorialFrame.astro for how it relates to the
+// lecture pages' "Bench & Booth" register.
+import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
 import heroImage from "../assets/images/hero-home.avif";
 import { courseMeta } from "../course-config";
-import { sessionLabels, siteConfig } from "../site-config";
+import { siteConfig } from "../site-config";
+import EditorialFrame from "../components/home/EditorialFrame.astro";
+import EditorialBand from "../components/home/EditorialBand.astro";
+import EditorialHero from "../components/home/EditorialHero.astro";
+import Philosophy from "../components/home/Philosophy.astro";
+import SignalJourney from "../components/home/SignalJourney.astro";
+import ToneTimeline from "../components/home/ToneTimeline.astro";
+import HearTheDifference from "../components/home/HearTheDifference.astro";
+import AssessmentProgression from "../components/home/AssessmentProgression.astro";
+import PracticalLinks from "../components/home/PracticalLinks.astro";
 ---
 
-<ContentLayout
+<BaseLayout
   title={`${courseMeta.code}: ${courseMeta.title}`}
   description={courseMeta.description}
-  heroImage={heroImage}
-  heroImageAlt="A lecture theatre reduced to flat gold and black shapes, rows of seats sweeping past the frame, in a two-ink risograph print"
   {...siteConfig}
 >
-  <ul class="course-tags" aria-label="Course tags">
-    {courseMeta.tags.map((tag) => <li>{tag}</li>)}
-  </ul>
+  <EditorialFrame>
+    <EditorialHero
+      kicker={`${courseMeta.code} · ${courseMeta.session} ${courseMeta.year}`}
+      title={courseMeta.title}
+      lede="Follow one guitar signal from a plucked string to a listener's ear, one stage at a time — string, pickup, circuit, gain, clipping, filtering, modulation, delay and reverb, amplifier, and speaker. No electronics or DSP background assumed; every week builds its own vocabulary from a waveform or a spectrum, not an adjective."
+      tags={courseMeta.tags}
+      image={heroImage}
+    />
 
-  <h2>What you will do</h2>
-  <p>
-    Follow one guitar signal from a plucked string to a listener's ear, one
-    stage at a time: pickup, guitar electronics, gain, clipping, filtering,
-    modulation, delay and reverb, amplifier, and speaker cabinet. Every week
-    pairs the physical or electrical mechanism with a lab bench that lets you
-    change a real parameter and hear and see the consequence — a waveform, a
-    spectrum, a frequency response — rather than take it on faith. Across
-    three assessments you move from analysing an existing sound, to
-    manipulating a simplified pedal circuit, to designing and justifying a
-    complete signal chain against a stated tonal target.
-  </p>
+    <EditorialBand tone="dark" label="Course philosophy">
+      <p class="editorial-kicker">Why this course reasons the way it does</p>
+      <Philosophy />
+    </EditorialBand>
 
-  <h2>Who it is for</h2>
-  <p>
-    Anyone curious about why two guitar sounds differ, who wants that
-    curiosity answered with physics and signal processing rather than
-    adjectives. No electronics or DSP background is assumed — the course
-    builds its own vocabulary from Week 1 — but you should be comfortable
-    with the idea that a sound can be read off a waveform or a spectrum, and
-    willing to reason from a graph rather than a gut feeling.
-  </p>
+    <EditorialBand tone="light" id="signal-journey" label="The signal journey">
+      <p class="editorial-kicker">The signal journey</p>
+      <h2>String to ear, in twelve stops</h2>
+      <SignalJourney />
+    </EditorialBand>
 
-  <h2>Where to go next</h2>
-  <CardGrid columns={2}>
-    <Card title={sessionLabels.plural} href="/sessions/">
-      <p>The weekly schedule and what happens in each teaching session.</p>
-    </Card>
-    <Card title="Assessment" href="/assessments/">
-      <p>What is marked, what it is worth, and when it is due.</p>
-    </Card>
-    <Card title="People" href="/people/">
-      <p>Who teaches the course and how to reach them.</p>
-    </Card>
-  </CardGrid>
-</ContentLayout>
+    <EditorialBand tone="dark" label="Twelve weeks of tone">
+      <p class="editorial-kicker">Twelve weeks of tone</p>
+      <h2>Where the semester goes</h2>
+      <ToneTimeline />
+    </EditorialBand>
 
-<style>
-  .course-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-block: 0 2rem;
-    padding: 0;
-    list-style: none;
-  }
+    <EditorialBand tone="light" label="Hear the difference">
+      <p class="editorial-kicker">Hear the difference</p>
+      <h2>Same source, different processing</h2>
+      <HearTheDifference />
+    </EditorialBand>
 
-  .course-tags li {
-    padding: 0.25rem 0.65rem;
-    border-radius: 999px;
-    color: var(--at-text-secondary);
-    background: var(--at-bg-alt);
-    font-size: 0.9rem;
-  }
-</style>
+    <EditorialBand tone="dark" label="Assessment progression">
+      <p class="editorial-kicker">Analyse &rarr; Manipulate &rarr; Design</p>
+      <h2>How you are assessed</h2>
+      <AssessmentProgression />
+    </EditorialBand>
+
+    <EditorialBand tone="light" label="Practical information">
+      <p class="editorial-kicker">Getting started</p>
+      <h2>Sessions, people, and policies</h2>
+      <PracticalLinks />
+    </EditorialBand>
+  </EditorialFrame>
+</BaseLayout>

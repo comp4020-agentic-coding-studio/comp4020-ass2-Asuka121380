@@ -1,0 +1,22 @@
+---
+// The practical-info close: Sessions / People / Policies, deliberately last
+// and deliberately quiet — the brief's own instruction that logistics should
+// follow the narrative, not open it. Reuses the theme's plain Card/CardGrid
+// rather than inventing new chrome, since by this point the page is handing
+// off to the rest of the (Bench & Booth) site.
+import Card from "astro-theme-university/components/Card.astro";
+import CardGrid from "astro-theme-university/components/CardGrid.astro";
+import { sessionLabels } from "../../site-config";
+---
+
+<CardGrid columns={3}>
+  <Card title={sessionLabels.plural} href="/sessions/">
+    <p>The weekly schedule, and what happens in each teaching session.</p>
+  </Card>
+  <Card title="People" href="/people/">
+    <p>Who teaches the course and how to reach them.</p>
+  </Card>
+  <Card title="Policies" href="/policies/">
+    <p>Late work, extensions, academic integrity, and getting help.</p>
+  </Card>
+</CardGrid>
