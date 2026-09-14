@@ -7,20 +7,34 @@ export interface SpectrumStyle {
   /** Bar indices (0-based) to render in a highlight colour instead of `fill`. */
   highlightIndices?: number[];
   highlightFill?: string;
+  /**
+   * Outline colour for `previousMagnitudes` (see `drawSpectrum`). Only drawn
+   * when both this and `previousMagnitudes` are given — omitting either
+   * keeps the canvas showing only the current bars.
+   */
+  previousStroke?: string;
 }
 
-/** Draw a magnitude spectrum (each value in [0, 1]) as vertical bars. */
+/**
+ * Draw a magnitude spectrum (each value in [0, 1]) as vertical bars. Always
+ * erases the previous frame first, regardless of `style.background` — a
+ * transparent background is a real background (paint nothing), not "no
+ * background" (skip clearing), so clearing and filling are separate steps.
+ * Pass `previousMagnitudes` + `style.previousStroke` for an explicit
+ * "compare" outline (drawn behind the current bars); without them, only the
+ * current state ever shows.
+ */
 export function drawSpectrum(
   ctx: CanvasRenderingContext2D,
   magnitudes: ArrayLike<number>,
   style: SpectrumStyle,
+  previousMagnitudes?: ArrayLike<number>,
 ): void {
   const { width, height } = ctx.canvas;
+  ctx.clearRect(0, 0, width, height);
   if (style.background) {
     ctx.fillStyle = style.background;
     ctx.fillRect(0, 0, width, height);
-  } else {
-    ctx.clearRect(0, 0, width, height);
   }
 
   const plotHeight = height * 0.95;
@@ -42,6 +56,19 @@ export function drawSpectrum(
       ctx.textBaseline = "alphabetic";
       ctx.fillText("harmonics →", width - 68, height - 4);
     }
+  }
+
+  if (previousMagnitudes && style.previousStroke) {
+    ctx.save();
+    ctx.strokeStyle = style.previousStroke;
+    ctx.lineWidth = 1;
+    const previousBarWidth = width / previousMagnitudes.length;
+    for (let i = 0; i < previousMagnitudes.length; i++) {
+      const magnitude = Math.max(0, Math.min(1, previousMagnitudes[i]));
+      const barHeight = magnitude * plotHeight;
+      ctx.strokeRect(i * previousBarWidth + 1, height - barHeight, Math.max(1, previousBarWidth - 2), barHeight);
+    }
+    ctx.restore();
   }
 
   const highlight = new Set(style.highlightIndices ?? []);

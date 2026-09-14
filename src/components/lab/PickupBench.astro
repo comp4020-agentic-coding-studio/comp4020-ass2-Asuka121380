@@ -41,7 +41,13 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     <Spectrum id="pickup-spectrum" label="Relative harmonic sensitivity" magnitudes={Array.from(defaultWeights)} fillVar="--bench-phosphor" />
   </div>
 
-  <AudioDemo id="pickup-audio" label="Play preset" />
+  <div class="lab-controls-row">
+    <AudioDemo id="pickup-audio" label="Play preset" />
+    <label class="compare-toggle">
+      <input type="checkbox" id="pickup-compare" />
+      <span>Compare to previous position</span>
+    </label>
+  </div>
   <p class="bench-scope-note">The Neck/Bridge sound is a fixed two-preset EQ approximation, not a live filter following the knob — a conceptual comparison, not an accurate pickup emulation.</p>
 </div>
 
@@ -60,11 +66,19 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     const waveformCanvas = document.getElementById("pickup-waveform") as HTMLCanvasElement;
     const spectrumCanvas = document.getElementById("pickup-spectrum") as HTMLCanvasElement;
     const toggle = document.getElementById("pickup-audio-toggle") as HTMLButtonElement;
+    const compareToggle = document.getElementById("pickup-compare") as HTMLInputElement;
 
     const styles = getComputedStyle(root);
     const trace = styles.getPropertyValue("--bench-phosphor").trim() || "#e2b13c";
     const gridColor = styles.getPropertyValue("--bench-line").trim();
     const labelColor = styles.getPropertyValue("--bench-panel-text-secondary").trim();
+    const compareTrace = styles.getPropertyValue("--bench-panel-text-secondary").trim();
+
+    // One frame of history, kept regardless of whether Compare is checked,
+    // so switching Compare on shows a diff against the position just left —
+    // never a silent accumulation of every past frame.
+    let lastCycle: ArrayLike<number> | null = null;
+    let lastWeights: ArrayLike<number> | null = null;
 
     const neckPosition = Number(root.dataset.neckPosition ?? "0.32");
     const bridgePosition = Number(root.dataset.bridgePosition ?? "0.08");
@@ -91,27 +105,46 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
       const position = Number(positionInput.value);
       const weights = pickupHarmonicWeights(position);
       const cycle = harmonicSeriesCycle(weights);
+      const compareOn = compareToggle.checked;
+      const previousCycle = compareOn ? lastCycle : null;
+      const previousWeights = compareOn ? lastWeights : null;
 
       const waveformCtx = waveformCanvas.getContext("2d");
       if (waveformCtx)
-        drawWaveform(waveformCtx, cycle, {
-          stroke: trace,
-          background: "transparent",
-          gridColor,
-          labelColor,
-        });
+        drawWaveform(
+          waveformCtx,
+          cycle,
+          {
+            stroke: trace,
+            background: "transparent",
+            gridColor,
+            labelColor,
+            previousStroke: compareTrace,
+          },
+          previousCycle ?? undefined,
+        );
 
       const spectrumCtx = spectrumCanvas.getContext("2d");
       if (spectrumCtx)
-        drawSpectrum(spectrumCtx, weights, {
-          fill: trace,
-          background: "transparent",
-          gridColor,
-          labelColor,
-        });
+        drawSpectrum(
+          spectrumCtx,
+          weights,
+          {
+            fill: trace,
+            background: "transparent",
+            gridColor,
+            labelColor,
+            previousStroke: compareTrace,
+          },
+          previousWeights ?? undefined,
+        );
+
+      lastCycle = cycle;
+      lastWeights = weights;
     }
 
     positionInput.addEventListener("input", redraw);
+    compareToggle.addEventListener("change", redraw);
 
     presetRadios.forEach((radio) =>
       radio.addEventListener("change", () => {
@@ -192,6 +225,22 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     display: grid;
     gap: 1rem;
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .lab-controls-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+
+  .compare-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    cursor: pointer;
   }
 
   .bench-scope-note {

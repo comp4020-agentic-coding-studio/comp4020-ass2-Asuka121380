@@ -44,6 +44,10 @@ const topologyOptions = [
     <Knob id="gain-drive" label="Drive" min={0.3} max={8} step={0.1} value={DEFAULT_DRIVE} unit="×" />
     <FootswitchGroup name="gain-topology" legend="Clipping shape" options={topologyOptions} selected={DEFAULT_TOPOLOGY} />
     <AudioDemo id="gain-audio" label="Play" />
+    <label class="compare-toggle">
+      <input type="checkbox" id="gain-compare" />
+      <span>Compare to previous setting</span>
+    </label>
   </div>
 
   <div class="lab-body">
@@ -85,17 +89,24 @@ const topologyOptions = [
     const spectrumCanvas = document.getElementById("gain-output-spectrum") as HTMLCanvasElement;
     const curvePathEl = document.getElementById("gain-transfer-path") as unknown as SVGPathElement;
     const toggle = document.getElementById("gain-audio-toggle") as HTMLButtonElement;
+    const compareToggle = document.getElementById("gain-compare") as HTMLInputElement;
 
     const styles = getComputedStyle(root);
     const inputTrace = styles.getPropertyValue("--bench-input-trace").trim();
     const outputTrace = styles.getPropertyValue("--bench-phosphor").trim() || "#e2b13c";
     const gridColor = styles.getPropertyValue("--bench-line").trim();
     const labelColor = styles.getPropertyValue("--bench-panel-text-secondary").trim();
+    const compareTrace = styles.getPropertyValue("--bench-panel-text-secondary").trim();
 
     const curveViewport = { width: 160, height: 160, padding: 16 };
     const referenceOutput = applyCurve(sineCycle(256), buildClippingCurve("symmetric-soft", 1));
 
     let graph: ClippingGraph | null = null;
+    // One frame of history, kept regardless of whether Compare is checked,
+    // so switching Compare on shows a diff against the setting just left —
+    // never a silent accumulation of every past frame.
+    let lastOutput: ArrayLike<number> | null = null;
+    let lastSpectrum: ArrayLike<number> | null = null;
 
     function currentTopology(): ClippingTopology {
       return (topologyRadios.find((radio) => radio.checked)?.value ??
@@ -113,6 +124,9 @@ const topologyOptions = [
     function redraw(): void {
       const topology = currentTopology();
       const drive = Number(driveInput.value);
+      const compareOn = compareToggle.checked;
+      const previousOutput = compareOn ? lastOutput : null;
+      const previousSpectrum = compareOn ? lastSpectrum : null;
 
       const inputSamples = sineCycle(256);
       const curve = buildClippingCurve(topology, drive);
@@ -131,30 +145,46 @@ const topologyOptions = [
 
       const outputCtx = outputCanvas.getContext("2d");
       if (outputCtx)
-        drawWaveform(outputCtx, output, {
-          stroke: outputTrace,
-          background: "transparent",
-          gridColor,
-          labelColor,
-        });
+        drawWaveform(
+          outputCtx,
+          output,
+          {
+            stroke: outputTrace,
+            background: "transparent",
+            gridColor,
+            labelColor,
+            previousStroke: compareTrace,
+          },
+          previousOutput ?? undefined,
+        );
 
       const spectrumCtx = spectrumCanvas.getContext("2d");
       if (spectrumCtx)
-        drawSpectrum(spectrumCtx, spectrum, {
-          fill: outputTrace,
-          background: "transparent",
-          gridColor,
-          labelColor,
-        });
+        drawSpectrum(
+          spectrumCtx,
+          spectrum,
+          {
+            fill: outputTrace,
+            background: "transparent",
+            gridColor,
+            labelColor,
+            previousStroke: compareTrace,
+          },
+          previousSpectrum ?? undefined,
+        );
 
       curvePathEl.setAttribute("d", transferCurvePath(curve, curveViewport));
 
       graph?.setCurve(topology, drive);
       graph?.setLevelCompensation(compensation);
+
+      lastOutput = output;
+      lastSpectrum = spectrum;
     }
 
     topologyRadios.forEach((radio) => radio.addEventListener("change", redraw));
     driveInput.addEventListener("input", redraw);
+    compareToggle.addEventListener("change", redraw);
 
     toggle.addEventListener("click", () => {
       if (graph) {
@@ -208,6 +238,16 @@ const topologyOptions = [
     align-items: flex-start;
     justify-content: center;
     gap: 1.75rem;
+  }
+
+  .compare-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    align-self: center;
+    cursor: pointer;
   }
 
   .lab-body {
