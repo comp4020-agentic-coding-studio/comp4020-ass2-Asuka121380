@@ -1155,6 +1155,65 @@ trimmed for the word count — that curation happens once, at submission time.
   precise anatomy photo rather than sourcing a third image, since one photo
   can reasonably serve both an atmospheric and a structural role here.
 
+- **[`9a1034d`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/9a1034de63a8b08e073153d90fae13273e482a7b)** —
+  on review, the warm serif/cream "Editorial" register built for the
+  Homepage and Week 3 (the two entries above) read as soft, lifestyle-
+  editorial design — wrong for a course about electric guitar tone.
+  Redesigned both pages around a new identity: "a guitar signal-processing
+  environment that happens to teach a university course" — vocabulary from
+  amp modellers, pedalboard editors, and DAWs (signal chains, modules,
+  meters, waveform/spectrum displays), not any one real product. Recorded
+  as a deliberate, scoped harness revision in `CLAUDE.md` before building,
+  since it changes a call `CLAUDE.md` itself had made.
+  Scope stayed exactly Homepage + Week 3, so this could not touch
+  `EditorialFrame`/`EditorialBand` or `BenchFrame`/`BenchBand` (shared with
+  Weeks 1–12, sessions, assessments, people, policies) or
+  `AssessmentProgression` (shared with `assessments/index.mdx`). Built a
+  new, parallel `src/components/rig/` set instead: `RigFrame`/`RigHero`
+  replace `EditorialFrame`/`EditorialHero` on the homepage; `RigModuleFrame`/
+  `RigModuleBand`/`RigModuleOpener` replace `BenchFrame`/`BenchBand`/
+  `Week3Opener` on Week 3, reproducing BenchFrame's own utility class names
+  (`bench-wide`, `bench-annotated`, `bench-module`, `bench-callout`,
+  `bench-scope-note`, `bench-prose`) scoped to the new frame, so
+  `week-03.mdx`'s body needed only an import swap and band-label rewording,
+  not a rewrite — `PickupDiagram`, `CoilComparisonDiagram`, and
+  `PickupBench` re-theme automatically through the CSS custom-property
+  remap, with zero edits to their own source. `SignalChainNav` (a compact
+  12-module INPUT→OUTPUT chain, sourced live from the lectures collection)
+  replaces the card-based course journey; `ToneAnalysis` replaces
+  `Philosophy.astro` with a real generated waveform/spectrum reused from
+  `src/lib/audio/analysis.ts` and `src/lib/draw/svgTrace.ts` (the same
+  functions the lab benches use) instead of pull-quote styling;
+  `AssessmentChain` replaces the homepage's card grid with a vertical
+  ANALYSE/MANIPULATE/DESIGN processing chain, sourced live from the
+  assessments collection. `HearTheDifference` and `PracticalLinks` were
+  re-themed in place (a channel-strip label per preset; plain bordered link
+  rows instead of the theme's `Card`/`CardGrid`) since both are homepage-
+  exclusive. One continuous dark register throughout on both pages — no
+  light/dark band alternation — cyan for active signal/measurement state,
+  the existing brand amber reserved for analogue/hardware/source material,
+  red/orange reserved for clipping/warning states. Deleted four now-unused
+  homepage-exclusive files (`EditorialHero`, `SignalJourney`, `ToneTimeline`,
+  `Philosophy`) and `Week3Opener` once confirmed (by grep) to have no
+  remaining importers.
+  Two bugs found and fixed before committing: an axe `landmark-unique`
+  violation on `/lectures/week-03/` from giving each `RigModuleBand`
+  `<section aria-label>` with several bands sharing the same label text
+  (e.g. two "→ ENTER THE LAB" bands) — fixed by rendering a plain `<div>`
+  with a visible label paragraph instead, matching `BenchBand`'s own
+  approach; and three broken-link-checker failures from hardcoding
+  `/sessions/`, `/people/`, `/policies/` in the rewritten `PracticalLinks`
+  instead of wrapping them in `withBase()`.
+  Checked: `pnpm check` green (typecheck; build with axe accessibility scan
+  and broken-link check across all 28 built pages; vitest spec suite);
+  read the built HTML for both pages with `curl`+`grep` to confirm no
+  leftover `editorial`/`bench-frame` classes remain, the new `rig-*`
+  markup and nav-compaction CSS render as expected, no fixed large-pixel
+  widths exist in the compiled CSS (a horizontal-overflow risk), and both
+  marked responsive breakpoints (`40rem`, `56rem`) are present in the
+  compiled stylesheet. Not yet propagated, and not intended to be yet, to
+  the other 11 lecture weeks or to sessions/assessments/people/policies.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
