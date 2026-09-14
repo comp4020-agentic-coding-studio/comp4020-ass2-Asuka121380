@@ -686,6 +686,71 @@ trimmed for the word count — that curation happens once, at submission time.
   from the dev server directly and confirmed all returned 200 after the
   asset swap.
 
+- [`aa81ee8`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/aa81ee8) —
+  redesigned the homepage, the one page that hadn't yet joined a coherent
+  visual system. Every lecture/lab page already had "Bench & Booth" (dark,
+  teal-phosphor, oscilloscope aesthetic); the homepage was still a thin
+  `ContentLayout` wrapper with the starter's generic look. Built a second,
+  complementary register for storytelling content — "Editorial" (warm
+  cream/charcoal, reusing the site's existing `--at-primary` gold rather
+  than inventing a new brand hue) — via `EditorialFrame`/`EditorialBand`,
+  modelled directly on `BenchFrame`/`BenchBand`'s own architecture (same
+  full-bleed-breakout technique with a `--editorial-scrollbar-gutter`
+  correction, same scoped-token-block pattern, same alternating-band
+  component) so the two registers read as related rather than disjoint.
+  Rewrote `src/pages/index.astro` to use `BaseLayout` directly (not
+  `ContentLayout`), so a fully custom `EditorialHero` replaces the theme's
+  default image+h1 hero entirely, then built six new content sections, each
+  its own component under `src/components/home/`: `Philosophy` (a
+  pull-quote treatment of the course's causal-chain framing already in
+  `CLAUDE.md`); `SignalJourney` (an interactive rail mapping the canonical
+  12-stage signal chain — Player through Ear — to its one real lecture week
+  each, reusing `SignalChainStrip`'s existing stage vocabulary rather than
+  inventing a new taxonomy); `ToneTimeline` (a magazine-style week list
+  sourced live from the `lectures` collection via `getPublishedCollection`,
+  sorted by week, so it can't drift from the actual `.mdx` files);
+  `HearTheDifference` (three `CompleteChainGraph` presets — Clean, Driven,
+  Full chain — through the same synthesised plucked-string source, with
+  mutually-exclusive playback state so only one preset plays at a time);
+  `AssessmentProgression` (the fixed Analyse → Manipulate → Design order,
+  sourced live from the `assessments` collection and sorted by week rather
+  than hardcoding titles/weights); and `PracticalLinks` (a quiet closing
+  `CardGrid` to Sessions/People/Policies, deliberately last per the brief's
+  own instruction that logistics should follow the narrative). Why: this
+  directly answers the redesign brief's highest-priority item — a
+  substantially redesigned homepage with a cinematic hero, an interactive
+  signal-chain narrative, a 12-week timeline, an audible demonstration of
+  "same source, different processing," and the assessment progression,
+  with practical links appearing after the story rather than opening it.
+  The `HearTheDifference` audio deliberately still uses the existing
+  procedural plucked-string synthesis (not yet the real DI recording
+  `CLAUDE.md`'s revised audio policy, logged at `f7b9ad0` above, calls for)
+  — its caption says so explicitly ("the course's own synthesised string
+  model, the same source every lab on the site uses") rather than implying
+  a real guitar recording, and sourcing/integrating that DI sample is
+  deliberately left as a separate follow-up rather than blocking this
+  redesign. Checked: `pnpm check` initially flagged one real issue — an
+  unused `imageAlt` prop on `EditorialHero` (`ts(6133)`), left over from an
+  earlier draft where the hero's background image div was decorative
+  (`aria-hidden="true"`, no alt needed since the title/lede already carry
+  the meaning) — removed the prop from both the component and its call
+  site in `index.astro`. After that fix, `pnpm check` ran fully green:
+  typecheck (0 errors, 0 warnings), build of 28 pages with the axe
+  accessibility pass reporting no violations and the internal link checker
+  reporting no broken links, the deck-structure check clean, and 5/5
+  vitest tests. Fetched the rendered homepage directly and confirmed its
+  structure: exactly one `<h1>` (the hero title), six sections each with a
+  distinct `aria-label`, and `<h2>`s in the correct document order matching
+  the intended narrative sequence. Opened the live page in a real browser
+  (`http://localhost:4321/comp4020-ass2-Asuka121380/`) for a final visual
+  look; no browser-automation/screenshot tool was available in this
+  environment to drive or capture that view programmatically, so a further
+  manual pass at both marked viewports — actually pressing each
+  `HearTheDifference` preset button and confirming clean mutual-exclusive
+  stop/start with no console errors, checking the signal-journey rail's
+  horizontal-scroll behaviour on a narrow viewport — is still worth doing
+  before treating this fully verified.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
