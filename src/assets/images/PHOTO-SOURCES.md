@@ -14,7 +14,7 @@ than a from-scratch illustration; record source and licence next to it).
 - **What was kept/modified**: downscaled from the original 4016×6016 to
   1201×1800 (no crop, no colour grading) to keep the shipped asset a
   reasonable size; Astro's image pipeline further resizes/re-encodes it to
-  AVIF at build time. Displayed in `EditorialHero.astro`.
+  AVIF at build time. Displayed in `RigHero.astro`.
 - **Why this one**: a real macro shot of an electric guitar's fretboard and
   strings in shallow depth of field — the "physical, tactile, editorial"
   photography the homepage brief asks for, replacing the previous abstract
