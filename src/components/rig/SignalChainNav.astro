@@ -1,10 +1,13 @@
 ---
-// The course itself IS the signal chain: replaces the old card-based course
-// journey with a software-inspired module chain / insert rack — one compact
-// row per week, sourced live from the lectures collection (titles, ids,
-// descriptions) so it can't drift from src/content/lectures, paired with a
-// fixed per-week module tag + physical/signal domain (the curriculum's
-// structure, not something this component invents). Homepage-exclusive.
+// The course itself IS the signal chain — the page's structural backbone,
+// not a card grid or a separate "here's our curriculum" section. One
+// horizontal rack of 12 modules threaded on a single line (a pedalboard
+// signal path / DAW insert-chain, not a course-catalogue list), sourced
+// live from the lectures collection (titles, ids, descriptions) so it can't
+// drift from src/content/lectures. The tag on each module (INPUT, STRING,
+// PICKUP, ... OUTPUT) is the curriculum's real per-week domain, not
+// decoration — the chain's own endpoints already read INPUT -> OUTPUT, so
+// nothing else needs to say so. Homepage-exclusive.
 import { getPublishedCollection } from "astro-course-university/content";
 import { withBase } from "astro-theme-university/url";
 
@@ -31,140 +34,118 @@ const MODULE_META: Record<number, ModuleMeta> = {
 const lectures = (await getPublishedCollection("lectures")).sort((a, b) => a.data.week - b.data.week);
 ---
 
-<div class="chain-nav" id="signal-chain">
-  <div class="chain-nav-rule" aria-hidden="true">
-    <span>INPUT</span>
-    <span class="chain-nav-rule-line"></span>
-    <span>OUTPUT</span>
-  </div>
-
-  <ol class="chain-nav-rack">
+<nav class="chain-rack" aria-label="Course signal chain, week by week">
+  <ol class="chain-rack-list">
     {
       lectures.map((lecture) => {
         const meta = MODULE_META[lecture.data.week] ?? { tag: "STAGE", domain: "signal" };
+        const weekIndex = String(lecture.data.week).padStart(2, "0");
         return (
-          <li class:list={["chain-nav-row", `chain-nav-row--${meta.domain}`]}>
-            <a class="chain-nav-link" href={withBase(`/lectures/${lecture.id}/`)}>
-              <span class="chain-nav-index">{String(lecture.data.week).padStart(2, "0")}</span>
-              <span class="chain-nav-tag">{meta.tag}</span>
-              <span class="chain-nav-title">{lecture.data.title}</span>
-              <span class="chain-nav-week">WK{String(lecture.data.week).padStart(2, "0")}</span>
+          <li class:list={["chain-rack-node", `chain-rack-node--${meta.domain}`]}>
+            <a
+              class="chain-rack-link"
+              href={withBase(`/lectures/${lecture.id}/`)}
+              aria-label={`Week ${lecture.data.week}: ${lecture.data.title}`}
+            >
+              <span class="chain-rack-dot" aria-hidden="true" />
+              <span class="chain-rack-tag" aria-hidden="true">
+                {meta.tag}
+              </span>
+              <span class="chain-rack-index" aria-hidden="true">
+                {weekIndex}
+              </span>
             </a>
           </li>
         );
       })
     }
   </ol>
-</div>
+</nav>
 
 <style>
-  .chain-nav-rule {
+  .chain-rack {
+    --chain-rack-min: 3.75rem;
+  }
+
+  .chain-rack-list {
+    position: relative;
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    max-width: 20rem;
-    margin-block-end: 1.5rem;
-    font-family: var(--rig-mono);
-    font-size: var(--at-font-size-xs);
-    letter-spacing: 0.1em;
-    color: var(--rig-text-muted);
-  }
-
-  .chain-nav-rule-line {
-    flex: 1;
-    height: 1px;
-    background: var(--rig-line);
-  }
-
-  .chain-nav-rack {
     margin: 0;
-    padding: 0;
+    padding: 0.9rem 0 0.4rem;
     list-style: none;
-    border-top: 1px solid var(--rig-line);
+    overflow-x: auto;
+    scrollbar-width: thin;
   }
 
-  .chain-nav-row {
-    border-bottom: 1px solid var(--rig-line);
+  .chain-rack-list::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 1.15rem;
+    height: 1px;
+    background: linear-gradient(to right, var(--rig-analogue), var(--rig-signal));
+    opacity: 0.55;
   }
 
-  .chain-nav-link {
-    display: grid;
-    grid-template-columns: 2.4rem 6.5rem 1fr 3.2rem;
-    align-items: baseline;
-    gap: 1rem;
-    padding-block: 0.85rem;
+  .chain-rack-node {
+    flex: 1 0 var(--chain-rack-min);
+    display: flex;
+    justify-content: center;
+  }
+
+  .chain-rack-link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.5rem 0.4rem;
     text-decoration: none;
     color: inherit;
-    transition: background 0.12s ease;
   }
 
-  .chain-nav-link:hover,
-  .chain-nav-link:focus-visible {
-    background: color-mix(in srgb, var(--rig-panel) 60%, transparent);
+  .chain-rack-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--rig-void);
+    border: 1.5px solid var(--rig-text-muted);
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
-  .chain-nav-index {
+  .chain-rack-node--signal .chain-rack-dot {
+    border-color: color-mix(in srgb, var(--rig-signal) 55%, var(--rig-text-muted));
+  }
+
+  .chain-rack-link:hover .chain-rack-dot,
+  .chain-rack-link:focus-visible .chain-rack-dot {
+    border-color: var(--rig-signal);
+    box-shadow: 0 0 6px var(--rig-signal-dim);
+  }
+
+  .chain-rack-tag {
     font-family: var(--rig-mono);
-    font-size: 0.85rem;
-    color: var(--rig-text-muted);
-  }
-
-  .chain-nav-tag {
-    font-family: var(--rig-mono);
-    font-size: 0.72rem;
+    font-size: 0.66rem;
     letter-spacing: 0.08em;
+    white-space: nowrap;
     color: var(--rig-analogue);
   }
 
-  .chain-nav-row--signal .chain-nav-tag {
+  .chain-rack-node--signal .chain-rack-tag {
     color: var(--rig-signal);
   }
 
-  .chain-nav-title {
-    font-weight: 600;
-    font-size: 1rem;
-  }
-
-  .chain-nav-link:hover .chain-nav-title,
-  .chain-nav-link:focus-visible .chain-nav-title {
+  .chain-rack-link:hover .chain-rack-tag,
+  .chain-rack-link:focus-visible .chain-rack-tag {
     text-decoration: underline;
-    text-decoration-color: var(--rig-signal);
+    text-decoration-color: currentColor;
   }
 
-  .chain-nav-week {
-    justify-self: end;
+  .chain-rack-index {
     font-family: var(--rig-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.06em;
+    font-size: 0.62rem;
     color: var(--rig-text-muted);
-  }
-
-  @media (max-width: 40rem) {
-    .chain-nav-link {
-      grid-template-columns: auto 1fr;
-      grid-template-areas:
-        "index tag"
-        "title title"
-        "week week";
-      row-gap: 0.2rem;
-    }
-
-    .chain-nav-index {
-      grid-area: index;
-    }
-
-    .chain-nav-tag {
-      grid-area: tag;
-      justify-self: end;
-    }
-
-    .chain-nav-title {
-      grid-area: title;
-    }
-
-    .chain-nav-week {
-      grid-area: week;
-      justify-self: start;
-    }
   }
 </style>

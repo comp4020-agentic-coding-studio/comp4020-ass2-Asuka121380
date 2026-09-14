@@ -1,0 +1,32 @@
+/*
+ * Root-level neutraliser for astro-theme-university's visual shell, applied
+ * only to `<main>` elements explicitly opted in via BaseLayout's `mainAttrs`
+ * prop (`mainAttrs={{ "data-canvas": true }}`) — currently the Homepage and
+ * the Week 3 lecture page. Every other page keeps the theme's default
+ * article-column layout untouched.
+ *
+ * The theme (astro-theme-university/styles/base.css) makes `body` a named-
+ * line CSS grid capped at `--at-content-width` (48rem) and paints an
+ * unconditional 1px accent rule via `body::after`. `.at-main` (components.css)
+ * places itself in the narrow `inset-start / content-end` track and adds its
+ * own `padding-block`. None of that is edited here — these rules simply win
+ * the cascade on higher specificity ([data-canvas] beats the theme's bare
+ * class/element selectors), the same `:has()` technique the theme's own
+ * components.css and this project's RigFrame.astro already use for scoped,
+ * non-destructive overrides.
+ *
+ * A canvas page owns its own width, margins, and vertical rhythm from here —
+ * it should not reach for a per-section ".. -wide" breakout hack to escape
+ * the grid, because there is no grid left to escape.
+ */
+
+body:has(.at-main[data-canvas])::after {
+  display: none;
+}
+
+.at-main[data-canvas] {
+  display: block;
+  grid-column: full;
+  padding-block: 0;
+  min-height: 0;
+}

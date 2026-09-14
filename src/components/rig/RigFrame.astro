@@ -1,13 +1,20 @@
 ---
 // The Homepage's own register: "a guitar signal-processing environment that
-// happens to teach a university course" (CLAUDE.md's signal-processing-
-// environment revision). Deliberately NOT EditorialFrame — that component is
-// shared with assessments/people/policies/sessions pages that stay in the
-// previous register for now, so this is a new, parallel, homepage-only
-// wrapper that never imports it. Remaps --at-* to a dark graphite/cyan/amber
-// palette; every descendant that already reads --at-* (Waveform, Spectrum,
-// Knob, AudioDemo, FootswitchGroup, plus this file's own --rig-* tokens)
-// re-themes with no edits to its own source.
+// happens to teach a university course." Deliberately NOT EditorialFrame —
+// that component is shared with assessments/people/policies/sessions pages
+// that stay in the previous register for now, so this is a new, parallel,
+// homepage-only wrapper that never imports it. Remaps --at-* to a dark
+// graphite/cyan/amber palette; every descendant that already reads --at-*
+// (Waveform, Spectrum, Knob, AudioDemo, FootswitchGroup, plus this file's
+// own --rig-* tokens) re-themes with no edits to its own source.
+//
+// This page renders inside a `<main data-canvas>` (see BaseLayout's
+// `mainAttrs` prop and src/styles/canvas-reset.css), which strips the
+// vendor's body::after rail and 48rem content-grid entirely — so, unlike an
+// earlier version of this component, .rig-frame is the SINGLE place that
+// now owns this page's horizontal margins and max width. Nothing under it
+// should reach for a per-section "wide" breakout hack; there is no grid
+// left to escape.
 //
 // The .rig-frame marker class also drives a body:has() override (below)
 // that compacts the vendored theme's Nav on this page only, without
@@ -62,22 +69,18 @@
     --at-accent: var(--rig-signal);
 
     display: flow-root;
+
+    /* The page's own margin and max width — the only place either is set.
+       Wide on large screens (this is a workspace, not a text column) but
+       capped so a signal chain doesn't stretch to unreadable width on an
+       ultrawide monitor. */
+    padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+    max-width: 96rem;
+    margin-inline: auto;
   }
 
   .rig-frame a {
     color: inherit;
-  }
-
-  /* Breaks a block out to a wider band than the reading column, matching the
-     pattern BenchFrame/EditorialFrame already use (viewport-relative,
-     scrollbar-corrected, since .at-main provides no theme "wide" grid line
-     to opt into). */
-  .rig-frame .rig-wide {
-    --rig-scrollbar-gutter: calc(100vw - 100%);
-    width: calc(100vw - var(--rig-scrollbar-gutter));
-    max-width: min(76rem, 100vw - var(--rig-scrollbar-gutter) - 2 * var(--at-gutter));
-    margin-inline: calc(50% - 50vw + var(--rig-scrollbar-gutter) / 2);
-    box-sizing: border-box;
   }
 
   .rig-frame .rig-eyebrow {
@@ -89,44 +92,14 @@
     color: var(--rig-text-muted);
   }
 
-  .rig-frame .rig-module {
-    border: 1px solid var(--rig-line);
-    border-radius: 0.25rem;
-    background: var(--rig-panel);
-    background-image:
-      linear-gradient(var(--rig-grid) 1px, transparent 1px),
-      linear-gradient(90deg, var(--rig-grid) 1px, transparent 1px);
-    background-size: 24px 24px;
-    background-position: -1px -1px;
-    padding: 1.25rem;
-  }
-
-  .rig-frame .rig-scope-note {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.4rem;
-    font-size: var(--at-font-size-sm);
-    color: var(--rig-text-muted);
-    border: 1px dashed var(--rig-line);
-    border-radius: 0.25rem;
-    padding: 0.5rem 0.75rem;
-  }
-
-  .rig-frame .rig-scope-note::before {
-    content: "SCOPE";
-    font-family: var(--rig-mono);
-    font-size: var(--at-font-size-xs);
-    letter-spacing: 0.08em;
-    color: var(--rig-signal);
-    flex: none;
-  }
-
   .rig-frame section + section {
-    margin-block-start: clamp(3.5rem, 8vw, 6rem);
+    margin-block-start: clamp(3rem, 7vw, 5.5rem);
+    border-block-start: 1px solid var(--rig-line);
+    padding-block-start: clamp(2rem, 5vw, 3.5rem);
   }
 
-  .rig-frame section {
-    padding-block: clamp(2rem, 5vw, 3rem);
+  .rig-frame > section:last-child {
+    padding-block-end: clamp(3rem, 6vw, 5rem);
   }
 
   /* Compact the site-wide sticky Nav on this page only, via :has() rather

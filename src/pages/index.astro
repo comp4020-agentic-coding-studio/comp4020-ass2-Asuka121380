@@ -1,28 +1,31 @@
 ---
-// The Homepage: "a guitar signal-processing environment that happens to
-// teach a university course" (CLAUDE.md's signal-processing-environment
-// revision). Renders through RigFrame — a new, homepage-exclusive register,
-// deliberately not EditorialFrame/EditorialBand (shared with assessments/
-// people/policies/sessions, which stay in the previous register for now).
-// One continuous dark workspace, not alternating light/dark "bands":
-// hero -> signal-chain navigation -> tone analysis -> hear the difference
-// -> assessment chain -> practical links.
+// The Homepage: "the course is the rig" — a guitar signal-processing
+// environment that happens to teach a university course. Renders through
+// RigFrame, a homepage-exclusive register (deliberately not EditorialFrame/
+// EditorialBand, shared with assessments/people/policies/sessions, which
+// stay in the previous register for now), inside a <main data-canvas> that
+// strips the vendor theme's rail and 48rem content grid (see
+// src/styles/canvas-reset.css) so this page owns its own width and margins
+// rather than working around the theme's. One continuous dark workspace:
+// hero (masthead + the real 12-week signal chain as backbone) -> tone
+// analysis -> hear the difference -> assessment chain -> practical links.
 import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
 import heroImage from "../assets/images/hero-guitar-strings.jpg";
 import { courseMeta } from "../course-config";
 import { siteConfig } from "../site-config";
 import RigFrame from "../components/rig/RigFrame.astro";
 import RigHero from "../components/rig/RigHero.astro";
-import SignalChainNav from "../components/rig/SignalChainNav.astro";
 import ToneAnalysis from "../components/rig/ToneAnalysis.astro";
 import HearTheDifference from "../components/home/HearTheDifference.astro";
 import AssessmentChain from "../components/rig/AssessmentChain.astro";
 import PracticalLinks from "../components/home/PracticalLinks.astro";
+import "../styles/canvas-reset.css";
 ---
 
 <BaseLayout
   title={`${courseMeta.code}: ${courseMeta.title}`}
   description={courseMeta.description}
+  mainAttrs={{ "data-canvas": true }}
   {...siteConfig}
 >
   <RigFrame>
@@ -32,12 +35,6 @@ import PracticalLinks from "../components/home/PracticalLinks.astro";
       lede="Follow one guitar signal from a plucked string to a listener's ear, one stage at a time — string, pickup, circuit, gain, clipping, filtering, modulation, delay and reverb, amplifier, and speaker. No electronics or DSP background assumed; every stage builds its own vocabulary from a waveform or a spectrum, not an adjective."
       image={heroImage}
     />
-
-    <section aria-labelledby="signal-chain-heading">
-      <p class="rig-eyebrow">The signal chain</p>
-      <h2 id="signal-chain-heading">Twelve modules, one rig</h2>
-      <SignalChainNav />
-    </section>
 
     <section aria-labelledby="tone-analysis-heading">
       <h2 id="tone-analysis-heading" class="visually-hidden">Course philosophy</h2>
