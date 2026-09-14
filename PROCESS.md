@@ -946,6 +946,67 @@ trimmed for the word count — that curation happens once, at submission time.
   `EditorialFrame`/`EditorialBand` primitives and token set, not on a
   direct visual comparison.
 
+- **`3f60e09`** — Phase 6 of the post-audit redesign plan (part 1): closed
+  the three concrete gaps the homepage review fork had identified and the
+  plan explicitly folded into this phase. (1) `SignalJourney.astro`'s
+  12-card horizontal rail had no visible scroll affordance for a sighted
+  mouse user on a desktop-narrow viewport — added a small "Scroll for the
+  full chain →" hint and a right-edge gradient fade, both shown only above
+  the `40rem` breakpoint where the rail is a horizontal row (below it, the
+  rail already collapses to a vertical column and the overflow concern
+  disappears). (2) `Philosophy.astro` only *named* "waveform / spectral
+  consequence" as a chain-list label — replaced that with a real generated
+  waveform trace and its magnitude spectrum, both derived from the same
+  standard triangular-pluck harmonic model (`pluckHarmonicWeights`/
+  `harmonicSeriesCycle`/`magnitudeSpectrum` in `lib/audio/analysis.ts`,
+  `waveformPath` in `lib/draw/svgTrace.ts`) already used elsewhere on the
+  site, rather than inventing a new visual primitive. Found and fixed a
+  real bug along the way: `magnitudeSpectrum` returns a `Float64Array`,
+  and `Float64Array.prototype.map` coerces its callback's return value
+  (a JSX `<rect>`) to a number — the spectrum bars silently rendered as
+  raw binary garbage in the built HTML until wrapped in `Array.from(...)`
+  first. (3) Neither `SignalJourney` nor `ToneTimeline` signalled the
+  Editorial→Bench mode switch before the click — added a quiet "→ Bench" /
+  "→ Enter the bench" cue to each link, echoing `LectureIntro.astro`'s
+  existing "ENTERING THE BENCH" transition marker at homepage scale.
+  Deliberately did *not* add this cue to `PracticalLinks`: since Phase 5,
+  its sessions/people/policies destinations are Editorial-register pages,
+  not Bench-register ones, so a "→ Bench" cue there would misdescribe
+  where the link actually goes. Checked: `pnpm check` green (typecheck,
+  full build, axe across all 28 pages, link check, vitest) with zero
+  errors or warnings; inspected the built `dist/index.html` and its
+  compiled CSS bundle directly, both before and after the `Array.from`
+  fix, to confirm the fade/hint render only above the `40rem` breakpoint
+  with the correct band background colour, the spectrum renders as 16
+  real `<rect>` elements rather than binary noise, and the per-card cue
+  renders on all 12 Signal Journey stages and all 12 Tone Timeline
+  entries. Also used this pass to check the broader visual-coherence
+  question the phase asks for: confirmed (by reading `BenchFrame.astro`
+  and `EditorialFrame.astro`'s token definitions directly) that Bench's
+  phosphor-teal accent (`--bench-phosphor`/`--bench-phosphor-ink`, an
+  oklch teal hue) and Editorial's gold accent (`--editorial-accent` →
+  `--at-primary`) are a deliberate, not accidental, difference — both
+  registers override the same shared token names (`--at-accent`,
+  `--at-bg`, etc.) from the same architecture, just with different hues
+  by design, which is exactly the "related but distinct" identity the
+  plan calls for, not a coherence bug to fix. Also confirmed
+  `EditorialFrame.astro`'s blanket `prefers-reduced-motion` rule already
+  covers all new motion added by this redesign (hero entrance, the CTA's
+  bob animation, section reveals), and judged `BenchFrame.astro`'s lack
+  of an equivalent blanket
+  rule as not worth adding: the only motion inside Bench-register content
+  is `Knob.astro`/`ToggleSwitch.astro`'s short (`0.08s`–`0.12s`)
+  transform/background transitions, which are direct 1:1 feedback to a
+  user's own drag/click rather than autoplaying or decorative motion, and
+  are not new to this redesign. Manual browser-based viewport/keyboard
+  verification (the two marked viewports, tab-through focus order) was
+  not independently possible in this environment — no browser-automation
+  tool is available here — so, as with Phase 5, this check rests on
+  static reasoning over the actual CSS (existing breakpoints, the global
+  `:focus-visible` rule confirmed present in `astro-theme-university`'s
+  base stylesheet, no new interactive controls added by this phase's
+  edits) rather than a direct visual/interaction check.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
