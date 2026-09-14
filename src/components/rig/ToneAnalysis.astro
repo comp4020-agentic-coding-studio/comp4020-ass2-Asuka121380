@@ -1,0 +1,168 @@
+---
+// The course philosophy, read as an analyser panel rather than a giant
+// black rectangle of pull-quote text: SUBJECTIVE -> MEASURE -> EXPLAIN, an
+// open composition (no boxing every row) with one real, non-decorative
+// waveform/spectrum pair generated from the same plucked-string model used
+// throughout the labs. Homepage-exclusive; replaces Philosophy.astro (kept
+// unedited on disk, but no longer imported by index.astro).
+import { harmonicSeriesCycle, magnitudeSpectrum, pluckHarmonicWeights } from "../../lib/audio/analysis";
+import { waveformPath, type Viewport } from "../../lib/draw/svgTrace";
+
+const weights = pluckHarmonicWeights(0.2, 8);
+const waveform = harmonicSeriesCycle(weights, 128);
+const spectrum = Array.from(magnitudeSpectrum(waveform, 16));
+
+const viewport: Viewport = { width: 260, height: 72, padding: 6 };
+const path = waveformPath(waveform, viewport);
+
+const SUBJECTIVE = ["warm", "bright", "aggressive", "muddy", "glassy"];
+---
+
+<div class="tone-analysis">
+  <p class="rig-eyebrow">Tone analysis</p>
+  <h2 class="tone-analysis-title">Guitar tone is an engineering system, not a set of vibes</h2>
+
+  <div class="tone-analysis-rows">
+    <div class="tone-analysis-row">
+      <span class="tone-analysis-stage">SUBJECTIVE</span>
+      <ul class="tone-analysis-words">
+        {SUBJECTIVE.map((w) => <li>&ldquo;{w}&rdquo;</li>)}
+      </ul>
+    </div>
+
+    <span class="tone-analysis-down" aria-hidden="true">&darr;</span>
+
+    <div class="tone-analysis-row">
+      <span class="tone-analysis-stage">MEASURE</span>
+      <div class="tone-analysis-plots">
+        <figure>
+          <svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} role="img" aria-label="A plucked-string waveform: the time-domain consequence of the mechanism this course studies.">
+            <path d={path} fill="none" class="tone-analysis-trace" />
+          </svg>
+          <figcaption>Waveform</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} role="img" aria-label="The same signal's magnitude spectrum: its energy spread across harmonics.">
+            {
+              spectrum.map((m, i) => {
+                const barWidth = (viewport.width - 12) / spectrum.length;
+                const x = 6 + i * barWidth;
+                const h = m * (viewport.height - 14);
+                return <rect x={x + 1} y={viewport.height - 8 - h} width={Math.max(barWidth - 2, 1)} height={h} class="tone-analysis-bar" />;
+              })
+            }
+          </svg>
+          <figcaption>Spectrum</figcaption>
+        </figure>
+      </div>
+      <p class="tone-analysis-note">One plucked-string model (the standard triangular-pluck Fourier series), not a measurement of a specific instrument.</p>
+    </div>
+
+    <span class="tone-analysis-down" aria-hidden="true">&darr;</span>
+
+    <div class="tone-analysis-row">
+      <span class="tone-analysis-stage">EXPLAIN</span>
+      <p class="tone-analysis-body">
+        Every week in this course reasons through the same causal chain: a physical mechanism causes a signal
+        transformation, which has a waveform or spectral consequence, which produces an audible consequence. When a
+        subjective word shows up, the job is to connect it to something measured in the same sentence — not to
+        replace the measurement with a better adjective.
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .tone-analysis-title {
+    max-width: 34rem;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    line-height: 1.2;
+    margin-block: 0.5rem 2.5rem;
+  }
+
+  .tone-analysis-rows {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .tone-analysis-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tone-analysis-stage {
+    font-family: var(--rig-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.14em;
+    color: var(--rig-text-muted);
+  }
+
+  .tone-analysis-down {
+    color: var(--rig-line);
+    padding-inline-start: 0.15rem;
+  }
+
+  .tone-analysis-words {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-style: italic;
+    color: var(--rig-text-secondary);
+    font-size: 1.1rem;
+  }
+
+  .tone-analysis-plots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 2.5rem;
+  }
+
+  .tone-analysis-plots figure {
+    margin: 0;
+  }
+
+  .tone-analysis-plots svg {
+    display: block;
+    width: 100%;
+    max-width: 16rem;
+    height: 4.5rem;
+  }
+
+  .tone-analysis-trace {
+    stroke: var(--rig-signal);
+    stroke-width: 1.4;
+  }
+
+  .tone-analysis-bar {
+    fill: var(--rig-signal);
+    opacity: 0.85;
+  }
+
+  .tone-analysis-plots figcaption {
+    margin-block-start: 0.35rem;
+    font-family: var(--rig-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: var(--rig-text-muted);
+  }
+
+  .tone-analysis-note {
+    max-width: 32rem;
+    font-size: var(--at-font-size-xs);
+    color: var(--rig-text-muted);
+    margin-block-start: 0.5rem;
+  }
+
+  .tone-analysis-body {
+    max-width: 38rem;
+    color: var(--rig-text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+</style>

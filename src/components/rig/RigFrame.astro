@@ -1,0 +1,144 @@
+---
+// The Homepage's own register: "a guitar signal-processing environment that
+// happens to teach a university course" (CLAUDE.md's signal-processing-
+// environment revision). Deliberately NOT EditorialFrame — that component is
+// shared with assessments/people/policies/sessions pages that stay in the
+// previous register for now, so this is a new, parallel, homepage-only
+// wrapper that never imports it. Remaps --at-* to a dark graphite/cyan/amber
+// palette; every descendant that already reads --at-* (Waveform, Spectrum,
+// Knob, AudioDemo, FootswitchGroup, plus this file's own --rig-* tokens)
+// re-themes with no edits to its own source.
+//
+// The .rig-frame marker class also drives a body:has() override (below)
+// that compacts the vendored theme's Nav on this page only, without
+// touching Nav.astro/BaseLayout.astro (both shared site-wide, off-limits).
+---
+
+<div class="rig-frame">
+  <slot />
+</div>
+
+<style is:global>
+  .rig-frame {
+    /* Graphite/near-black voids and panels. */
+    --rig-void: #101112;
+    --rig-void-raised: #151617;
+    --rig-panel: #1b1c1e;
+    --rig-panel-raised: #202225;
+    --rig-panel-high: #26282b;
+
+    /* Text. */
+    --rig-text: #e8e7e2;
+    --rig-text-secondary: color-mix(in srgb, #e8e7e2 68%, transparent);
+    --rig-text-muted: #8c9298;
+
+    /* Signal colour semantics — never decoration. Cyan = active signal /
+       measurement / current state. Amber = analogue / hardware / source.
+       Warn = clipping / overload, used only where semantically meaningful. */
+    --rig-signal: #42d7c5;
+    --rig-signal-dim: color-mix(in srgb, #42d7c5 45%, transparent);
+    --rig-analogue: #d08a2e;
+    --rig-warn: #c9612f;
+
+    --rig-line: color-mix(in srgb, #8c9298 28%, transparent);
+    --rig-grid: color-mix(in srgb, #8c9298 14%, transparent);
+    --rig-mono: var(--at-font-mono);
+
+    background: var(--rig-void);
+    color: var(--rig-text);
+
+    /* Remap the theme's semantic tokens so every shared component (Waveform,
+       Spectrum, Knob, AudioDemo, FootswitchGroup, Card/CardGrid) re-themes
+       automatically inside this frame. */
+    --at-bg: var(--rig-void);
+    --at-bg-alt: var(--rig-panel);
+    --at-bg-elevated: var(--rig-panel-raised);
+    --at-border: var(--rig-line);
+    --at-divider: var(--rig-line);
+    --at-text: var(--rig-text);
+    --at-text-secondary: var(--rig-text-secondary);
+    --at-text-muted: var(--rig-text-muted);
+    --at-heading: var(--rig-text);
+    --at-accent: var(--rig-signal);
+
+    display: flow-root;
+  }
+
+  .rig-frame a {
+    color: inherit;
+  }
+
+  /* Breaks a block out to a wider band than the reading column, matching the
+     pattern BenchFrame/EditorialFrame already use (viewport-relative,
+     scrollbar-corrected, since .at-main provides no theme "wide" grid line
+     to opt into). */
+  .rig-frame .rig-wide {
+    --rig-scrollbar-gutter: calc(100vw - 100%);
+    width: calc(100vw - var(--rig-scrollbar-gutter));
+    max-width: min(76rem, 100vw - var(--rig-scrollbar-gutter) - 2 * var(--at-gutter));
+    margin-inline: calc(50% - 50vw + var(--rig-scrollbar-gutter) / 2);
+    box-sizing: border-box;
+  }
+
+  .rig-frame .rig-eyebrow {
+    display: block;
+    font-family: var(--rig-mono);
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--rig-text-muted);
+  }
+
+  .rig-frame .rig-module {
+    border: 1px solid var(--rig-line);
+    border-radius: 0.25rem;
+    background: var(--rig-panel);
+    background-image:
+      linear-gradient(var(--rig-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--rig-grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+    padding: 1.25rem;
+  }
+
+  .rig-frame .rig-scope-note {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-size: var(--at-font-size-sm);
+    color: var(--rig-text-muted);
+    border: 1px dashed var(--rig-line);
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .rig-frame .rig-scope-note::before {
+    content: "SCOPE";
+    font-family: var(--rig-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.08em;
+    color: var(--rig-signal);
+    flex: none;
+  }
+
+  .rig-frame section + section {
+    margin-block-start: clamp(3.5rem, 8vw, 6rem);
+  }
+
+  .rig-frame section {
+    padding-block: clamp(2rem, 5vw, 3rem);
+  }
+
+  /* Compact the site-wide sticky Nav on this page only, via :has() rather
+     than editing the vendored Nav.astro/BaseLayout.astro — the same
+     technique the theme's own components.css already relies on
+     (.at-nav-brand:has(...)), so it's an established, safe pattern here. */
+  body:has(.rig-frame) .at-nav {
+    padding-block: 0.65rem;
+  }
+
+  body:has(.rig-frame) .at-nav picture,
+  body:has(.rig-frame) .at-nav img {
+    max-height: 1.75rem;
+  }
+</style>

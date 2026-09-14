@@ -1,23 +1,22 @@
 ---
-// The homepage renders through BaseLayout directly, not ContentLayout: the
-// cinematic hero below replaces the theme's default heroImage/heroTitle
-// treatment entirely (EditorialHero), so nothing here should trigger the
-// theme's own Hero component. Everything from the hero down lives in the
-// "Editorial" register (EditorialFrame/EditorialBand) — see
-// src/components/home/EditorialFrame.astro for how it relates to the
-// lecture pages' "Bench & Booth" register.
+// The Homepage: "a guitar signal-processing environment that happens to
+// teach a university course" (CLAUDE.md's signal-processing-environment
+// revision). Renders through RigFrame — a new, homepage-exclusive register,
+// deliberately not EditorialFrame/EditorialBand (shared with assessments/
+// people/policies/sessions, which stay in the previous register for now).
+// One continuous dark workspace, not alternating light/dark "bands":
+// hero -> signal-chain navigation -> tone analysis -> hear the difference
+// -> assessment chain -> practical links.
 import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
 import heroImage from "../assets/images/hero-guitar-strings.jpg";
 import { courseMeta } from "../course-config";
 import { siteConfig } from "../site-config";
-import EditorialFrame from "../components/home/EditorialFrame.astro";
-import EditorialBand from "../components/home/EditorialBand.astro";
-import EditorialHero from "../components/home/EditorialHero.astro";
-import Philosophy from "../components/home/Philosophy.astro";
-import SignalJourney from "../components/home/SignalJourney.astro";
-import ToneTimeline from "../components/home/ToneTimeline.astro";
+import RigFrame from "../components/rig/RigFrame.astro";
+import RigHero from "../components/rig/RigHero.astro";
+import SignalChainNav from "../components/rig/SignalChainNav.astro";
+import ToneAnalysis from "../components/rig/ToneAnalysis.astro";
 import HearTheDifference from "../components/home/HearTheDifference.astro";
-import AssessmentProgression from "../components/home/AssessmentProgression.astro";
+import AssessmentChain from "../components/rig/AssessmentChain.astro";
 import PracticalLinks from "../components/home/PracticalLinks.astro";
 ---
 
@@ -26,48 +25,55 @@ import PracticalLinks from "../components/home/PracticalLinks.astro";
   description={courseMeta.description}
   {...siteConfig}
 >
-  <EditorialFrame>
-    <EditorialHero
-      kicker={`${courseMeta.code} · ${courseMeta.session} ${courseMeta.year}`}
+  <RigFrame>
+    <RigHero
+      eyebrow={`${courseMeta.code} · ${courseMeta.session} ${courseMeta.year}`}
       title={courseMeta.title}
-      lede="Follow one guitar signal from a plucked string to a listener's ear, one stage at a time — string, pickup, circuit, gain, clipping, filtering, modulation, delay and reverb, amplifier, and speaker. No electronics or DSP background assumed; every week builds its own vocabulary from a waveform or a spectrum, not an adjective."
-      tags={courseMeta.tags}
+      lede="Follow one guitar signal from a plucked string to a listener's ear, one stage at a time — string, pickup, circuit, gain, clipping, filtering, modulation, delay and reverb, amplifier, and speaker. No electronics or DSP background assumed; every stage builds its own vocabulary from a waveform or a spectrum, not an adjective."
       image={heroImage}
     />
 
-    <EditorialBand tone="dark" label="Course philosophy">
-      <p class="editorial-kicker">Why this course reasons the way it does</p>
-      <Philosophy />
-    </EditorialBand>
+    <section aria-labelledby="signal-chain-heading">
+      <p class="rig-eyebrow">The signal chain</p>
+      <h2 id="signal-chain-heading">Twelve modules, one rig</h2>
+      <SignalChainNav />
+    </section>
 
-    <EditorialBand tone="light" id="signal-journey" label="The signal journey">
-      <p class="editorial-kicker">The signal journey</p>
-      <h2>String to ear, one signal</h2>
-      <SignalJourney />
-    </EditorialBand>
+    <section aria-labelledby="tone-analysis-heading">
+      <h2 id="tone-analysis-heading" class="visually-hidden">Course philosophy</h2>
+      <ToneAnalysis />
+    </section>
 
-    <EditorialBand tone="dark" label="Twelve weeks of tone">
-      <p class="editorial-kicker">Twelve weeks of tone</p>
-      <h2>Where the semester goes</h2>
-      <ToneTimeline />
-    </EditorialBand>
-
-    <EditorialBand tone="light" label="Hear the difference">
-      <p class="editorial-kicker">Hear the difference</p>
-      <h2>Same source, different processing</h2>
+    <section aria-labelledby="hear-heading">
+      <p class="rig-eyebrow">Hear the difference</p>
+      <h2 id="hear-heading">Same source, different processing</h2>
       <HearTheDifference />
-    </EditorialBand>
+    </section>
 
-    <EditorialBand tone="dark" label="Assessment progression">
-      <p class="editorial-kicker">Analyse &rarr; Manipulate &rarr; Design</p>
-      <h2>How you are assessed</h2>
-      <AssessmentProgression />
-    </EditorialBand>
+    <section aria-labelledby="assessment-heading">
+      <p class="rig-eyebrow">Analyse &rarr; Manipulate &rarr; Design</p>
+      <h2 id="assessment-heading">How you are assessed</h2>
+      <AssessmentChain />
+    </section>
 
-    <EditorialBand tone="light" label="Practical information">
-      <p class="editorial-kicker">Getting started</p>
-      <h2>Sessions, people, and policies</h2>
+    <section aria-labelledby="practical-heading">
+      <p class="rig-eyebrow">Getting started</p>
+      <h2 id="practical-heading">Sessions, people, and policies</h2>
       <PracticalLinks />
-    </EditorialBand>
-  </EditorialFrame>
+    </section>
+  </RigFrame>
 </BaseLayout>
+
+<style>
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

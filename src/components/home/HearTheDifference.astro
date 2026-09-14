@@ -81,8 +81,9 @@ const PRESETS: Preset[] = [
 <div class="hear-difference" id="hear-difference" data-presets={JSON.stringify(PRESETS.map((p) => ({ id: p.id, params: p.params })))}>
   <div class="hear-grid">
     {
-      PRESETS.map((preset) => (
+      PRESETS.map((preset, i) => (
         <div class="hear-card">
+          <p class="hear-channel">CH.{String(i + 1).padStart(2, "0")}</p>
           <h3>{preset.name}</h3>
           <p>{preset.description}</p>
           <AudioDemo id={preset.id} label={`Play “${preset.name}”`} />
@@ -167,6 +168,14 @@ const PRESETS: Preset[] = [
   .hear-card {
     padding-inline-start: 1.1rem;
     border-inline-start: 1px solid var(--editorial-line-on-paper, var(--at-border));
+  }
+
+  .hear-channel {
+    margin: 0 0 0.35rem;
+    font-family: var(--rig-mono, var(--at-font-mono));
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--rig-text-muted, var(--at-text-muted));
   }
 
   .hear-card h3 {

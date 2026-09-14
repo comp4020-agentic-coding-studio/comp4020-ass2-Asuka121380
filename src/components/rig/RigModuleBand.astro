@@ -1,0 +1,56 @@
+---
+// Week 3's stage marker inside RigModuleFrame — replaces BenchBand's
+// light/dark "desk"/"bench" alternation (a device this page no longer
+// uses) with the brief's PHYSICAL OBJECT -> SIGNAL MODEL -> INTERACTIVE LAB
+// narrative: two flat, continuously-dark registers (model / lab) that vary
+// only in panel elevation, not a colour flip — one continuous processor
+// environment throughout. A short local connector (not a page-long rail)
+// marks each transition, since a signal is genuinely handing off between
+// stages there. Week-3-exclusive; never imports BenchBand.
+interface Props {
+  mode: "model" | "lab";
+  label: string;
+}
+
+const { mode, label } = Astro.props;
+---
+
+<p class="rig-module-connector" aria-hidden="true"></p>
+<div class:list={["rig-module-band", `rig-module-band--${mode}`]}>
+  <p class="rig-module-band-label">{label}</p>
+  <div class="rig-module-band-inner bench-wide">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .rig-module-connector {
+    width: 1px;
+    height: 1.5rem;
+    margin-inline: 0;
+    background: var(--bench-phosphor, var(--at-accent));
+    opacity: 0.4;
+  }
+
+  .rig-module-band {
+    padding-block: 1.75rem 2.5rem;
+  }
+
+  .rig-module-band--model {
+    background: var(--at-bg);
+  }
+
+  .rig-module-band--lab {
+    background: var(--at-bg-alt);
+  }
+
+  .rig-module-band-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bench-phosphor, var(--at-accent));
+    opacity: 0.85;
+    margin: 0 0 1.25rem;
+  }
+</style>

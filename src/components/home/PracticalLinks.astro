@@ -1,22 +1,69 @@
 ---
 // The practical-info close: Sessions / People / Policies, deliberately last
-// and deliberately quiet — the brief's own instruction that logistics should
-// follow the narrative, not open it. Reuses the theme's plain Card/CardGrid
-// rather than inventing new chrome, since by this point the page is handing
-// off to the rest of the (Bench & Booth) site.
-import Card from "astro-theme-university/components/Card.astro";
-import CardGrid from "astro-theme-university/components/CardGrid.astro";
+// and deliberately quiet. Plain routing-style links rather than the theme's
+// Card/CardGrid — three bordered cards read as generic dashboard chrome,
+// not something an audio tool would render for a handful of outbound links
+// (per CLAUDE.md's signal-processing-environment revision's card rule).
+import { withBase } from "astro-theme-university/url";
 import { sessionLabels } from "../../site-config";
+
+const LINKS = [
+  { href: withBase("/sessions/"), label: sessionLabels.plural, detail: "The weekly schedule, and what happens in each teaching session." },
+  { href: withBase("/people/"), label: "People", detail: "Who teaches the course and how to reach them." },
+  { href: withBase("/policies/"), label: "Policies", detail: "Late work, extensions, academic integrity, and getting help." },
+];
 ---
 
-<CardGrid columns={3}>
-  <Card title={sessionLabels.plural} href="/sessions/">
-    <p>The weekly schedule, and what happens in each teaching session.</p>
-  </Card>
-  <Card title="People" href="/people/">
-    <p>Who teaches the course and how to reach them.</p>
-  </Card>
-  <Card title="Policies" href="/policies/">
-    <p>Late work, extensions, academic integrity, and getting help.</p>
-  </Card>
-</CardGrid>
+<ul class="practical-links">
+  {
+    LINKS.map((link) => (
+      <li>
+        <a href={link.href}>
+          <span class="practical-links-label">{link.label}</span>
+          <span class="practical-links-detail">{link.detail}</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .practical-links {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--rig-line, var(--at-border));
+  }
+
+  .practical-links li {
+    border-bottom: 1px solid var(--rig-line, var(--at-border));
+  }
+
+  .practical-links a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 1.5rem;
+    padding-block: 0.9rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .practical-links-label {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .practical-links a:hover .practical-links-label,
+  .practical-links a:focus-visible .practical-links-label {
+    text-decoration: underline;
+    text-decoration-color: var(--rig-signal, var(--at-accent));
+  }
+
+  .practical-links-detail {
+    color: var(--rig-text-secondary, var(--at-text-secondary));
+    font-size: 0.9rem;
+  }
+</style>

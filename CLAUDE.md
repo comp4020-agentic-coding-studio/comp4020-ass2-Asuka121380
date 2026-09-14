@@ -202,6 +202,38 @@ Make page-structure and visual-design decisions on your own. Escalate only
 when a call would substantially change the course's identity, curriculum,
 assessment structure, or another major commitment already fixed above.
 
+### Revision: signal-processing-environment identity for Homepage and Week 3
+
+An earlier pass gave the Homepage and Week 3 a warm serif/cream editorial
+register (`EditorialFrame`/`EditorialBand`, a persistent accent rail, boxed
+cards). On review that read as soft, lifestyle-oriented editorial design —
+wrong for a course about electric guitar tone. Deliberate harness revision,
+scoped to Homepage and Week 3 only (Weeks 1–12 generally, Sessions,
+Assessment, People, and Policies are unaffected and keep the existing
+registers):
+
+- The identity is **a guitar signal-processing environment that happens to
+  teach a university course** — vocabulary from amp modellers, pedalboard
+  editors, DAWs and professional audio software (signal chains, modules,
+  meters, waveform/spectrum displays, channel strips, routing), not from any
+  one real product. Dark graphite panels, a cyan/teal "active signal" colour,
+  and the existing brand amber reserved for analogue/hardware/source
+  material — not arbitrary decoration.
+- **Consistency comes from a shared system, not from repeating the same
+  box.** A persistent decorative accent rail, a page-long dark "band"
+  inserted into a white page purely for rhythm, and a card for every concept
+  are no longer the default for these two pages. Before making something a
+  card, ask whether it would actually be a card in an audio tool; if not,
+  use plain composition (channels, modules, stages, panels).
+- The existing "oscilloscope/measurement-instrument aesthetics" allowance
+  above stands and is exactly the direction this leans further into — this
+  revision sharpens that allowance for these two pages rather than
+  contradicting it.
+- Software-inspired visual language should structure a page-scale
+  composition, not turn it into a dense software dashboard: large areas of
+  calm space, a few strong modules, restrained hardware cues, no
+  skeuomorphism, no glow/gradient/glassmorphism decoration.
+
 ## PROCESS.md as a working log
 
 After each meaningful, successful commit, append an entry to `PROCESS.md`

@@ -9,10 +9,10 @@ teachers:
   - marisol-quaye
 ---
 
-import Week3Opener from "../../components/home/Week3Opener.astro";
+import RigModuleOpener from "../../components/rig/RigModuleOpener.astro";
+import RigModuleFrame from "../../components/rig/RigModuleFrame.astro";
+import RigModuleBand from "../../components/rig/RigModuleBand.astro";
 import pickupPhoto from "../../assets/images/week3-pickup-anatomy.jpg";
-import BenchFrame from "../../components/lab/BenchFrame.astro";
-import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
 import PickupDiagram from "../../components/diagrams/PickupDiagram.astro";
 import CoilComparisonDiagram from "../../components/diagrams/CoilComparisonDiagram.astro";
@@ -20,7 +20,17 @@ import PickupBench from "../../components/lab/PickupBench.astro";
 import SignalChainStrip from "../../components/SignalChainStrip.astro";
 import TakeawaysList from "../../components/TakeawaysList.astro";
 
-<Week3Opener week={3} topic="THE PICKUP" title="From Vibration to Voltage" image={pickupPhoto}>
+<RigModuleFrame week={3} topic="PICKUP">
+
+<RigModuleOpener
+  week={3}
+  topic="PICKUP"
+  title="From Vibration to Voltage"
+  input="String motion"
+  process="Magnetic field variation"
+  output="Electrical voltage"
+  image={pickupPhoto}
+>
 
 ## How does a magnetic pickup convert string motion into an electrical signal?
 
@@ -32,11 +42,9 @@ into the guitar's own passive circuit, where resistance and capacitance
 start reshaping it before it ever leaves the instrument.
 </p>
 
-</Week3Opener>
+</RigModuleOpener>
 
-<BenchFrame week={3} topic="THE PICKUP">
-
-<BenchBand mode="theory" label="ANALYSIS DESK">
+<RigModuleBand mode="model" label="SIGNAL MODEL">
 
 ## How does a magnetic pickup convert string motion into an electrical signal?
 
@@ -61,9 +69,9 @@ language; and describe, at a broad level, why humbuckers use two coils.
   steps={["String motion", "Changing magnetic flux", "Induced voltage", "Pickup position → harmonic balance"]}
 />
 
-</BenchBand>
+</RigModuleBand>
 
-<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+<RigModuleBand mode="lab" label="→ ENTER THE LAB">
 
 ## Pickup structure and electromagnetic induction
 
@@ -81,9 +89,9 @@ language; and describe, at a broad level, why humbuckers use two coils.
   </p>
 </div>
 
-</BenchBand>
+</RigModuleBand>
 
-<BenchBand mode="theory" label="→ BACK TO THE DESK">
+<RigModuleBand mode="model" label="→ SIGNAL MODEL">
 
 ## Pickup position: sampling the string's modes
 
@@ -101,9 +109,9 @@ weaker at that position — rather than reaching for language like "warm" or
 "bright" on its own.
 </p>
 
-</BenchBand>
+</RigModuleBand>
 
-<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+<RigModuleBand mode="lab" label="→ ENTER THE LAB">
 
 ## Single-coil versus humbucker
 
@@ -135,9 +143,9 @@ conceptual comparison rather than an accurate emulation of any real pickup.
 
 <PickupBench />
 
-</BenchBand>
+</RigModuleBand>
 
-<BenchBand mode="theory" label="→ BACK TO THE DESK">
+<RigModuleBand mode="model" label="→ SIGNAL MODEL">
 
 ## Key takeaways
 
@@ -168,6 +176,6 @@ studies that electrical system.
 
 <CausalChainStrip compact />
 
-</BenchBand>
+</RigModuleBand>
 
-</BenchFrame>
+</RigModuleFrame>

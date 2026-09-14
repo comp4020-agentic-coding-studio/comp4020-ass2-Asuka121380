@@ -1,0 +1,274 @@
+---
+// The Homepage's first view — a compact "workspace" opener, not a cinematic
+// lifestyle hero. Title block + INPUT/OUTPUT rule + a real (non-decorative)
+// waveform trace + a photograph treated as source material entering the
+// signal system (per CLAUDE.md's signal-processing-environment revision,
+// §10 of the design brief this implements). Homepage-exclusive.
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import { harmonicSeriesCycle, pluckHarmonicWeights } from "../../lib/audio/analysis";
+import { waveformPath } from "../../lib/draw/svgTrace";
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  lede: string;
+  image: ImageMetadata;
+}
+
+const { eyebrow, title, lede, image } = Astro.props;
+
+const cycle = harmonicSeriesCycle(pluckHarmonicWeights(0.18, 8), 180);
+const path = waveformPath(cycle, { width: 320, height: 64, padding: 4 });
+
+const MODULES = ["STRING", "PICKUP", "CIRCUIT", "DRIVE", "FILTER", "MOD", "DELAY", "AMP", "SPEAKER"];
+---
+
+<header class="rig-hero">
+  <div class="rig-hero-copy">
+    <p class="rig-eyebrow">{eyebrow}</p>
+    <h1 class="rig-hero-title">{title}</h1>
+    <p class="rig-hero-lede">{lede}</p>
+
+    <div class="rig-hero-rule" role="img" aria-label="Signal path from input to output">
+      <span class="rig-hero-endpoint">INPUT</span>
+      <span class="rig-hero-line" aria-hidden="true"></span>
+      <span class="rig-hero-endpoint rig-hero-endpoint--out">OUTPUT</span>
+    </div>
+
+    <ul class="rig-hero-modules" aria-hidden="true">
+      {MODULES.map((m) => <li>{m}</li>)}
+    </ul>
+
+    <p class="rig-hero-weeks">12 WEEKS &middot; ONE SIGNAL CHAIN</p>
+
+    <a class="rig-hero-cta" href="#signal-chain">
+      <span class="rig-hero-cta-glyph" aria-hidden="true">&#9654;</span> Start signal
+    </a>
+  </div>
+
+  <div class="rig-hero-panel">
+    <figure class="rig-hero-figure">
+      <Image
+        src={image}
+        alt="Close-up photograph of electric guitar strings over the pickups."
+        widths={[420, 760]}
+        sizes="(max-width: 56rem) 85vw, 30rem"
+        format="avif"
+        loading="eager"
+        class="rig-hero-image"
+      />
+      <span class="rig-hero-figure-tag">SOURCE</span>
+    </figure>
+    <div class="rig-hero-trace" aria-hidden="true">
+      <svg viewBox="0 0 320 64" preserveAspectRatio="none">
+        <path d={path} fill="none" />
+      </svg>
+      <span class="rig-hero-trace-label">INPUT SIGNAL</span>
+    </div>
+  </div>
+</header>
+
+<style>
+  .rig-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 5vw, 3rem);
+    padding-block-start: clamp(1.5rem, 4vw, 2.5rem);
+  }
+
+  .rig-hero-title {
+    margin-block: 0.6rem 0.9rem;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    font-weight: 700;
+  }
+
+  .rig-hero-lede {
+    max-width: 34rem;
+    color: var(--rig-text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.55;
+  }
+
+  .rig-hero-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-block: 1.75rem 0.9rem;
+    max-width: 30rem;
+  }
+
+  .rig-hero-endpoint {
+    flex: none;
+    font-family: var(--rig-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.12em;
+    color: var(--rig-analogue);
+  }
+
+  .rig-hero-endpoint--out {
+    color: var(--rig-signal);
+  }
+
+  .rig-hero-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--rig-analogue), var(--rig-signal));
+    position: relative;
+  }
+
+  .rig-hero-line::before,
+  .rig-hero-line::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+
+  .rig-hero-line::before {
+    left: 0;
+    background: var(--rig-analogue);
+    box-shadow: 0 0 5px var(--rig-analogue);
+  }
+
+  .rig-hero-line::after {
+    right: 0;
+    background: var(--rig-signal);
+    box-shadow: 0 0 5px var(--rig-signal);
+  }
+
+  .rig-hero-modules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    list-style: none;
+    max-width: 34rem;
+  }
+
+  .rig-hero-modules li {
+    font-family: var(--rig-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--rig-text-muted);
+    border: 1px solid var(--rig-line);
+    border-radius: 0.2rem;
+    padding: 0.2rem 0.45rem;
+  }
+
+  .rig-hero-modules li::before {
+    content: "[";
+    opacity: 0.5;
+  }
+
+  .rig-hero-modules li::after {
+    content: "]";
+    opacity: 0.5;
+  }
+
+  .rig-hero-weeks {
+    margin: 0 0 1.25rem;
+    font-family: var(--rig-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.1em;
+    color: var(--rig-text-muted);
+  }
+
+  .rig-hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--rig-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    color: var(--rig-void);
+    background: var(--rig-signal);
+    padding: 0.6rem 1.1rem;
+    border-radius: 0.2rem;
+    transition:
+      background 0.15s ease,
+      transform 0.15s ease;
+  }
+
+  .rig-hero-cta:hover,
+  .rig-hero-cta:focus-visible {
+    background: color-mix(in srgb, var(--rig-signal) 85%, white);
+  }
+
+  .rig-hero-cta-glyph {
+    font-size: 0.7em;
+  }
+
+  .rig-hero-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .rig-hero-figure {
+    position: relative;
+    margin: 0;
+  }
+
+  .rig-hero-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    filter: saturate(0.72) contrast(1.05);
+    border: 1px solid var(--rig-line);
+  }
+
+  .rig-hero-figure-tag {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    font-family: var(--rig-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: var(--rig-analogue);
+    background: color-mix(in srgb, var(--rig-void) 78%, transparent);
+    padding: 0.15rem 0.4rem;
+  }
+
+  .rig-hero-trace {
+    position: relative;
+    border: 1px solid var(--rig-line);
+    background: var(--rig-panel);
+    padding: 0.5rem 0.75rem 0.35rem;
+  }
+
+  .rig-hero-trace svg {
+    display: block;
+    width: 100%;
+    height: 2.75rem;
+  }
+
+  .rig-hero-trace path {
+    stroke: var(--rig-signal);
+    stroke-width: 1.4;
+  }
+
+  .rig-hero-trace-label {
+    display: block;
+    font-family: var(--rig-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--rig-text-muted);
+  }
+
+  @media (min-width: 56rem) {
+    .rig-hero {
+      grid-template-columns: 1.1fr 0.8fr;
+      align-items: center;
+    }
+  }
+</style>
