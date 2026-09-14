@@ -1024,6 +1024,76 @@ trimmed for the word count — that curation happens once, at submission time.
   vitest); inspected the compiled CSS bundle directly to confirm the
   `::after` rule compiled as written.
 
+- **`540f66f`** — final end-to-end QA pass, in a real browser this time.
+  Installed Playwright standalone (outside the repo, not a project
+  dependency) since no browser-automation tool had been available for any
+  earlier milestone above, and used it to actually load all 24 built pages
+  at two viewports, drive real range/radio controls, click audio toggles,
+  and emulate `prefers-reduced-motion`. This caught a genuine, previously
+  undetected defect: every load of weeks 1, 2, 3, 5, and 6 threw a 404 +
+  `TypeError` in the console. Root cause, confirmed by reading the actual
+  built `dist/lectures/week-01/index.html`: `Waveform.astro` and
+  `Spectrum.astro` used `<script define:vars={{...}}>` with a relative
+  dynamic `import("../lib/draw/waveform.ts")` inside it — `define:vars`
+  forces the script to render as a plain, non-module inline script that
+  Vite never bundles or rewrites, so the relative import resolved against
+  the page's own URL (e.g. `/lectures/week-01/`) rather than the source
+  file's location, 404ing on every lecture page. It never broke any
+  visible output — every consumer (`WaveformFamilyLab`, `StringBench`,
+  etc.) already has its own working, properly-bundled `redraw()` — so this
+  was dead, erroring code, not a rendering bug, but a real one `pnpm
+  check`'s axe/typecheck/build/vitest pass never catches, since it's a
+  runtime-only promise rejection inside an inline script. Fixed by
+  switching both components to the same pattern `AudioDemo.astro` already
+  uses elsewhere in this codebase: read props back from `data-*`
+  attributes via a plain top-level static import (which Astro/Vite does
+  bundle), with a `querySelectorAll` + `dataset.xInitialized` guard since
+  Astro dedupes a shared component's script to one instance per page even
+  when the component itself is used multiple times. Also verified, by
+  direct source read rather than assumption, that the Phase 1 canvas-
+  clearing fix (`2f40941`) still holds under live parameter changes on all
+  5 canvas-based benches (bounded lit-pixel counts, no ghosting), that all
+  7 SVG-based benches (weeks 4, 7-12) still use their confirmed-safe
+  single-element-mutation/`replaceChildren` patterns, that every audio
+  toggle round-trips `aria-pressed` correctly with no autoplay, that
+  keyboard focus is visible on real interactive controls, and that the
+  Phase 3 "ENTERING THE BENCH" transition marker is present on all 12
+  weeks, not just the early ones. Checked: `pnpm check` green before and
+  after; re-ran the Playwright sweep across all 24 pages × 2 viewports
+  after the fix — console/page errors dropped from 10 to 0.
+
+- **`7ebf439`** — continuing the same real-browser QA pass, screenshotted
+  and visually inspected the remaining pages (weeks 6/12 desktop+mobile,
+  assessments, policies, homepage mobile) and found a second genuine,
+  previously undetected defect: the Assessments page's `<h1>` ("Assessment")
+  rendered essentially invisible — dark ink-coloured text on a near-black
+  charcoal band. Root cause: `EditorialFrame.astro` sets `--at-heading:
+  var(--editorial-ink)` globally so headings default to the light-band ink
+  colour; `EditorialBand.astro`'s `tone="dark"` override re-fixes `h2`/`h3`
+  (and `.editorial-kicker`) back to the amber accent colour, but the
+  selector list never included `h1` — so the one page with a bare MDX
+  `# Heading` directly inside a dark band (only `assessments/index.mdx`
+  does this; the homepage's own dark bands build their headings inside
+  `EditorialHero`, which sets its own explicit colour) fell through to the
+  unreadable default. Fixed by adding `h1` to that same dark-band override
+  selector. Because `pnpm build`'s own axe pass had reported "no
+  accessibility violations" both before and after this bug existed (and
+  logged reusing a page-content cache — "28 unchanged" — on the run after
+  the fix), it clearly isn't a reliable oracle for a CSS-only contrast
+  regression like this one, so I additionally wrote a one-off sitewide
+  contrast sweep (a Playwright script computing the WCAG luminance-ratio
+  contrast for every visible text node against its effective background,
+  across all 24+ built pages) to check for other instances of the same bug
+  class. Found none: the only other sub-4.5:1 pairs are 138 instances of
+  the same pre-existing, uniform brand amber-on-white (3.49:1) already used
+  everywhere for nav links, kickers, card titles, and weight labels — a
+  borderline AA-normal-text shortfall that predates this session and is a
+  deliberate, legible, sitewide accent-colour choice, not a regression, so
+  left as-is rather than changed speculatively. Checked: rebuilt and read
+  the h1's computed style directly (`rgb(185, 125, 28)` on the dark band,
+  matching `--at-primary`, no longer near-invisible); confirmed visually
+  via a full-page screenshot; `pnpm check` green.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
