@@ -905,6 +905,47 @@ trimmed for the word count — that curation happens once, at submission time.
   consistent." Checked: no source files under `src/` were touched by this
   pass; `git status` confirms only this `PROCESS.md` entry is staged.
 
+- **`41a4352`** — Phase 5 of the post-audit redesign plan: brought the
+  supporting pages (assessments, sessions, people, policies — index and
+  detail routes) onto the Editorial register built for the homepage and
+  reused for the lecture-page intros, replacing the generic
+  `ContentLayout`/`Card`/`CardGrid` chrome those pages had used since the
+  original audit. Concretely: `assessments/index.mdx` now reuses the
+  homepage's `AssessmentProgression` component instead of a flat card
+  grid, and its stray "Weights should sum to 100." placeholder line is
+  gone; `assessments/[slug].astro`'s brief body is wrapped in
+  `EditorialFrame`/`EditorialBand`, and `MarkingModel.astro`'s weighted
+  mode now renders a lightweight proportional bar per criterion instead
+  of a bare table; `sessions/index.astro` replaces the dev-note paragraph
+  about internal collection naming (flagged during an earlier audit) with
+  a real Editorial-register timeline of sessions, and `sessions/[slug].astro`
+  gets the same wrap; `people/index.mdx` and `people/[slug].astro` wrap
+  their existing content the same way; `policies/index.mdx` gets a full
+  Editorial wrap plus a new `.editorial-callout` treatment on its two
+  important-constraint sections (late work/extensions, academic
+  integrity) and a `.editorial-scope-note` on the Tone Autopsy
+  week-scope sentence, mirroring `BenchFrame`'s `bench-callout`/
+  `bench-scope-note` visual language — added as new global styles in
+  `EditorialFrame.astro` since no Editorial-scoped equivalent existed
+  yet. Also added a small `lead: false` frontmatter escape hatch to
+  `PageLayout.astro` so an `.mdx` page that builds its own Editorial
+  kicker+h1+lede can suppress the theme's default plain lead paragraph,
+  rather than showing both. Removed `AssessmentsGrid.astro` and
+  `SessionsGrid.astro`, left unused once their one call site each was
+  replaced. Checked: `pnpm check` green (typecheck, full build, axe
+  across all 28 pages, link check, vitest) with zero errors or warnings;
+  inspected the built HTML output directly to confirm every page still
+  has exactly one `<h1>`, the stray dev-note text is gone from
+  `sessions/index.html`, and the new `.editorial-callout`/
+  `.editorial-scope-note` classes actually render where intended (e.g.
+  `dist/policies/index.html`). Browser-based manual click-through (does
+  the register change from a lecture week into its linked assessment
+  feel intentional rather than jarring) was not independently possible
+  in this environment — no browser-automation tool is available here —
+  so that check rests on both pages now sharing the same
+  `EditorialFrame`/`EditorialBand` primitives and token set, not on a
+  direct visual comparison.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
