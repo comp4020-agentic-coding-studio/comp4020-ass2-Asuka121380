@@ -18,6 +18,7 @@ import { courseMeta } from "../course-config";
 import { siteConfig } from "../site-config";
 import RigFrame from "../components/rig/RigFrame.astro";
 import RigHero from "../components/rig/RigHero.astro";
+import RigOverview from "../components/rig/RigOverview.astro";
 import ToneAnalysis from "../components/rig/ToneAnalysis.astro";
 import HearTheDifference from "../components/home/HearTheDifference.astro";
 import AssessmentChain from "../components/rig/AssessmentChain.astro";
@@ -43,6 +44,12 @@ import "../styles/canvas-reset.css";
       lede="Follow one guitar signal from a plucked string to a listener's ear, one stage at a time — string, pickup, circuit, gain, clipping, filtering, modulation, delay and reverb, amplifier, and speaker. No electronics or DSP background assumed; every stage builds its own vocabulary from a waveform or a spectrum, not an adjective."
       image={heroImage}
     />
+
+    <section aria-labelledby="rig-overview-heading">
+      <p class="rig-eyebrow">The course is the rig</p>
+      <h2 id="rig-overview-heading">Twelve weeks, one signal chain</h2>
+      <RigOverview />
+    </section>
 
     <section aria-labelledby="tone-analysis-heading">
       <h2 id="tone-analysis-heading" class="visually-hidden">Course philosophy</h2>
