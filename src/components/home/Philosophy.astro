@@ -2,7 +2,23 @@
 // The course philosophy, verbatim in spirit from CLAUDE.md/SLOP2186.md,
 // given an editorial pull-quote treatment rather than another paragraph of
 // body text — this idea is the one thing the whole site is arguing for.
+// "Waveform / spectral consequence" is shown, not just named: the same
+// standard triangular-pluck harmonic model used elsewhere on the site
+// (Fletcher & Rossing) generates one real time-domain trace and its real
+// magnitude spectrum, so the chain step reads as an actual pair of plots
+// rather than another label.
+import { harmonicSeriesCycle, magnitudeSpectrum, pluckHarmonicWeights } from "../../lib/audio/analysis";
+import { waveformPath, type Viewport } from "../../lib/draw/svgTrace";
+
 const CHAIN = ["Physical mechanism", "Signal transformation", "Waveform / spectral consequence", "Audible consequence"];
+
+const viewport: Viewport = { width: 160, height: 70, padding: 6 };
+const waveform = harmonicSeriesCycle(pluckHarmonicWeights(0.2, 8), 128);
+const tracePath = waveformPath(waveform, viewport);
+// magnitudeSpectrum returns a Float64Array; Array.from first, since
+// TypedArray#map coerces each callback's return value to a number and would
+// silently turn the JSX below into a garbage numeric array.
+const spectrum = Array.from(magnitudeSpectrum(waveform, 16));
 ---
 
 <div class="philosophy">
@@ -14,6 +30,32 @@ const CHAIN = ["Physical mechanism", "Signal transformation", "Waveform / spectr
     "aggressive" — toward what physically or electrically changed, and what that did to the waveform, the spectrum,
     or the sound in time.
   </p>
+  <div class="philosophy-evidence">
+    <figure class="philosophy-plot">
+      <svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} role="img" aria-label="A plucked-string waveform: the time-domain consequence of the physical mechanism above.">
+        <path d={tracePath} class="philosophy-trace" fill="none" />
+      </svg>
+      <figcaption>Waveform</figcaption>
+    </figure>
+    <figure class="philosophy-plot">
+      <svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} role="img" aria-label="The same signal's magnitude spectrum: its energy spread across harmonics.">
+        {
+          spectrum.map((mag, i) => {
+            const barWidth = (viewport.width - 12) / spectrum.length;
+            const x = 6 + i * barWidth;
+            const h = mag * (viewport.height - 16);
+            return <rect x={x + 1} y={viewport.height - 8 - h} width={Math.max(barWidth - 2, 1)} height={h} class="philosophy-bar" />;
+          })
+        }
+        <line x1="6" y1={viewport.height - 8} x2={viewport.width - 6} y2={viewport.height - 8} class="philosophy-axis" />
+      </svg>
+      <figcaption>Spectrum</figcaption>
+    </figure>
+    <p class="philosophy-evidence-note">
+      One plucked-string model (Fletcher &amp; Rossing's textbook triangular-pluck series) plotted as both a waveform
+      and a spectrum — the same signal, two views, not two different things.
+    </p>
+  </div>
   <ol class="philosophy-chain">
     {
       CHAIN.map((step, i) => (
@@ -44,6 +86,59 @@ const CHAIN = ["Physical mechanism", "Signal transformation", "Waveform / spectr
     line-height: 1.6;
     color: var(--editorial-on-charcoal-soft, var(--at-text-secondary));
     margin-block-end: 2rem;
+  }
+
+  .philosophy-evidence {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem 1.5rem;
+    margin-block-end: 2rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--editorial-line-on-charcoal, var(--at-border));
+    border-radius: var(--at-border-radius);
+  }
+
+  .philosophy-plot {
+    margin: 0;
+    flex: 0 0 9rem;
+    width: 9rem;
+  }
+
+  .philosophy-plot svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .philosophy-plot figcaption {
+    margin-top: 0.3rem;
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.04em;
+    color: var(--editorial-accent, var(--at-accent));
+  }
+
+  .philosophy-trace {
+    stroke: var(--editorial-accent, var(--at-accent));
+    stroke-width: 2;
+  }
+
+  .philosophy-bar {
+    fill: var(--editorial-accent, var(--at-accent));
+  }
+
+  .philosophy-axis {
+    stroke: var(--editorial-on-charcoal-soft, var(--at-text-secondary));
+    stroke-width: 1;
+  }
+
+  .philosophy-evidence-note {
+    flex: 1 1 14rem;
+    margin: 0;
+    font-size: var(--at-font-size-xs);
+    line-height: 1.5;
+    color: var(--editorial-on-charcoal-soft, var(--at-text-secondary));
   }
 
   .philosophy-chain {

@@ -18,6 +18,7 @@ const lectures = (await getPublishedCollection("lectures")).sort((a, b) => a.dat
           <span class="tone-timeline-week">Week {String(lecture.data.week).padStart(2, "0")}</span>
           <span class="tone-timeline-title">{lecture.data.title}</span>
           {lecture.data.description && <span class="tone-timeline-desc">{lecture.data.description}</span>}
+          <span class="tone-timeline-cue" aria-hidden="true">&rarr; Enter the bench</span>
         </a>
       </li>
     ))
@@ -102,12 +103,27 @@ const lectures = (await getPublishedCollection("lectures")).sort((a, b) => a.dat
     max-width: 34rem;
   }
 
+  /* A quiet, always-visible echo of LectureIntro.astro's "ENTERING THE
+     BENCH" transition marker: every timeline entry hands off into a
+     lecture's Bench-register content, so the mode switch is signalled
+     before the click. */
+  .tone-timeline-cue {
+    grid-column: 2;
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.08em;
+    color: var(--editorial-accent, var(--at-accent));
+    opacity: 0.75;
+    margin-top: 0.3rem;
+  }
+
   @media (max-width: 30rem) {
     .tone-timeline-link {
       grid-template-columns: 1fr;
     }
 
-    .tone-timeline-desc {
+    .tone-timeline-desc,
+    .tone-timeline-cue {
       grid-column: 1;
     }
   }

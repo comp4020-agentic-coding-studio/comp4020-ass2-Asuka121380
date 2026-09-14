@@ -33,25 +33,30 @@ const STAGES: Stage[] = [
 <div class="signal-journey">
   <p class="signal-journey-caption">
     Twelve weeks, one signal. Follow it stage by stage — each stop opens the week that covers it.
+    <span class="signal-journey-scroll-hint" aria-hidden="true">Scroll for the full chain &rarr;</span>
   </p>
-  <ol class="signal-journey-rail">
-    {
-      STAGES.map((stage, i) => (
-        <li class="signal-journey-stage">
-          <a href={withBase(`/lectures/${stage.slug}/`)} class="signal-journey-link">
-            <span class="signal-journey-index">{String(stage.week).padStart(2, "0")}</span>
-            <span class="signal-journey-label">{stage.label}</span>
-            <span class="signal-journey-detail">{stage.detail}</span>
-          </a>
-          {i < STAGES.length - 1 && (
-            <span class="signal-journey-arrow" aria-hidden="true">
-              &rarr;
-            </span>
-          )}
-        </li>
-      ))
-    }
-  </ol>
+  <div class="signal-journey-rail-wrap">
+    <ol class="signal-journey-rail">
+      {
+        STAGES.map((stage, i) => (
+          <li class="signal-journey-stage">
+            <a href={withBase(`/lectures/${stage.slug}/`)} class="signal-journey-link">
+              <span class="signal-journey-index">{String(stage.week).padStart(2, "0")}</span>
+              <span class="signal-journey-label">{stage.label}</span>
+              <span class="signal-journey-detail">{stage.detail}</span>
+              <span class="signal-journey-cue" aria-hidden="true">&rarr; Bench</span>
+            </a>
+            {i < STAGES.length - 1 && (
+              <span class="signal-journey-arrow" aria-hidden="true">
+                &rarr;
+              </span>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+    <div class="signal-journey-fade" aria-hidden="true"></div>
+  </div>
 </div>
 
 <style>
@@ -59,6 +64,30 @@ const STAGES: Stage[] = [
     max-width: 38rem;
     color: var(--at-text-secondary);
     margin-block-end: 1.5rem;
+  }
+
+  .signal-journey-scroll-hint {
+    display: none;
+    font-size: var(--at-font-size-sm);
+    font-family: var(--at-font-mono);
+    color: var(--editorial-accent, var(--at-accent));
+    letter-spacing: 0.02em;
+    margin-inline-start: 0.75rem;
+  }
+
+  .signal-journey-rail-wrap {
+    position: relative;
+  }
+
+  .signal-journey-fade {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 1rem;
+    width: 3rem;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--editorial-paper, var(--at-bg)));
   }
 
   .signal-journey-rail {
@@ -118,6 +147,20 @@ const STAGES: Stage[] = [
     line-height: 1.4;
   }
 
+  /* A quiet, always-visible echo of LectureIntro.astro's "ENTERING THE
+     BENCH" transition marker, scaled down to a per-card cue: every one of
+     these links hands off into a lecture's Bench-register content, so the
+     mode switch is signalled before the click, not just after landing. */
+  .signal-journey-cue {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.08em;
+    color: var(--editorial-accent, var(--at-accent));
+    opacity: 0.75;
+  }
+
   .signal-journey-arrow {
     flex: none;
     padding-inline: 0.5rem;
@@ -128,6 +171,19 @@ const STAGES: Stage[] = [
   @media (prefers-reduced-motion: reduce) {
     .signal-journey-rail {
       scroll-behavior: auto;
+    }
+  }
+
+  /* Above the point where the rail collapses to a single column, the row of
+     12 fixed-width cards always overflows — show a scroll cue so a sighted
+     mouse user on a desktop-narrow viewport knows there's more to the right. */
+  @media (min-width: 40.01rem) {
+    .signal-journey-scroll-hint {
+      display: inline;
+    }
+
+    .signal-journey-fade {
+      display: block;
     }
   }
 
