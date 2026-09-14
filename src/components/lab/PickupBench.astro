@@ -8,6 +8,15 @@
 // SLOP2186.md, "the purpose is conceptual comparison, not accurate
 // emulation," so audio stays a fixed two-preset approximation rather than a
 // continuously filtered signal.
+//
+// Laid out as a processor module's own faceplate rather than a stacked
+// form: a top strip (label + preset + the INPUT/PROCESS/OUTPUT motif), a
+// control/display row (the position knob on the left driving two live
+// readouts, waveform then spectrum, center and right), and a bottom
+// transport/status strip (readout text, play + compare, the scope note).
+// Purely a markup/CSS regrouping of the same elements — every id below is
+// unchanged, and the <script> that follows still queries them by those
+// same ids, so none of its Web Audio/Canvas logic changed.
 import AudioDemo from "../AudioDemo.astro";
 import Spectrum from "../Spectrum.astro";
 import Waveform from "../Waveform.astro";
@@ -29,48 +38,57 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
 ---
 
 <div class="pickup-bench" id="pickup-bench" data-neck-position={NECK_POSITION} data-bridge-position={BRIDGE_POSITION}>
-  <div class="lab-header">
-    <p class="lab-name">
-      <span class="lab-index">LAB 03</span>
-      <span class="lab-title">Pickup response</span>
-    </p>
-    <FootswitchGroup name="pickup-preset" legend="Preset" options={presetOptions} selected="neck" />
+  <div class="pickup-bench-top">
+    <div class="lab-header">
+      <p class="lab-name">
+        <span class="lab-index">LAB 03</span>
+        <span class="lab-title">Pickup response</span>
+      </p>
+      <FootswitchGroup name="pickup-preset" legend="Preset" options={presetOptions} selected="neck" />
+    </div>
+
+    <div class="pickup-signal-row" role="img" aria-label="Input: string motion. Process: pickup, sampled at the knob's position. Output: sensed electrical signal.">
+      <div class="pickup-signal-cell">
+        <span class="pickup-signal-label">Input</span>
+        <span class="pickup-signal-value">String</span>
+      </div>
+      <span class="pickup-signal-arrow" aria-hidden="true">&rarr;</span>
+      <div class="pickup-signal-cell">
+        <span class="pickup-signal-label">Process</span>
+        <span class="pickup-signal-value">Pickup</span>
+      </div>
+      <span class="pickup-signal-arrow" aria-hidden="true">&rarr;</span>
+      <div class="pickup-signal-cell pickup-signal-cell--out">
+        <span class="pickup-signal-label">Output</span>
+        <span class="pickup-signal-value">Signal</span>
+      </div>
+    </div>
   </div>
 
-  <div class="pickup-signal-row" role="img" aria-label="Input: string motion. Process: pickup, sampled at the knob's position. Output: sensed electrical signal.">
-    <div class="pickup-signal-cell">
-      <span class="pickup-signal-label">Input</span>
-      <span class="pickup-signal-value">String</span>
-    </div>
-    <span class="pickup-signal-arrow" aria-hidden="true">&rarr;</span>
-    <div class="pickup-signal-cell">
-      <span class="pickup-signal-label">Process</span>
-      <span class="pickup-signal-value">Pickup</span>
-    </div>
-    <span class="pickup-signal-arrow" aria-hidden="true">&rarr;</span>
-    <div class="pickup-signal-cell pickup-signal-cell--out">
-      <span class="pickup-signal-label">Output</span>
-      <span class="pickup-signal-value">Signal</span>
-    </div>
+  <div class="pickup-bench-left">
+    <Knob id="pickup-position" label="Pickup position (0 = bridge, 0.5 = middle)" min={0.03} max={0.5} step={0.01} value={DEFAULT_POSITION} unit=" × L" />
   </div>
 
-  <Knob id="pickup-position" label="Pickup position (0 = bridge, 0.5 = middle)" min={0.03} max={0.5} step={0.01} value={DEFAULT_POSITION} unit=" × L" />
-
-  <div class="displays">
+  <div class="pickup-bench-center">
     <Waveform id="pickup-waveform" label="Sensed waveform shape" samples={Array.from(defaultCycle)} strokeVar="--bench-phosphor" />
+  </div>
+
+  <div class="pickup-bench-right">
     <Spectrum id="pickup-spectrum" label="Relative harmonic sensitivity" magnitudes={Array.from(defaultWeights)} fillVar="--bench-phosphor" />
   </div>
 
-  <p class="pickup-readout" id="pickup-readout" aria-live="polite"></p>
+  <div class="pickup-bench-bottom">
+    <p class="pickup-readout" id="pickup-readout" aria-live="polite"></p>
 
-  <div class="lab-controls-row">
-    <AudioDemo id="pickup-audio" label="Play" />
-    <label class="compare-toggle">
-      <input type="checkbox" id="pickup-compare" />
-      <span>Compare to previous position</span>
-    </label>
+    <div class="lab-controls-row">
+      <AudioDemo id="pickup-audio" label="Play" />
+      <label class="compare-toggle">
+        <input type="checkbox" id="pickup-compare" />
+        <span>Compare to previous position</span>
+      </label>
+    </div>
+    <p class="bench-scope-note">The Neck/Bridge sound is a fixed two-preset EQ approximation, not a live filter following the knob — a conceptual comparison, not an accurate pickup emulation.</p>
   </div>
-  <p class="bench-scope-note">The Neck/Bridge sound is a fixed two-preset EQ approximation, not a live filter following the knob — a conceptual comparison, not an accurate pickup emulation.</p>
 </div>
 
 <script>
@@ -318,10 +336,12 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     min-height: 1.5em;
   }
 
-  .displays {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(2, 1fr);
+  .pickup-bench-top,
+  .pickup-bench-left,
+  .pickup-bench-center,
+  .pickup-bench-right,
+  .pickup-bench-bottom {
+    display: contents;
   }
 
   .lab-controls-row {
@@ -344,9 +364,59 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     margin: 0;
   }
 
-  @media (max-width: 640px) {
-    .displays {
-      grid-template-columns: 1fr;
+  /* At 56rem+, recompose into a faceplate: a top strip, then the knob
+     (left) driving its two readouts (waveform center, spectrum right),
+     then a bottom transport strip. Below that, .pickup-bench-* wrappers
+     stay `display: contents` so their children fall back to the plain
+     mobile-first column above, in the same source order. */
+  @media (min-width: 56rem) {
+    .pickup-bench {
+      max-width: 52rem;
+      display: grid;
+      grid-template-columns: 0.85fr 1.15fr 1.15fr;
+      grid-template-areas:
+        "top top top"
+        "left center right"
+        "bottom bottom bottom";
+      align-items: start;
+      gap: 1.5rem;
+    }
+
+    .pickup-bench-top,
+    .pickup-bench-left,
+    .pickup-bench-center,
+    .pickup-bench-right,
+    .pickup-bench-bottom {
+      display: block;
+    }
+
+    .pickup-bench-top {
+      grid-area: top;
+    }
+
+    .pickup-bench-left {
+      grid-area: left;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-inline-end: 1px solid var(--bench-line, var(--at-border));
+    }
+
+    .pickup-bench-center {
+      grid-area: center;
+    }
+
+    .pickup-bench-right {
+      grid-area: right;
+    }
+
+    .pickup-bench-bottom {
+      grid-area: bottom;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      border-block-start: 1px solid var(--bench-line, var(--at-border));
+      padding-block-start: 1rem;
     }
   }
 </style>
