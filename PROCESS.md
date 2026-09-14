@@ -1094,6 +1094,67 @@ trimmed for the word count — that curation happens once, at submission time.
   matching `--at-primary`, no longer near-invisible); confirmed visually
   via a full-page screenshot; `pnpm check` green.
 
+- **[`b8fc1a7`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/b8fc1a70d19589153506fb9925e616ee0ce4697d)** —
+  the user paused the site-wide redesign to focus on establishing the final
+  visual language on exactly two pages first (Homepage + Week 3), against a
+  detailed brief: no boxed hero card, real guitar photography as the primary
+  identity, amber for the physical/analogue domain and cyan for engineering/
+  DSP, and — most importantly — "layout first, composition first, narrative
+  first, card only when the object actually behaves like a card." Rebuilt the
+  homepage against that brief without touching any component shared with the
+  12 lecture weeks. Swapped the hero's abstract decorative graphic for a real
+  guitar-strings photograph (`hero-guitar-strings.jpg`, sourced and licensed
+  in `PHOTO-SOURCES.md`). Rewrote `SignalJourney.astro` from a 12-card
+  horizontal scroll rail into a compact 6-stage signal chain (String → Pickup
+  → Circuit → Amp → Speaker → Ear) styled as a ruled row, not boxes, with
+  amber glyphs for the two physical stages and the existing `--bench-phosphor`
+  cyan for the four signal stages — `ToneTimeline.astro` still carries the
+  full 12-week list separately, so nothing was lost. De-carded
+  `Philosophy.astro`'s waveform/spectrum evidence strip (border-radius'd box
+  → top/bottom rule) and `HearTheDifference.astro`'s preset grid (bordered
+  cards → ruled columns), both CSS-only, no markup/JS change. Rewrote
+  `AssessmentProgression.astro` as the brief's own worked example: three
+  staggered weight/verb/title groups (25% Analyse, 30% Manipulate, 45%
+  Design) connected by an arrow rule, using a `--stagger` CSS custom property
+  for vertical rhythm instead of a card grid. Checked: `pnpm check` green
+  (typecheck + build + axe + link-check + vitest); read the built HTML with
+  `curl`+`grep` (no headless-browser tool is available in this environment)
+  to confirm the new hero image's AVIF variants emit and are referenced, the
+  six signal-chain stages render in order with correct copy, and the
+  assessment weights/verbs/titles render in the brief's exact 25/30/45 order;
+  confirmed weeks 1 and 4 still render `LectureIntro.astro`'s original,
+  unmodified transition marker, positively verifying no shared component was
+  touched.
+
+- **[`ceb593a`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass2-Asuka121380/commit/ceb593a00ef08e29ff61c2c1a1b916d27d05bf8f)** —
+  second half of the same two-page brief: Week 3 ("From Vibration to
+  Voltage") as the lecture→lab prototype, without editing `LectureIntro.astro`
+  or `BenchFrame.astro`/`BenchBand.astro` (shared by all 12 weeks). Built a
+  new, Week-3-only `Week3Opener.astro` that consumes the existing shared
+  `EditorialFrame`/`EditorialBand` components rather than modifying them: a
+  large serif "03" index, restrained title and lecture-connection copy, and a
+  real photograph of humbucker/single-coil pickups with thin engineering
+  annotations (STRING MOTION, MAGNETIC FIELD, COIL, INDUCED VOLTAGE) as
+  absolutely-positioned CSS callouts over the photo rather than a crude SVG.
+  The closing "→ ENTERING THE BENCH" transition marker is deliberately
+  duplicated locally (same visual idea, own CSS/keyframes) instead of editing
+  `LectureIntro.astro`'s copy. Replaced `PickupDiagram.astro`'s first
+  figure — previously a hand-drawn SVG cross-section — with the same real
+  pickup photograph, labelled with precise structural callouts (STRING, POLE
+  PIECE, COIL, MAGNET), while leaving its second figure (the two-frame
+  flux/motion SVG) untouched, per the brief's instruction not to make one
+  image answer both "what physically exists" and "what changes dynamically."
+  Reframed `PickupBench.astro`'s header as "LAB 03 / Pickup position" (measurement-bench framing) and added a plain-language, `aria-live="polite"`
+  readout (`describePosition()`) that updates on every `redraw()` alongside
+  the existing waveform/spectrum displays, purely additive to the existing
+  drag/preset/audio/compare logic. Checked: `pnpm check` green; read the
+  built `week-03` HTML with `curl`+`grep` to confirm `Week3Opener`'s markup,
+  the "03" index, the four photo annotations, and "LAB 03" all render; reused
+  the already-committed `week3-pickup-anatomy.jpg` (licensed in
+  `PHOTO-SOURCES.md`) for both the opener's ambient photo and the diagram's
+  precise anatomy photo rather than sourcing a third image, since one photo
+  can reasonably serve both an atmospheric and a structural role here.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
