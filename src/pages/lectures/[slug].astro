@@ -9,7 +9,11 @@ import { formatCourseDate } from "../../lib/dates";
 import { graphCollections, siteConfig } from "../../site-config";
 
 export async function getStaticPaths() {
-  const lectures = await getPublishedCollection("lectures");
+  // week-03 gets its own route (../lectures/week-03.astro), which bypasses
+  // ContentLayout's generic <h1>/date/lead opener entirely so the page can
+  // open with its own MODULE 03/PICKUP composition instead — see that
+  // file's comment. Every other week keeps this shared route unchanged.
+  const lectures = await getPublishedCollection("lectures", (lecture) => lecture.id !== "week-03");
   return lectures.map((lecture) => ({ params: { slug: lecture.id }, props: { lecture } }));
 }
 

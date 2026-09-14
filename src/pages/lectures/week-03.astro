@@ -1,0 +1,73 @@
+---
+// Week 3's own top-level route: "the week is a module." Bypasses
+// astro-theme-university's ContentLayout — which would open every page
+// with a generic <h1>{title}</h1> + date + <p class="lead"> before any
+// content, the exact "old course-page H1/date structure" this week must
+// not begin with — and renders straight through BaseLayout instead, so the
+// MDX content's own RigModuleOpener is the first thing on the page.
+// src/pages/lectures/[slug].astro excludes "week-03" from its
+// getStaticPaths so the two routes don't collide; every other week is
+// untouched and keeps using ContentLayout as before.
+//
+// Renders inside a <main data-canvas> (see src/styles/canvas-reset.css) so
+// this page, like the Homepage, owns its own width/margins instead of the
+// vendor theme's 48rem content grid and rail.
+import { render } from "astro:content";
+import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
+import { getPublishedCollection } from "astro-course-university/content";
+import RelatedContent from "astro-course-university/components/RelatedContent.astro";
+import { withBase } from "astro-theme-university/url";
+import TeachingTeam from "../../components/TeachingTeam.astro";
+import { formatCourseDate } from "../../lib/dates";
+import { graphCollections, siteConfig } from "../../site-config";
+import "../../styles/canvas-reset.css";
+
+const [lecture] = await getPublishedCollection("lectures", (entry) => entry.id === "week-03");
+if (!lecture) {
+  throw new Error("week-03 lecture entry not found or not published");
+}
+
+const { Content } = await render(lecture);
+const title = `Week ${lecture.data.week}: ${lecture.data.title}`;
+const teacherOverrides = (lecture.data as { teacherOverrides?: Record<string, string> }).teacherOverrides;
+---
+
+<BaseLayout
+  title={title}
+  description={lecture.data.description ?? undefined}
+  mainAttrs={{ "data-canvas": true }}
+  {...siteConfig}
+>
+  <Content />
+  {
+    /* The date/slides line ContentLayout would normally print before the
+       content (the "old H1/date structure" Section 8 bans as an opener) is
+       kept — Section 2 requires the functional info to survive — but moved
+       to the close of the page instead, alongside TeachingTeam/
+       RelatedContent, which are shared, unstyled components used
+       identically on all 12 weeks. [data-canvas] only removes the theme's
+       grid for the module composition above; this wrapper deliberately
+       reintroduces the theme's normal reading-column width for this
+       footer block so it still looks like it does on every other week,
+       rather than going full-bleed by accident. */
+  }
+  <div class="lecture-footer-column">
+    <p><strong>{formatCourseDate(lecture.data.date)}</strong></p>
+    {lecture.data.slides && (
+      <p>
+        <a href={withBase(lecture.data.slides)}>Open the slides</a>
+      </p>
+    )}
+    <TeachingTeam teachers={lecture.data.teachers} nameOverrides={teacherOverrides} />
+    <RelatedContent entry={lecture} collections={graphCollections} />
+  </div>
+</BaseLayout>
+
+<style>
+  .lecture-footer-column {
+    max-width: var(--at-content-width);
+    margin-inline: auto;
+    padding-inline: var(--at-gutter);
+    padding-block: var(--at-spacing-xl);
+  }
+</style>
