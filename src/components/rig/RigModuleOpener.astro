@@ -39,21 +39,23 @@ const index = String(week).padStart(2, "0");
   </div>
 
   <figure class="rig-opener-figure">
-    <Image
-      src={image}
-      alt="Close-up photograph of humbucker and single-coil guitar pickups mounted on a pickguard."
-      widths={[420, 760]}
-      sizes="(max-width: 56rem) 85vw, 32rem"
-      format="avif"
-      loading="eager"
-      class="rig-opener-image"
-    />
-    <ul class="rig-opener-annotations" aria-hidden="true">
-      <li style="--x: 12%; --y: 14%;">STRING</li>
-      <li style="--x: 66%; --y: 8%;">MAGNETIC FIELD</li>
-      <li style="--x: 74%; --y: 62%;">POLE PIECE</li>
-      <li style="--x: 18%; --y: 80%;">COIL</li>
-    </ul>
+    <div class="rig-opener-image-wrap">
+      <Image
+        src={image}
+        alt="Close-up photograph of humbucker and single-coil guitar pickups mounted on a pickguard."
+        widths={[420, 760]}
+        sizes="(max-width: 56rem) 85vw, 32rem"
+        format="avif"
+        loading="eager"
+        class="rig-opener-image"
+      />
+      <ul class="rig-opener-annotations" aria-hidden="true">
+        <li style="--x: 12%; --y: 14%;">STRING</li>
+        <li style="--x: 66%; --y: 8%;">MAGNETIC FIELD</li>
+        <li style="--x: 74%; --y: 62%;">POLE PIECE</li>
+        <li style="--x: 18%; --y: 80%;">COIL</li>
+      </ul>
+    </div>
     <figcaption>Photo: Feitscherg &middot; Public domain</figcaption>
   </figure>
 
@@ -131,9 +133,12 @@ const index = String(week).padStart(2, "0");
   }
 
   .rig-opener-figure {
-    position: relative;
     margin: 0;
     width: min(100%, 28rem);
+  }
+
+  .rig-opener-image-wrap {
+    position: relative;
   }
 
   .rig-opener-image {
