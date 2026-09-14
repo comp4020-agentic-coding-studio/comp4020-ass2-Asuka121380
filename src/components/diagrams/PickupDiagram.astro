@@ -1,29 +1,40 @@
 ---
-// Week 3 "See It": a magnetic pickup's structure (magnet, pole piece, coil,
-// ferromagnetic string), and a simple two-frame sketch of why string motion
-// induces a voltage — flux through the coil changes as the string moves
-// closer to and further from the pole piece. Conceptual line sketches, not
-// an accurate field simulation, matching CLAUDE.md's "avoid excessive
-// electromagnetic theory" guidance for this week.
+// Week 3 "See It": a real photograph answering "what physically exists"
+// (a humbucker and two single-coils, labelled) plus a simple two-frame
+// sketch answering "what changes dynamically" (flux through the coil as the
+// string moves) — deliberately two different artefacts for two different
+// questions, per CLAUDE.md's "real structure teaches better as a real
+// photograph" guidance and the brief's instruction not to make one crude
+// diagram answer both "what exists" and "what changes."
+import { Image } from "astro:assets";
+import pickupPhoto from "../../assets/images/week3-pickup-anatomy.jpg";
+
+const LABELS = [
+  { text: "STRING", x: 30, y: 6 },
+  { text: "POLE PIECE", x: 47, y: 30 },
+  { text: "COIL", x: 78, y: 46 },
+  { text: "MAGNET", x: 20, y: 78 },
+];
 ---
 
 <div class="pickup-diagrams">
-  <figure class="pickup-card bench-module">
-    <svg viewBox="0 0 160 100" role="img" aria-label="Cross section of a magnetic pickup: a ferromagnetic string above a pole piece, a coil of wire wound around the pole piece, and a permanent magnet beneath it.">
-      <line x1="10" y1="18" x2="150" y2="18" class="string" />
-      <circle cx="80" cy="18" r="2.5" class="string-dot" />
-      <rect x="70" y="30" width="20" height="34" class="pole-piece" />
-      <rect x="50" y="34" width="60" height="26" rx="4" class="coil" />
-      <path d="M 54 34 L 54 60 M 60 34 L 60 60 M 106 34 L 106 60 M 100 34 L 100 60" class="coil-hatch" />
-      <rect x="45" y="64" width="70" height="18" class="magnet" />
-      <text x="80" y="10" class="part-label" text-anchor="middle">ferromagnetic string</text>
-      <text x="118" y="50" class="part-label">coil</text>
-      <text x="118" y="76" class="part-label">magnet</text>
-      <text x="94" y="50" class="part-label part-label--pole">pole piece</text>
-    </svg>
+  <figure class="pickup-card pickup-card--photo bench-module">
+    <div class="pickup-photo-wrap">
+      <Image
+        src={pickupPhoto}
+        alt="Photograph of a humbucker and two single-coil guitar pickups mounted on a shared pickguard, showing pole pieces, coil bobbins and mounting hardware."
+        widths={[380, 640]}
+        sizes="(max-width: 40rem) 90vw, 24rem"
+        format="avif"
+        class="pickup-photo"
+      />
+      <ul class="pickup-callouts" aria-hidden="true">
+        {LABELS.map((l) => <li style={`--x:${l.x}%; --y:${l.y}%;`}>{l.text}</li>)}
+      </ul>
+    </div>
     <figcaption>
       <span class="pickup-label">Pickup structure</span>
-      <span class="pickup-description">A permanent magnet, one or more pole pieces, and a coil of wire, positioned under a string that itself needs to be ferromagnetic to interact with the field.</span>
+      <span class="pickup-description">A permanent magnet, one or more pole pieces, and a coil of wire, positioned under a string that itself needs to be ferromagnetic to interact with the field. Photo: Feitscherg, public domain.</span>
     </figcaption>
   </figure>
 
@@ -76,13 +87,41 @@
     display: block;
   }
 
+  .pickup-photo-wrap {
+    position: relative;
+  }
+
+  .pickup-photo {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--at-border);
+  }
+
+  .pickup-callouts {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pickup-callouts li {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: var(--bench-phosphor, var(--at-accent));
+    background: color-mix(in oklch, var(--at-bg) 75%, transparent);
+    padding: 0.1rem 0.35rem;
+    white-space: nowrap;
+  }
+
   .string {
     stroke: var(--bench-phosphor, var(--at-accent));
     stroke-width: 2;
-  }
-
-  .string-dot {
-    fill: var(--bench-phosphor, var(--at-accent));
   }
 
   .string-rest {
@@ -95,18 +134,6 @@
     fill: var(--at-bg);
     stroke: var(--at-text-secondary);
     stroke-width: 1.5;
-  }
-
-  .coil {
-    fill: none;
-    stroke: var(--at-accent);
-    stroke-width: 1.5;
-  }
-
-  .coil-hatch {
-    stroke: var(--at-accent);
-    stroke-width: 1;
-    opacity: 0.6;
   }
 
   .magnet {
@@ -130,10 +157,6 @@
   .part-label {
     font-family: var(--bench-readout, var(--at-font-mono));
     font-size: 6px;
-    fill: var(--at-text-secondary);
-  }
-
-  .part-label--pole {
     fill: var(--at-text-secondary);
   }
 

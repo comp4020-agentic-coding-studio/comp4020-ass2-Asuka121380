@@ -30,7 +30,10 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
 
 <div class="pickup-bench bench-module" id="pickup-bench" data-neck-position={NECK_POSITION} data-bridge-position={BRIDGE_POSITION}>
   <div class="lab-header">
-    <span class="lab-name">SLOP2186 Pickup Bench</span>
+    <p class="lab-name">
+      <span class="lab-index">LAB 03</span>
+      <span class="lab-title">Pickup position</span>
+    </p>
     <FootswitchGroup name="pickup-preset" legend="Preset" options={presetOptions} selected="neck" />
   </div>
 
@@ -41,8 +44,10 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     <Spectrum id="pickup-spectrum" label="Relative harmonic sensitivity" magnitudes={Array.from(defaultWeights)} fillVar="--bench-phosphor" />
   </div>
 
+  <p class="pickup-readout" id="pickup-readout" aria-live="polite"></p>
+
   <div class="lab-controls-row">
-    <AudioDemo id="pickup-audio" label="Play preset" />
+    <AudioDemo id="pickup-audio" label="Listen" />
     <label class="compare-toggle">
       <input type="checkbox" id="pickup-compare" />
       <span>Compare to previous position</span>
@@ -67,6 +72,13 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     const spectrumCanvas = document.getElementById("pickup-spectrum") as HTMLCanvasElement;
     const toggle = document.getElementById("pickup-audio-toggle") as HTMLButtonElement;
     const compareToggle = document.getElementById("pickup-compare") as HTMLInputElement;
+    const readout = document.getElementById("pickup-readout") as HTMLParagraphElement;
+
+    function describePosition(position: number): string {
+      if (position <= 0.13) return "Close to the bridge: brighter tone, stronger high-frequency content.";
+      if (position <= 0.26) return "Between bridge and middle: a balanced blend of harmonics.";
+      return "Closer to the neck: warmer tone, stronger low-frequency content.";
+    }
 
     const styles = getComputedStyle(root);
     const trace = styles.getPropertyValue("--bench-phosphor").trim() || "#e2b13c";
@@ -145,6 +157,7 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
 
       lastCycle = cycle;
       lastWeights = weights;
+      readout.textContent = describePosition(position);
     }
 
     positionInput.addEventListener("input", redraw);
@@ -216,11 +229,32 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
   }
 
   .lab-name {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0;
     font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
     text-transform: uppercase;
+  }
+
+  .lab-index {
+    font-size: var(--at-font-size-sm);
+    letter-spacing: 0.08em;
+    color: var(--bench-phosphor, var(--at-accent));
+  }
+
+  .lab-title {
+    font-size: var(--at-font-size-sm);
     letter-spacing: 0.05em;
     color: var(--at-text-secondary);
+  }
+
+  .pickup-readout {
+    margin: 0;
+    font-size: var(--at-font-size-sm);
+    line-height: 1.5;
+    color: var(--at-text-secondary);
+    min-height: 1.5em;
   }
 
   .displays {

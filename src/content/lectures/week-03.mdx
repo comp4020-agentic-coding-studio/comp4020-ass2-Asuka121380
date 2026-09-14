@@ -9,7 +9,8 @@ teachers:
   - marisol-quaye
 ---
 
-import LectureIntro from "../../components/LectureIntro.astro";
+import Week3Opener from "../../components/home/Week3Opener.astro";
+import pickupPhoto from "../../assets/images/week3-pickup-anatomy.jpg";
 import BenchFrame from "../../components/lab/BenchFrame.astro";
 import BenchBand from "../../components/lab/BenchBand.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
@@ -19,7 +20,7 @@ import PickupBench from "../../components/lab/PickupBench.astro";
 import SignalChainStrip from "../../components/SignalChainStrip.astro";
 import TakeawaysList from "../../components/TakeawaysList.astro";
 
-<LectureIntro week={3} topic="THE PICKUP">
+<Week3Opener week={3} topic="THE PICKUP" title="From Vibration to Voltage" image={pickupPhoto}>
 
 ## How does a magnetic pickup convert string motion into an electrical signal?
 
@@ -31,7 +32,7 @@ into the guitar's own passive circuit, where resistance and capacitance
 start reshaping it before it ever leaves the instrument.
 </p>
 
-</LectureIntro>
+</Week3Opener>
 
 <BenchFrame week={3} topic="THE PICKUP">
 
