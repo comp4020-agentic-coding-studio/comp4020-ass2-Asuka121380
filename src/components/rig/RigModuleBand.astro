@@ -6,7 +6,9 @@
 // only in panel elevation, not a colour flip — one continuous processor
 // environment throughout. A short local connector (not a page-long rail)
 // marks each transition, since a signal is genuinely handing off between
-// stages there. Week-3-exclusive; never imports BenchBand.
+// stages there. Week-3-exclusive; never imports BenchBand. Its inner
+// content sits at RigModuleFrame's own owned width (no local "wide"
+// breakout hack) — the frame is the one place that owns layout width.
 interface Props {
   mode: "model" | "lab";
   label: string;
@@ -18,7 +20,7 @@ const { mode, label } = Astro.props;
 <p class="rig-module-connector" aria-hidden="true"></p>
 <div class:list={["rig-module-band", `rig-module-band--${mode}`]}>
   <p class="rig-module-band-label">{label}</p>
-  <div class="rig-module-band-inner bench-wide">
+  <div class="rig-module-band-inner">
     <slot />
   </div>
 </div>

@@ -28,13 +28,30 @@ const defaultWeights = pickupHarmonicWeights(DEFAULT_POSITION);
 const defaultCycle = harmonicSeriesCycle(defaultWeights);
 ---
 
-<div class="pickup-bench bench-module" id="pickup-bench" data-neck-position={NECK_POSITION} data-bridge-position={BRIDGE_POSITION}>
+<div class="pickup-bench" id="pickup-bench" data-neck-position={NECK_POSITION} data-bridge-position={BRIDGE_POSITION}>
   <div class="lab-header">
     <p class="lab-name">
       <span class="lab-index">LAB 03</span>
-      <span class="lab-title">Pickup position</span>
+      <span class="lab-title">Pickup response</span>
     </p>
     <FootswitchGroup name="pickup-preset" legend="Preset" options={presetOptions} selected="neck" />
+  </div>
+
+  <div class="pickup-signal-row" role="img" aria-label="Input: string motion. Process: pickup, sampled at the knob's position. Output: sensed electrical signal.">
+    <div class="pickup-signal-cell">
+      <span class="pickup-signal-label">Input</span>
+      <span class="pickup-signal-value">String</span>
+    </div>
+    <span class="pickup-signal-arrow" aria-hidden="true">&rarr;</span>
+    <div class="pickup-signal-cell">
+      <span class="pickup-signal-label">Process</span>
+      <span class="pickup-signal-value">Pickup</span>
+    </div>
+    <span class="pickup-signal-arrow" aria-hidden="true">&rarr;</span>
+    <div class="pickup-signal-cell pickup-signal-cell--out">
+      <span class="pickup-signal-label">Output</span>
+      <span class="pickup-signal-value">Signal</span>
+    </div>
   </div>
 
   <Knob id="pickup-position" label="Pickup position (0 = bridge, 0.5 = middle)" min={0.03} max={0.5} step={0.01} value={DEFAULT_POSITION} unit=" × L" />
@@ -47,7 +64,7 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
   <p class="pickup-readout" id="pickup-readout" aria-live="polite"></p>
 
   <div class="lab-controls-row">
-    <AudioDemo id="pickup-audio" label="Listen" />
+    <AudioDemo id="pickup-audio" label="Play" />
     <label class="compare-toggle">
       <input type="checkbox" id="pickup-compare" />
       <span>Compare to previous position</span>
@@ -214,10 +231,54 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
 </script>
 
 <style>
+  /* Deliberately flat — a labelled region of the lab band's own surface,
+     not a bordered/textured card floating on it (Section 9: "no giant
+     glowing panels, no cyan borders around everything, no nested-card
+     hell"). */
   .pickup-bench {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    max-width: 34rem;
+  }
+
+  .pickup-signal-row {
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    border-block: 1px solid var(--bench-line, var(--at-border));
+    padding-block: 0.6rem;
+  }
+
+  .pickup-signal-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 5.5rem;
+  }
+
+  .pickup-signal-label {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--at-text-secondary);
+  }
+
+  .pickup-signal-cell--out .pickup-signal-label {
+    color: var(--bench-phosphor, var(--at-accent));
+  }
+
+  .pickup-signal-value {
+    font-family: var(--bench-readout, var(--at-font-mono));
+    font-size: 0.8rem;
+  }
+
+  .pickup-signal-arrow {
+    align-self: center;
+    color: var(--at-text-muted);
+    padding-inline: 0.15rem;
   }
 
   .lab-header {

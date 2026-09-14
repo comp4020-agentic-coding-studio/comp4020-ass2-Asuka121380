@@ -4,10 +4,13 @@
 // BenchFrame — that component is shared by all 12 weeks and stays
 // untouched, so this is a new, parallel, Week-3-exclusive wrapper that
 // never imports it. Reproduces the same utility class NAMES BenchFrame
-// provides (bench-wide/bench-annotated/bench-eyebrow/bench-module/
-// bench-callout/bench-scope-note/bench-prose) scoped under this frame's own
-// ancestor class, so week-03.mdx's body needs no rewriting — only its
-// imports change. Also defines --bench-phosphor/--bench-line/etc. locally
+// provides (bench-annotated/bench-eyebrow/bench-module/bench-callout/
+// bench-scope-note/bench-prose) scoped under this frame's own ancestor
+// class, so week-03.mdx's body needs no rewriting — only its imports
+// change. Unlike BenchFrame, this frame owns its own inline padding/width
+// directly (no "bench-wide" viewport-breakout hack — see the padding-inline
+// below) since [data-canvas] removes the vendor grid entirely for this
+// page. Also defines --bench-phosphor/--bench-line/etc. locally
 // (not at :root) so PickupBench/PickupDiagram/Knob/Waveform/Spectrum/
 // AudioDemo/FootswitchGroup — all shared, unedited primitives that read
 // these tokens — re-theme automatically inside this frame.
@@ -58,6 +61,15 @@ const weekCode = `WK${String(week).padStart(2, "0")}`;
     color: var(--at-text);
     counter-reset: bench-section;
     display: flow-root;
+
+    /* [data-canvas] (see canvas-reset.css) drops .at-main to display:block,
+       which switches off the vendor grid's inline gutters entirely — this
+       frame owns its own inline padding and max width directly, the same
+       "page owns its layout" pattern RigFrame.astro uses for the Homepage,
+       instead of leaving content flush against the viewport edge. */
+    padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+    max-width: 96rem;
+    margin-inline: auto;
   }
 
   .rig-module-strip {
@@ -87,14 +99,6 @@ const weekCode = `WK${String(week).padStart(2, "0")}`;
     color: var(--at-text-muted);
   }
 
-  .rig-module-frame .bench-wide {
-    --rig-scrollbar-gutter: calc(100vw - 100%);
-    width: calc(100vw - var(--rig-scrollbar-gutter));
-    max-width: min(76rem, 100vw - var(--rig-scrollbar-gutter) - 2 * var(--at-gutter));
-    margin-inline: calc(50% - 50vw + var(--rig-scrollbar-gutter) / 2);
-    box-sizing: border-box;
-  }
-
   .rig-module-frame .bench-annotated {
     display: grid;
     gap: 1.5rem;
@@ -117,16 +121,14 @@ const weekCode = `WK${String(week).padStart(2, "0")}`;
     margin-bottom: 0.35rem;
   }
 
+  /* Deliberately flat, not a bordered/textured card — Section 9's "no
+     giant glowing panels, no nested-card hell": a processor module reads as
+     a labelled region of the same continuous surface, not a box floating
+     on it. A single top rule plus generous padding is enough separation
+     inside a band that already carries its own background. */
   .rig-module-frame .bench-module {
-    border: 1px solid var(--at-border);
-    border-radius: 0.2rem;
-    background: var(--at-bg-alt);
-    background-image:
-      linear-gradient(var(--bench-grid) 1px, transparent 1px),
-      linear-gradient(90deg, var(--bench-grid) 1px, transparent 1px);
-    background-size: 24px 24px;
-    background-position: -1px -1px;
-    padding: 1.25rem;
+    border-block-start: 1px solid var(--bench-line);
+    padding-block-start: 1.25rem;
   }
 
   .rig-module-frame .bench-callout {
