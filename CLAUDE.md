@@ -83,13 +83,62 @@ as physically exact.
 
 ## Visual and audio material
 
-Prefer material made for this course over external assets: generated SVGs,
-signal-flow diagrams, simplified schematics, waveforms, spectra,
-frequency-response plots, conceptual animations. For audio, start synthetic —
-it's controllable, reproducible, and sidesteps copyright, and it's what
-Weeks 1–12 are designed around. Only reach for real guitar recordings if a
-genuinely guitar-specific phenomenon turns out to need one, and treat that as
-a deliberate, separate call, not a default. Never autoplay audio.
+### Visual material
+
+Prefer material made for this course for dynamic phenomena and data
+visualisation: generated SVGs, signal-flow diagrams, simplified schematics,
+waveforms, spectra, frequency-response plots, conceptual animations that
+respond to live parameters. For real structure — pickup anatomy,
+speaker/amplifier construction, guitar hardware, pedal/circuit layout — a
+high-quality real photograph or an existing diagram (Wikimedia Commons,
+public domain, Creative Commons, or manufacturer material with clearly
+permitted reuse) usually teaches better than a from-scratch illustration.
+Record its source and licence next to it.
+
+### Audio material — revised policy (supersedes the original synthetic-first rule)
+
+The original blanket "start synthetic" rule was a reasonable placeholder
+before the full set of guitar-specific demonstrations had been built and
+evaluated. Having now evaluated them, it under-serves any demo that claims to
+represent actual electric-guitar tone rather than an abstract signal or
+mechanism. This is a deliberate revision of the harness, not a one-off
+exception, and it is now the authoritative audio policy:
+
+1. **Abstract signal/DSP concept → synthesis or a physical model.**
+   Sine/square/sawtooth comparison, harmonic-series construction, a
+   plucked-string physical model where the model itself is the teaching
+   point, transfer functions, clipping mathematics, filter-response
+   demonstrations, and similar abstract material stay procedural — the
+   controllability is itself pedagogically useful, and nothing "real" is
+   being represented.
+2. **A demonstration that claims to sound like an actual electric guitar →
+   a real, clean, dry guitar DI recording, processed by local/browser DSP.**
+   Not an oscillator dressed up as a guitar. This covers pickup
+   response/position, guitar electronics, gain and distortion, guitar
+   EQ/filtering, modulation, delay, reverb, and amplifier/cabinet response.
+3. **One canonical DI performance**, reused across every guitar-specific
+   demo it's relevant to, so a student attributes what they hear to the
+   processing — SAME PERFORMANCE → DIFFERENT PROCESSING → DIFFERENT TONE —
+   rather than to a different take, instrument, or recording.
+4. **Judge each case on pedagogical value, not by rule of thumb.** A
+   synthetic or physical model stays if it's genuinely the clearer teaching
+   tool for the underlying mechanism. This is not a blanket instruction to
+   replace every procedural sound.
+5. **Sourcing must be legally safe and minimal in scope**: one clearly
+   licensed recording (CC0/public domain strongly preferred; a compatible CC
+   licence with manageable attribution is acceptable), hosted locally in
+   this repo, with its source and licence documented where it's used. Don't
+   build a sample library — one vetted DI recording should cover most
+   guitar-specific labs.
+6. **Processing stays local, simplified, and visibly connected to its
+   control.** Filtering, EQ, gain, waveshaping/clipping, simplified
+   pickup-response filtering, tone-circuit modelling, modulation, delay,
+   reverb, cabinet filtering/convolution — all client-side DSP on the DI
+   recording, never a claim of commercially accurate amp modelling. The bar
+   is a clearly audible, educationally meaningful CONTROL → SIGNAL CHANGE →
+   AUDIBLE CHANGE relationship, not studio-quality tone.
+
+Never autoplay audio (unchanged from the original rule).
 
 ## Assessments
 
