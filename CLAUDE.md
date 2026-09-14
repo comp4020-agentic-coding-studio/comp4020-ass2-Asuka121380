@@ -85,15 +85,16 @@ as physically exact.
 
 ### Visual material
 
-Prefer material made for this course for dynamic phenomena and data
-visualisation: generated SVGs, signal-flow diagrams, simplified schematics,
-waveforms, spectra, frequency-response plots, conceptual animations that
-respond to live parameters. For real structure — pickup anatomy,
-speaker/amplifier construction, guitar hardware, pedal/circuit layout — a
-high-quality real photograph or an existing diagram (Wikimedia Commons,
-public domain, Creative Commons, or manufacturer material with clearly
-permitted reuse) usually teaches better than a from-scratch illustration.
-Record its source and licence next to it.
+Use the medium that best serves the teaching purpose, not whichever is most
+convenient to generate. For real physical objects — pickup anatomy,
+speaker/amplifier construction, guitar hardware, pedal/circuit layout —
+prefer suitable real photography or a high-quality existing diagram
+(Wikimedia Commons, public domain, Creative Commons, or manufacturer
+material with clearly permitted reuse) where legally usable; record its
+source and licence next to it. For dynamic phenomena, use custom
+interactive graphics when useful. For waveform/spectrum/data visualisation,
+generate them dynamically. Do NOT generate crude SVG illustrations merely
+because SVG is convenient.
 
 ### Audio material — revised policy (supersedes the original synthetic-first rule)
 
@@ -198,41 +199,25 @@ university course site. Aim for a recognisable identity rather than an
 untouched template, but this isn't the main point of the assignment — don't
 trade curriculum time for animation or decorative effects.
 
+The visual design is intentionally unconstrained and may depart
+substantially from the starter template and previous iterations. Do not
+preserve existing layouts, containers, rails, cards, colour systems,
+typography systems, image treatments, or section structures merely for
+consistency. Visual continuity is not a requirement if the current system is
+weak. When a new art direction is requested, prefer re-composition over
+incremental restyling. Shared components may be removed, replaced, or
+bypassed if they constrain the intended visual result. Do not treat the
+starter course-site design as a visual baseline. Do not automatically use
+cards, bordered panels, centred containers, dark bands, or decorative rails.
+Choose layout based on the subject and the current design goal. Real
+photography, sourced diagrams, CSS, Canvas, SVG, or other visual techniques
+may all be used depending on what communicates the concept best. SVG is not
+the default. Cards are not the default. A centred content column is not the
+default. Existing visual components are not sacred.
+
 Make page-structure and visual-design decisions on your own. Escalate only
 when a call would substantially change the course's identity, curriculum,
 assessment structure, or another major commitment already fixed above.
-
-### Revision: signal-processing-environment identity for Homepage and Week 3
-
-An earlier pass gave the Homepage and Week 3 a warm serif/cream editorial
-register (`EditorialFrame`/`EditorialBand`, a persistent accent rail, boxed
-cards). On review that read as soft, lifestyle-oriented editorial design —
-wrong for a course about electric guitar tone. Deliberate harness revision,
-scoped to Homepage and Week 3 only (Weeks 1–12 generally, Sessions,
-Assessment, People, and Policies are unaffected and keep the existing
-registers):
-
-- The identity is **a guitar signal-processing environment that happens to
-  teach a university course** — vocabulary from amp modellers, pedalboard
-  editors, DAWs and professional audio software (signal chains, modules,
-  meters, waveform/spectrum displays, channel strips, routing), not from any
-  one real product. Dark graphite panels, a cyan/teal "active signal" colour,
-  and the existing brand amber reserved for analogue/hardware/source
-  material — not arbitrary decoration.
-- **Consistency comes from a shared system, not from repeating the same
-  box.** A persistent decorative accent rail, a page-long dark "band"
-  inserted into a white page purely for rhythm, and a card for every concept
-  are no longer the default for these two pages. Before making something a
-  card, ask whether it would actually be a card in an audio tool; if not,
-  use plain composition (channels, modules, stages, panels).
-- The existing "oscilloscope/measurement-instrument aesthetics" allowance
-  above stands and is exactly the direction this leans further into — this
-  revision sharpens that allowance for these two pages rather than
-  contradicting it.
-- Software-inspired visual language should structure a page-scale
-  composition, not turn it into a dense software dashboard: large areas of
-  calm space, a few strong modules, restrained hardware cues, no
-  skeuomorphism, no glow/gradient/glassmorphism decoration.
 
 ## PROCESS.md as a working log
 
