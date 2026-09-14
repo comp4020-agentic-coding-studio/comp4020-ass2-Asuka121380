@@ -788,6 +788,50 @@ trimmed for the word count — that curation happens once, at submission time.
   both new checkboxes (`#pickup-compare`, `#gain-compare`) render with their
   labels ("Compare to previous position" / "Compare to previous setting").
 
+- **`0c9ba8b`** — Phase 2 of the post-audit redesign plan: sourced one
+  canonical CC0 dry electric-guitar DI recording and re-wired every
+  guitar-representing demo onto it, per `CLAUDE.md`'s revised audio policy
+  (guitar-representing demos use one real recording processed by local DSP;
+  abstract signal/DSP-concept demos stay synthetic; judged case by case, not
+  by blanket rule). Sourced `di-guitar-e2.wav` from the FreePats project's
+  "Electric Guitar FSBS (direct)" sound bank — CC0 1.0, confirmed via its
+  own `LICENSE.txt` — specifically the open low-E string sample, trimmed to
+  3.5s with a fade-out, resampled to 44.1kHz/16-bit mono, normalised to
+  -6dBFS to leave headroom for the site's own gain/clipping demos to drive
+  it further; full provenance recorded in `src/assets/audio/DI-SOURCE.md`.
+  Added `src/lib/audio/diSample.ts`'s `loadDiGuitarBuffer`, which decodes
+  and caches the recording per `AudioContext`. Re-wired `engine.ts`'s five
+  graph classes (`ClippingGraph`, `ModulationGraph`, `DelayGraph`,
+  `AmplifierGraph`, `CompleteChainGraph`) from `renderPluckedString` onto
+  this buffer, plus the standalone components that build their own inline
+  audio graphs rather than using `engine.ts` (`PickupBench` wk3,
+  `ToneControlBench` wk4, `FilterBench` wk7, `CabinetBench` wk11). Because
+  `decodeAudioData` is async where synthetic buffer construction was
+  synchronous, every affected `start()`/click handler needed a
+  cancellation-flag pattern (a `cancelled` boolean set at `stop()`-time,
+  checked immediately after the `await` before any node is built) so that
+  clicking stop during the pending decode doesn't leave a stale node
+  playing or a stale completion callback firing after a newer graph has
+  already started — applied uniformly across all nine components rather
+  than ad hoc per file. Made two explicit case-by-case judgment calls
+  rather than a blanket conversion: `StringBench` (wk2) stays entirely on
+  `renderPluckedString`, since the plucked-string physical model is itself
+  that week's teaching point, not a stand-in for a real guitar; and
+  `ClippingLab` (wk6) keeps its visual waveform/spectrum diagram and
+  level-compensation reference on the synthetic `pluckedStringExcerpt()`
+  helper even though its audio now plays the real recording, since deriving
+  a static single-cycle diagram from the real (non-periodic) sample would
+  need its own async load just for a UI illustration — its caption was
+  reworded to be honest about this split (real audio, illustrative diagram)
+  rather than silently implying the diagram traces the actual recording.
+  Checked: grepped the whole `src/` tree for `renderPluckedString` after
+  all edits and confirmed only `StringBench.astro` and `pluckedString.ts`
+  itself remain (plus `ClippingLab.astro`'s intentional `pluckedStringExcerpt`
+  diagram usage); ran `pnpm check` clean — typecheck (0 errors, only the
+  same 6 pre-existing hints as before this work), build with axe reporting
+  no accessibility violations across 28 pages, no broken links, deck
+  structure clean, 5/5 vitest tests.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
