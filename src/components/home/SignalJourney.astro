@@ -1,212 +1,165 @@
 ---
-// The homepage's interactive front door into the 12-week structure: one
-// stage per week, in signal order, each a real link into that week's
-// lecture. Reuses SignalChainStrip's canonical stage vocabulary (see
-// src/components/SignalChainStrip.astro) extended with the one-line
-// physical description each week already opens with, so this isn't a new,
-// competing taxonomy — it's the same 12-link chain, given room to breathe.
+// The homepage's compact signal-chain visual: STRING -> PICKUP -> CIRCUIT ->
+// AMP -> SPEAKER -> EAR, six macro-stages rather than twelve boxed cards (the
+// detailed week-by-week list already lives further down the page, in
+// ToneTimeline, sourced live from the lectures collection — this component's
+// only job is to make the whole system readable in one glance, right under
+// the hero). Each stage is a link into a representative week. Colour marks
+// the physical/electrical transitions the brief's "MUSIC ON THE SURFACE.
+// ENGINEERING UNDERNEATH." idea describes: amber where the signal is still
+// physical (a string moving, a speaker moving air, a listener perceiving),
+// cyan — the same --bench-phosphor hue Bench & Booth already uses for
+// "active signal" everywhere else on the site — where it is electrical.
 import { withBase } from "astro-theme-university/url";
 
 interface Stage {
   label: string;
   detail: string;
-  week: number;
   slug: string;
+  domain: "physical" | "signal";
+  glyph: "string" | "pickup" | "circuit" | "amp" | "speaker" | "ear";
 }
 
 const STAGES: Stage[] = [
-  { label: "Player", detail: "A string is set vibrating.", week: 1, slug: "week-01" },
-  { label: "String", detail: "Standing waves fix pitch and harmonic content.", week: 2, slug: "week-02" },
-  { label: "Pickup", detail: "Motion becomes a voltage.", week: 3, slug: "week-03" },
-  { label: "Circuit", detail: "Passive tone and volume shape it first.", week: 4, slug: "week-04" },
-  { label: "Gain", detail: "Amplification pushes the signal toward its limits.", week: 5, slug: "week-05" },
-  { label: "Clipping", detail: "Nonlinear stages reshape the waveform itself.", week: 6, slug: "week-06" },
-  { label: "Filter", detail: "EQ and tone stacks reweight the spectrum.", week: 7, slug: "week-07" },
-  { label: "Modulation", detail: "A slow control creates a sense of motion.", week: 8, slug: "week-08" },
-  { label: "Delay / reverb", detail: "Echoes and reflections build space.", week: 9, slug: "week-09" },
-  { label: "Amplifier", detail: "A staged chain of gain, filtering and clipping, again.", week: 10, slug: "week-10" },
-  { label: "Speaker", detail: "A cabinet colours the signal one last time.", week: 11, slug: "week-11" },
-  { label: "Ear", detail: "A listener perceives the result as tone.", week: 12, slug: "week-12" },
+  { label: "String", detail: "A plucked string vibrates.", slug: "week-01", domain: "physical", glyph: "string" },
+  { label: "Pickup", detail: "Motion becomes a voltage.", slug: "week-03", domain: "signal", glyph: "pickup" },
+  { label: "Circuit", detail: "Passive tone and volume reshape it.", slug: "week-04", domain: "signal", glyph: "circuit" },
+  { label: "Amp", detail: "Gain, clipping and filtering push it further.", slug: "week-05", domain: "signal", glyph: "amp" },
+  { label: "Speaker", detail: "A cabinet turns it back into moving air.", slug: "week-11", domain: "physical", glyph: "speaker" },
+  { label: "Ear", detail: "A listener perceives the result as tone.", slug: "week-12", domain: "physical", glyph: "ear" },
 ];
+
+const GLYPHS: Record<Stage["glyph"], string> = {
+  string: '<path d="M1 12 Q6 3 12 12 T23 12" fill="none" stroke-width="1.6"/>',
+  pickup: '<circle cx="12" cy="12" r="3" fill="none" stroke-width="1.6"/><circle cx="12" cy="12" r="7.5" fill="none" stroke-width="1.6" opacity="0.55"/>',
+  circuit: '<path d="M1 12h4l2-5 4 10 4-10 2 5h4" fill="none" stroke-width="1.6" stroke-linejoin="round"/>',
+  amp: '<path d="M2 18 L14 6 L14 18 Z" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M16 9v6M19 7v10M22 10v4" stroke-width="1.4"/>',
+  speaker: '<path d="M3 9h4l6-5v16l-6-5H3z" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M17 8a6 6 0 0 1 0 8" fill="none" stroke-width="1.4"/>',
+  ear: '<path d="M9 20c-3-2-5-6-5-9a8 8 0 1 1 12 7c-1 1-1 3-1 4a2.5 2.5 0 0 1-5 0" fill="none" stroke-width="1.6" stroke-linecap="round"/>',
+};
 ---
 
-<div class="signal-journey">
-  <p class="signal-journey-caption">
-    Twelve weeks, one signal. Follow it stage by stage — each stop opens the week that covers it.
-    <span class="signal-journey-scroll-hint" aria-hidden="true">Scroll for the full chain &rarr;</span>
+<div class="signal-chain">
+  <p class="signal-chain-caption">
+    One signal, six stages, string to ear. Physical mechanism becomes electrical signal, and back again.
   </p>
-  <div class="signal-journey-rail-wrap">
-    <ol class="signal-journey-rail">
-      {
-        STAGES.map((stage, i) => (
-          <li class="signal-journey-stage">
-            <a href={withBase(`/lectures/${stage.slug}/`)} class="signal-journey-link">
-              <span class="signal-journey-index">{String(stage.week).padStart(2, "0")}</span>
-              <span class="signal-journey-label">{stage.label}</span>
-              <span class="signal-journey-detail">{stage.detail}</span>
-              <span class="signal-journey-cue" aria-hidden="true">&rarr; Bench</span>
-            </a>
-            {i < STAGES.length - 1 && (
-              <span class="signal-journey-arrow" aria-hidden="true">
-                &rarr;
-              </span>
-            )}
-          </li>
-        ))
-      }
-    </ol>
-    <div class="signal-journey-fade" aria-hidden="true"></div>
-  </div>
+  <ol class="signal-chain-row">
+    {
+      STAGES.map((stage, i) => (
+        <li class:list={["signal-chain-stage", `signal-chain-stage--${stage.domain}`]}>
+          <a href={withBase(`/lectures/${stage.slug}/`)} class="signal-chain-link">
+            <span class="signal-chain-glyph" aria-hidden="true" set:html={`<svg viewBox="0 0 24 24">${GLYPHS[stage.glyph]}</svg>`} />
+            <span class="signal-chain-text">
+              <span class="signal-chain-label">{stage.label}</span>
+              <span class="signal-chain-detail">{stage.detail}</span>
+            </span>
+          </a>
+          {i < STAGES.length - 1 && <span class="signal-chain-arrow" aria-hidden="true">&rarr;</span>}
+        </li>
+      ))
+    }
+  </ol>
 </div>
 
 <style>
-  .signal-journey-caption {
-    max-width: 38rem;
+  .signal-chain-caption {
+    max-width: 34rem;
     color: var(--at-text-secondary);
-    margin-block-end: 1.5rem;
+    margin: 0 0 2rem;
   }
 
-  .signal-journey-scroll-hint {
-    display: none;
-    font-size: var(--at-font-size-sm);
-    font-family: var(--at-font-mono);
-    color: var(--editorial-accent, var(--at-accent));
-    letter-spacing: 0.02em;
-    margin-inline-start: 0.75rem;
-  }
-
-  .signal-journey-rail-wrap {
-    position: relative;
-  }
-
-  .signal-journey-fade {
-    display: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 1rem;
-    width: 3rem;
-    pointer-events: none;
-    background: linear-gradient(to right, transparent, var(--editorial-paper, var(--at-bg)));
-  }
-
-  .signal-journey-rail {
+  .signal-chain-row {
     display: flex;
     align-items: stretch;
-    gap: 0.25rem;
+    gap: 0;
     margin: 0;
-    padding: 0 0 1rem;
+    padding: 0;
     list-style: none;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
+    border-top: 1px solid var(--editorial-line-on-paper, var(--at-border));
   }
 
-  .signal-journey-stage {
+  .signal-chain-stage {
     display: flex;
     align-items: center;
-    flex: none;
+    flex: 1 1 0;
+    min-width: 0;
   }
 
-  .signal-journey-link {
-    scroll-snap-align: start;
+  .signal-chain-link {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    width: 11rem;
-    padding: 1rem 1rem 1.1rem;
-    border: 1px solid var(--at-border);
-    border-radius: var(--at-border-radius);
-    background: var(--at-bg-alt);
+    align-items: center;
+    gap: 0.6rem;
+    flex: 1;
+    min-width: 0;
+    padding-block: 1.1rem;
     color: inherit;
     text-decoration: none;
-    transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
   }
 
-  .signal-journey-link:hover,
-  .signal-journey-link:focus-visible {
-    border-color: var(--editorial-accent, var(--at-accent));
-    background: color-mix(in oklch, var(--editorial-accent, var(--at-accent)) 10%, var(--at-bg-alt));
-    transform: translateY(-2px);
-  }
-
-  .signal-journey-index {
-    font-family: var(--at-font-mono);
-    font-size: var(--at-font-size-xs);
-    color: var(--editorial-accent, var(--at-accent));
-    letter-spacing: 0.06em;
-  }
-
-  .signal-journey-label {
-    font-weight: 700;
-    font-size: 1.05rem;
-  }
-
-  .signal-journey-detail {
-    font-size: var(--at-font-size-sm);
-    color: var(--at-text-secondary);
-    line-height: 1.4;
-  }
-
-  /* A quiet, always-visible echo of LectureIntro.astro's "ENTERING THE
-     BENCH" transition marker, scaled down to a per-card cue: every one of
-     these links hands off into a lecture's Bench-register content, so the
-     mode switch is signalled before the click, not just after landing. */
-  .signal-journey-cue {
-    margin-top: auto;
-    padding-top: 0.5rem;
-    font-family: var(--at-font-mono);
-    font-size: var(--at-font-size-xs);
-    letter-spacing: 0.08em;
-    color: var(--editorial-accent, var(--at-accent));
-    opacity: 0.75;
-  }
-
-  .signal-journey-arrow {
+  .signal-chain-glyph {
     flex: none;
-    padding-inline: 0.5rem;
+    display: block;
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  .signal-chain-glyph svg {
+    width: 100%;
+    height: 100%;
+    stroke: var(--editorial-accent, var(--at-accent));
+    transition: stroke 0.15s ease;
+  }
+
+  .signal-chain-stage--signal .signal-chain-glyph svg {
+    stroke: var(--bench-phosphor, var(--editorial-accent));
+  }
+
+  .signal-chain-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .signal-chain-label {
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+  }
+
+  .signal-chain-detail {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: var(--at-text-secondary);
+    overflow-wrap: break-word;
+  }
+
+  .signal-chain-link:hover .signal-chain-label,
+  .signal-chain-link:focus-visible .signal-chain-label {
+    text-decoration: underline;
+    text-decoration-color: var(--editorial-accent, var(--at-accent));
+  }
+
+  .signal-chain-arrow {
+    flex: none;
+    padding-inline: 0.6rem;
     color: var(--at-text-muted);
     align-self: center;
+    font-size: 0.85rem;
+    opacity: 0.6;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .signal-journey-rail {
-      scroll-behavior: auto;
-    }
-  }
-
-  /* Above the point where the rail collapses to a single column, the row of
-     12 fixed-width cards always overflows — show a scroll cue so a sighted
-     mouse user on a desktop-narrow viewport knows there's more to the right. */
-  @media (min-width: 40.01rem) {
-    .signal-journey-scroll-hint {
-      display: inline;
-    }
-
-    .signal-journey-fade {
-      display: block;
-    }
-  }
-
-  @media (max-width: 40rem) {
-    .signal-journey-rail {
+  @media (max-width: 56rem) {
+    .signal-chain-row {
       flex-direction: column;
-      overflow-x: visible;
+      border-top: none;
     }
 
-    .signal-journey-stage {
-      flex-direction: column;
-      align-items: stretch;
-      width: 100%;
+    .signal-chain-stage {
+      border-top: 1px solid var(--editorial-line-on-paper, var(--at-border));
     }
 
-    .signal-journey-link {
-      width: 100%;
-    }
-
-    .signal-journey-arrow {
-      align-self: center;
-      transform: rotate(90deg);
-      padding-block: 0.25rem;
+    .signal-chain-arrow {
+      display: none;
     }
   }
 </style>

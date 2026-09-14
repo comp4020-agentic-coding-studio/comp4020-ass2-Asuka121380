@@ -1,7 +1,10 @@
 ---
-// The homepage's cinematic hero: full-bleed image, a warm-charcoal scrim for
-// legibility, and a large editorial title treatment distinct from the plain
-// ContentLayout hero the rest of the site uses. index.astro renders this
+// The homepage's opening composition: an asymmetric editorial spread (large
+// display title + a real, heavily-cropped guitar photograph), not a boxed
+// hero card floating on a page. Warm bone/cream ground, near-black type,
+// amber accents — the "editorial/physical" half of the site's two visual
+// registers (see EditorialFrame.astro for how this relates to Bench &
+// Booth's cyan-phosphor "engineering" register). index.astro renders this
 // itself (via BaseLayout, not ContentLayout) precisely so it can take over
 // hero markup completely rather than fight the theme's default one.
 import { Image } from "astro:assets";
@@ -20,23 +23,35 @@ const { kicker, title, lede, tags, image } = Astro.props;
 ---
 
 <section class="editorial-hero editorial-wide" aria-label={title}>
-  <div class="editorial-hero-media" aria-hidden="true">
-    <Image src={image} alt="" widths={[768, 1536, 2560]} sizes="100vw" format="avif" loading="eager" fetchpriority="high" class="editorial-hero-image" />
-    <div class="editorial-hero-scrim"></div>
-  </div>
-
-  <div class="editorial-hero-content">
-    <p class="editorial-kicker">{kicker}</p>
+  <div class="editorial-hero-copy">
+    <p class="editorial-hero-meta">
+      <span class="editorial-hero-index">01&ndash;12</span>
+      <span class="editorial-hero-kicker">{kicker}</span>
+    </p>
     <h1 class="editorial-hero-title">{title}</h1>
     <p class="editorial-hero-lede">{lede}</p>
     <ul class="editorial-hero-tags" aria-label="Course tags">
       {tags.map((tag) => <li>{tag}</li>)}
     </ul>
     <a class="editorial-hero-cta" href="#signal-journey">
-      Follow the signal, string to ear
-      <span aria-hidden="true">&darr;</span>
+      Enter the course
+      <span aria-hidden="true">&rarr;</span>
     </a>
   </div>
+
+  <figure class="editorial-hero-figure">
+    <Image
+      src={image}
+      alt="Macro photograph of an electric guitar's fretboard and strings, sharply lit in shallow depth of field."
+      widths={[480, 900, 1350]}
+      sizes="(max-width: 64rem) 90vw, 40vw"
+      format="avif"
+      loading="eager"
+      fetchpriority="high"
+      class="editorial-hero-image"
+    />
+    <figcaption>Photo: Shixart1985 &middot; CC BY 2.0</figcaption>
+  </figure>
 </section>
 
 <p class="visually-hidden">
@@ -44,91 +59,99 @@ const { kicker, title, lede, tags, image } = Astro.props;
 </p>
 
 <style>
+  @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,600&display=swap");
+
   .editorial-hero {
-    position: relative;
     display: grid;
-    min-height: min(46rem, 92svh);
-    border-radius: 0;
-    overflow: clip;
-    color: var(--editorial-on-charcoal);
-    isolation: isolate;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: clamp(2rem, 6vw, 3.5rem);
+    padding-block: clamp(3rem, 9vw, 6rem) clamp(2.5rem, 6vw, 4rem);
   }
 
-  .editorial-hero-media {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
+  .editorial-hero-copy {
+    max-width: 34rem;
   }
 
-  .editorial-hero-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 35%;
+  .editorial-hero-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    margin: 0 0 1.75rem;
+    font-family: var(--at-font-mono);
+    font-size: var(--at-font-size-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--editorial-ink-soft);
   }
 
-  .editorial-hero-scrim {
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(180deg, oklch(15% 0.02 50 / 55%) 0%, oklch(15% 0.02 50 / 78%) 55%, oklch(15% 0.02 50 / 94%) 100%),
-      linear-gradient(90deg, oklch(15% 0.02 50 / 92%) 0%, oklch(15% 0.02 50 / 35%) 55%);
-  }
-
-  .editorial-hero-content {
-    align-self: end;
-    max-width: 44rem;
-    padding-block: clamp(2.5rem, 8vw, 5rem) clamp(2.5rem, 6vw, 4rem);
-    padding-inline-start: 0.1rem;
-  }
-
-  .editorial-kicker {
+  .editorial-hero-index {
     color: var(--editorial-accent);
-    margin-block-end: 1rem;
+    font-size: var(--at-font-size-sm);
+  }
+
+  .editorial-hero-kicker {
+    position: relative;
+    padding-inline-start: 1rem;
+  }
+
+  .editorial-hero-kicker::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 0.6rem;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.5;
   }
 
   .editorial-hero-title {
-    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-family: "Fraunces", "Iowan Old Style", "Source Serif 4", Georgia, serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(2.6rem, 5.6vw, 4.4rem);
     line-height: 0.98;
-    letter-spacing: -0.02em;
-    font-weight: 800;
-    margin: 0 0 1rem;
-    color: var(--editorial-on-charcoal);
+    letter-spacing: -0.01em;
+    margin: 0 0 1.4rem;
+    color: var(--editorial-ink);
   }
 
   .editorial-hero-lede {
-    font-size: clamp(1.05rem, 1.6vw, 1.3rem);
-    line-height: 1.55;
-    color: var(--editorial-on-charcoal-soft);
-    max-width: 38rem;
-    margin: 0 0 1.5rem;
+    font-size: clamp(1.02rem, 1.4vw, 1.2rem);
+    line-height: 1.6;
+    color: var(--editorial-ink-soft);
+    max-width: 34rem;
+    margin: 0 0 1.6rem;
   }
 
   .editorial-hero-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem 0.75rem;
     padding: 0;
-    margin: 0 0 2rem;
+    margin: 0 0 2.25rem;
     list-style: none;
   }
 
   .editorial-hero-tags li {
-    padding: 0.3rem 0.75rem;
-    border-radius: 999px;
-    border: 1px solid var(--editorial-line-on-charcoal);
     font-family: var(--at-font-mono);
     font-size: var(--at-font-size-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--editorial-on-charcoal-soft);
+    letter-spacing: 0.04em;
+    color: var(--editorial-ink-soft);
+  }
+
+  .editorial-hero-tags li:not(:last-child)::after {
+    content: "/";
+    margin-inline-start: 0.75rem;
+    color: var(--editorial-line-on-paper);
   }
 
   .editorial-hero-cta {
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    color: var(--editorial-on-charcoal);
+    color: var(--editorial-ink);
     text-decoration: none;
     font-weight: 600;
     border-bottom: 1px solid var(--editorial-accent);
@@ -143,23 +166,39 @@ const { kicker, title, lede, tags, image } = Astro.props;
 
   .editorial-hero-cta span {
     color: var(--editorial-accent);
-    animation: editorial-cta-bob 1.6s ease-in-out infinite;
   }
 
-  @keyframes editorial-cta-bob {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(0.2em); }
+  .editorial-hero-figure {
+    margin: 0;
+    justify-self: center;
+    width: min(100%, 26rem);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .editorial-hero-cta span {
-      animation: none;
-    }
+  .editorial-hero-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--editorial-line-on-paper);
   }
 
-  @media (max-width: 34rem) {
+  .editorial-hero-figure figcaption {
+    margin-top: 0.5rem;
+    font-family: var(--at-font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    color: var(--editorial-ink-soft);
+    opacity: 0.75;
+  }
+
+  @media (min-width: 64rem) {
     .editorial-hero {
-      min-height: min(38rem, 88svh);
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: clamp(2rem, 5vw, 4.5rem);
+    }
+
+    .editorial-hero-figure {
+      width: 100%;
+      justify-self: end;
     }
   }
 </style>

@@ -157,16 +157,16 @@ const PRESETS: Preset[] = [
 <style>
   .hear-grid {
     display: grid;
-    gap: 1.25rem;
+    gap: 1.75rem 2rem;
     grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-    margin-block-end: 1.25rem;
+    margin-block-end: 1.5rem;
+    padding-block-start: 1.5rem;
+    border-block-start: 1px solid var(--editorial-line-on-paper, var(--at-border));
   }
 
   .hear-card {
-    padding: 1.25rem 1.35rem;
-    border: 1px solid var(--at-border);
-    border-radius: var(--at-border-radius);
-    background: var(--at-bg-alt);
+    padding-inline-start: 1.1rem;
+    border-inline-start: 1px solid var(--editorial-line-on-paper, var(--at-border));
   }
 
   .hear-card h3 {
