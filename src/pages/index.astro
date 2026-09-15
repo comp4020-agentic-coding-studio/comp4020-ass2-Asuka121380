@@ -1,91 +1,77 @@
 ---
-// The Homepage: "the course is the rig" — a guitar signal-processing
-// environment that happens to teach a university course. Renders through
-// RigFrame, a homepage-exclusive register (deliberately not EditorialFrame/
-// EditorialBand, shared with assessments/people/policies/sessions, which
-// stay in the previous register for now), inside a <main data-canvas> that
-// strips the vendor theme's rail and 48rem content grid (see
-// src/styles/canvas-reset.css) so this page owns its own width and margins
-// rather than working around the theme's. One continuous dark workspace:
-// hero (masthead + a large guitar photograph) -> rig overview (the real
-// 12-week signal chain, its own composition) -> tone analysis -> hear the
-// difference -> assessment chain -> practical links. The shared nav also
-// gets a course-first identity on this page (see canvas-reset.css) via the
-// `name`/`logo*` overrides below, scoped to just this page's props.
+// The Homepage, in the TONE visual system (src/styles/tone.css): one
+// continuous instrument surface rather than a course-catalogue page, with the
+// course identity — not the institution — as the primary mark in the nav.
+//
+// `data-tone` on <main> is what dismantles astro-theme-university's page
+// shell (its 48rem body grid, its accent rail, its nav column placement) for
+// this route only; every page not yet redesigned keeps the theme's layout
+// untouched. See src/styles/tone.css for exactly what is undone and why.
+//
+// The composition alternates deliberately rather than stacking equal
+// sections: full-bleed hero, centred method statement, full-bleed signal
+// chain, left-heavy listening bench, right-heavy assessment ladder, and a
+// closing row of routes in.
 import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
-import heroImage from "../assets/images/hero-guitar-strings.jpg";
 import { courseMeta } from "../course-config";
 import { siteConfig } from "../site-config";
-import RigFrame from "../components/rig/RigFrame.astro";
-import RigHero from "../components/rig/RigHero.astro";
-import RigOverview from "../components/rig/RigOverview.astro";
-import ToneAnalysis from "../components/rig/ToneAnalysis.astro";
-import HearTheDifference from "../components/home/HearTheDifference.astro";
-import AssessmentChain from "../components/rig/AssessmentChain.astro";
-import PracticalLinks from "../components/home/PracticalLinks.astro";
-import "../styles/canvas-reset.css";
+import ToneHero from "../components/tone/ToneHero.astro";
+import VocabularyBand from "../components/tone/VocabularyBand.astro";
+import SignalChain from "../components/tone/SignalChain.astro";
+import ListeningBench from "../components/tone/ListeningBench.astro";
+import AssessmentLadder from "../components/tone/AssessmentLadder.astro";
+import RoutesIn from "../components/tone/RoutesIn.astro";
+import "../styles/tone.css";
 ---
 
 <BaseLayout
   title={`${courseMeta.code}: ${courseMeta.title}`}
   description={courseMeta.description}
-  mainAttrs={{ "data-canvas": true }}
+  mainAttrs={{ "data-tone": true }}
   {...siteConfig}
-  name={`${courseMeta.code} / ${courseMeta.title.toUpperCase()}`}
+  name={courseMeta.code}
   logo={undefined}
   logoDark={undefined}
   logoCompact={undefined}
   logoCompactDark={undefined}
 >
-  <RigFrame>
-    <RigHero
-      eyebrow={`${courseMeta.code} · ${courseMeta.session} ${courseMeta.year}`}
-      title={courseMeta.title}
-      lede="Follow one guitar signal from a plucked string to a listener's ear, one stage at a time — string, pickup, circuit, gain, clipping, filtering, modulation, delay and reverb, amplifier, and speaker. No electronics or DSP background assumed; every stage builds its own vocabulary from a waveform or a spectrum, not an adjective."
-      image={heroImage}
-    />
+  {
+    /* The nav renders the course title after the code via CSS, so it can be
+       dropped on its own at narrow widths without the code going with it.
+       The string comes from courseMeta rather than being repeated in the
+       stylesheet. */
+  }
+  <style
+    slot="head"
+    is:inline
+    set:html={`body{--course-title:${JSON.stringify(courseMeta.title)}}`}
+  />
 
-    <section aria-labelledby="rig-overview-heading">
-      <p class="rig-eyebrow">The course is the rig</p>
-      <h2 id="rig-overview-heading">Twelve weeks, one signal chain</h2>
-      <RigOverview />
-    </section>
+  <div class="t-graticule" aria-hidden="true"></div>
 
-    <section aria-labelledby="tone-analysis-heading">
-      <h2 id="tone-analysis-heading" class="visually-hidden">Course philosophy</h2>
-      <ToneAnalysis />
-    </section>
-
-    <section aria-labelledby="hear-heading">
-      <p class="rig-eyebrow">Hear the difference</p>
-      <h2 id="hear-heading">Same source, different processing</h2>
-      <HearTheDifference />
-    </section>
-
-    <section aria-labelledby="assessment-heading">
-      <p class="rig-eyebrow">Analyse &rarr; Manipulate &rarr; Design</p>
-      <h2 id="assessment-heading">How you are assessed</h2>
-      <AssessmentChain />
-    </section>
-
-    <section aria-labelledby="practical-heading">
-      <p class="rig-eyebrow">Getting started</p>
-      <h2 id="practical-heading">Sessions, people, and policies</h2>
-      <PracticalLinks />
-    </section>
-  </RigFrame>
+  <div class="t-layer">
+    <ToneHero />
+    <VocabularyBand />
+    <SignalChain />
+    <ListeningBench />
+    <AssessmentLadder />
+    <RoutesIn />
+  </div>
 </BaseLayout>
 
-<style>
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+<script>
+  // The nav is transparent over the hero and gains a hairline once the page
+  // moves, so the header reads as part of the opening composition at rest.
+  const nav = document.querySelector<HTMLElement>(".at-nav");
+  if (nav) {
+    const sync = () => {
+      if (window.scrollY > 24) nav.dataset.scrolled = "";
+      else delete nav.dataset.scrolled;
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    document.addEventListener("astro:before-swap", () =>
+      window.removeEventListener("scroll", sync),
+    );
   }
-</style>
+</script>

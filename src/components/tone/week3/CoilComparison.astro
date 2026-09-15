@@ -1,0 +1,236 @@
+---
+// Single coil versus humbucker, shown with real pickups rather than drawn
+// approximations: the photographs carry "what it is" — visible copper
+// windings on one, two bobbins side by side on the other — far better than a
+// diagram would, and the diagram carries the one thing a photograph cannot,
+// which is what happens to two signals when you add them.
+//
+// The interference figure is deliberately schematic and deliberately small:
+// the week's stated scope is the broad principle, not the wiring.
+import { Image } from "astro:assets";
+import singleCoil from "../../../assets/images/week3-single-coil-bobbin.jpg";
+import humbucker from "../../../assets/images/week3-humbucker-open.jpg";
+---
+
+<div class="coils">
+  <div class="coils-pair">
+    <figure class="coil">
+      <Image
+        src={singleCoil}
+        alt="A single-coil pickup off the guitar: six cylindrical alnico magnets standing through black flatwork, with thousands of turns of fine enamelled copper wire wound around them, and two cloth-covered leads."
+        widths={[480, 760, 1100]}
+        sizes="(min-width: 52rem) 46vw, 100vw"
+        format="avif"
+        class="coil-image"
+      />
+      <figcaption class="coil-caption">
+        <span class="t-label t-label--copper">One coil</span>
+        <p class="coil-text">
+          A single coil, wound around six magnets that double as its pole
+          pieces. The copper is the whole sensing element — several thousand
+          turns of it. Nothing here rejects an interfering field, which is the
+          source of the mains hum a single coil is known for.
+        </p>
+        <p class="t-label coil-credit">Photo: Roadside Guitars · CC BY-SA 2.0</p>
+      </figcaption>
+    </figure>
+
+    <figure class="coil">
+      <Image
+        src={humbucker}
+        alt="A humbucking pickup with its metal cover removed, seen from above: two black bobbins side by side, one carrying six adjustable slotted screw poles and the other six smooth cylindrical slugs."
+        widths={[480, 760, 1100]}
+        sizes="(min-width: 52rem) 46vw, 100vw"
+        format="avif"
+        class="coil-image"
+      />
+      <figcaption class="coil-caption">
+        <span class="t-label t-label--signal">Two coils</span>
+        <p class="coil-text">
+          The same idea twice, with the cover off. One bobbin carries
+          adjustable screw poles, the other plain slugs — and the two are wound
+          in opposite directions, with opposite magnetic polarity, which is
+          what lets their outputs be added without cancelling the string.
+        </p>
+        <p class="t-label coil-credit">Photo: Stratocaster27 · CC BY-SA 4.0</p>
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="coils-principle">
+    <svg
+      class="coils-diagram"
+      viewBox="0 0 320 170"
+      role="img"
+      aria-label="Two coils wound in opposite directions. Interference arrives at both coils in the same sense and cancels when their outputs are summed, while the string's signal arrives in opposite senses and adds."
+    >
+      <g class="cd-row">
+        <text x="0" y="12" class="cd-label">Interference (both coils alike)</text>
+        <path class="cd-wave cd-wave--noise" d="M 0 34 q 10 -12 20 0 t 20 0 t 20 0 t 20 0" fill="none" />
+        <path class="cd-wave cd-wave--noise" d="M 0 58 q 10 -12 20 0 t 20 0 t 20 0 t 20 0" fill="none" />
+        <text x="112" y="50" class="cd-op">+</text>
+        <line x1="132" y1="46" x2="176" y2="46" class="cd-arrow" />
+        <path class="cd-wave cd-wave--null" d="M 186 46 L 300 46" fill="none" />
+        <text x="243" y="30" class="cd-result cd-result--null">cancels</text>
+      </g>
+
+      <g class="cd-row" transform="translate(0,86)">
+        <text x="0" y="12" class="cd-label">String (coils wound opposite)</text>
+        <path class="cd-wave cd-wave--string" d="M 0 34 q 10 -12 20 0 t 20 0 t 20 0 t 20 0" fill="none" />
+        <path class="cd-wave cd-wave--string" d="M 0 58 q 10 12 20 0 t 20 0 t 20 0 t 20 0" fill="none" />
+        <text x="112" y="50" class="cd-op">+</text>
+        <line x1="132" y1="46" x2="176" y2="46" class="cd-arrow" />
+        <path class="cd-wave cd-wave--sum" d="M 186 46 q 14 -18 28 0 t 28 0 t 28 0 t 28 0" fill="none" />
+        <text x="243" y="22" class="cd-result">adds</text>
+      </g>
+    </svg>
+
+    <p class="t-body coils-note">
+      Interference from nearby equipment reaches both coils the same way, so
+      summing their outputs cancels it. The string does not: because the coils
+      are wound in opposite senses and face opposite magnetic poles, the
+      string's signal arrives inverted in one relative to the other, and
+      summing <em>adds</em> it. The detailed wiring is beyond this week — the
+      principle is that one subtraction can remove what is common to two
+      sensors while keeping what is not.
+    </p>
+  </div>
+</div>
+
+<style>
+  .coils {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .coils-pair {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .coil {
+    margin: 0;
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+  }
+
+  .coil-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    filter: saturate(0.9) contrast(1.04);
+  }
+
+  .coil-caption {
+    display: grid;
+    gap: 0.6rem;
+    /* Overrides the vendor theme's figcaption rule, which adds a bottom
+       border that reads as a stray rule under every caption here. */
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: inherit;
+  }
+
+  .coil-text {
+    margin: 0;
+    font-size: var(--t-small);
+    line-height: 1.6;
+    color: var(--t-dim);
+    text-wrap: pretty;
+  }
+
+  .coil-credit {
+    margin: 0;
+    font-size: 0.5625rem;
+  }
+
+  .coils-principle {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: center;
+    border-block-start: 1px solid var(--t-line);
+    padding-block-start: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .coils-diagram {
+    width: 100%;
+    max-width: 24rem;
+    height: auto;
+  }
+
+  .cd-label {
+    fill: var(--t-mute);
+    font-family: var(--t-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cd-wave {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  .cd-wave--noise {
+    stroke: var(--t-hot);
+    opacity: 0.8;
+  }
+
+  .cd-wave--string {
+    stroke: var(--t-copper);
+  }
+
+  .cd-wave--null {
+    stroke: var(--t-mute);
+    stroke-dasharray: 3 4;
+  }
+
+  .cd-wave--sum {
+    stroke: var(--t-signal);
+    stroke-width: 2;
+  }
+
+  .cd-op {
+    fill: var(--t-mute);
+    font-family: var(--t-mono);
+    font-size: 13px;
+    text-anchor: middle;
+  }
+
+  .cd-arrow {
+    stroke: var(--t-line-strong);
+    stroke-width: 1;
+  }
+
+  .cd-result {
+    fill: var(--t-signal);
+    font-family: var(--t-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-anchor: middle;
+  }
+
+  .cd-result--null {
+    fill: var(--t-mute);
+  }
+
+  .coils-note {
+    margin: 0;
+    max-width: 52ch;
+  }
+
+  @media (min-width: 52rem) {
+    .coils-pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .coils-principle {
+      grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+    }
+  }
+</style>

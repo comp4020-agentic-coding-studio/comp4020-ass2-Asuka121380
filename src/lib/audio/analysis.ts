@@ -84,6 +84,68 @@ export function pickupHarmonicWeights(position: number, harmonics = 8): number[]
   return weights.map((w) => w / peak);
 }
 
+/**
+ * Relative mode amplitudes for a string plucked at fraction `position`,
+ * normalised so they sum to 1 — the weights a *spatial* animation needs, as
+ * opposed to `pluckHarmonicWeights`, which normalises to a peak of 1 because
+ * it feeds a bar chart. Same underlying series: Aₙ ∝ sin(n·π·position) / n².
+ */
+export function modalWeights(position: number, modes = 12): number[] {
+  const weights: number[] = [];
+  for (let n = 1; n <= modes; n++) {
+    weights.push(Math.abs(Math.sin(n * Math.PI * position)) / (n * n));
+  }
+  const total = weights.reduce((sum, w) => sum + w, 0) || 1;
+  return weights.map((w) => w / total);
+}
+
+export interface ModalMotionOptions {
+  /** Fundamental, in Hz. Animations pass a deliberately slowed value. */
+  frequency: number;
+  /** Time constant of the fundamental's decay, in seconds. */
+  decay: number;
+  /** Overall scale applied to both outputs. */
+  amplitude?: number;
+}
+
+/**
+ * Transverse displacement and velocity of an idealised string at fraction
+ * `x` of its length, `t` seconds after a pluck:
+ *
+ *   y(x,t) = Σ wₙ · sin(n·π·x) · cos(2π·n·f·t) · e^(−t/τₙ),  τₙ = decay / n^0.7
+ *
+ * Both outputs land roughly in [−1, 1] for weights from `modalWeights`.
+ * Velocity is returned alongside displacement because the two are not
+ * interchangeable for this course: a pickup responds to dΦ/dt, so anything
+ * showing induced voltage has to read `v`, while anything showing the
+ * string's shape reads `y`. Higher modes are given a shorter time constant,
+ * which is why a real string's tone darkens as a note sustains.
+ *
+ * A teaching model of an ideal flexible string, not a measured instrument:
+ * no stiffness, no coupling to the body, no sympathetic resonance.
+ */
+export function modalDisplacement(
+  weights: ArrayLike<number>,
+  x: number,
+  t: number,
+  { frequency, decay, amplitude = 1 }: ModalMotionOptions,
+): { y: number; v: number } {
+  let y = 0;
+  let v = 0;
+  for (let i = 0; i < weights.length; i++) {
+    const n = i + 1;
+    const shape = Math.sin(n * Math.PI * x);
+    if (shape === 0) continue;
+    const omega = 2 * Math.PI * n * frequency;
+    const tau = decay / Math.pow(n, 0.7);
+    const envelope = Math.exp(-t / tau);
+    const phase = omega * t;
+    y += weights[i] * shape * Math.cos(phase) * envelope;
+    v += weights[i] * shape * -Math.sin(phase) * envelope;
+  }
+  return { y: y * amplitude, v: v * amplitude };
+}
+
 /** Map each sample through a WaveShaperNode-style curve (domain [-1, 1]). */
 export function applyCurve(samples: ArrayLike<number>, curve: ArrayLike<number>): Float64Array {
   const out = new Float64Array(samples.length);

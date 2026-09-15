@@ -1,17 +1,15 @@
 ---
-// Week 3's own top-level route: "the week is a module." Bypasses
-// astro-theme-university's ContentLayout — which would open every page
-// with a generic <h1>{title}</h1> + date + <p class="lead"> before any
-// content, the exact "old course-page H1/date structure" this week must
-// not begin with — and renders straight through BaseLayout instead, so the
-// MDX content's own RigModuleOpener is the first thing on the page.
-// src/pages/lectures/[slug].astro excludes "week-03" from its
-// getStaticPaths so the two routes don't collide; every other week is
-// untouched and keeps using ContentLayout as before.
+// Week 3's own route, so the week can open on its own composition rather than
+// astro-theme-university's ContentLayout, which prints a generic
+// <h1>{title}</h1> + date + lead before any content. The MDX's own WeekOpener
+// is the first thing on the page instead.
 //
-// Renders inside a <main data-canvas> (see src/styles/canvas-reset.css) so
-// this page, like the Homepage, owns its own width/margins instead of the
-// vendor theme's 48rem content grid and rail.
+// src/pages/lectures/[slug].astro excludes "week-03" from its getStaticPaths
+// so the two routes do not collide; every other week keeps ContentLayout
+// untouched until the visual system is propagated to them.
+//
+// `data-tone` on <main> is what dismantles the theme's page shell for this
+// route — see src/styles/tone.css.
 import { render } from "astro:content";
 import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
 import { getPublishedCollection } from "astro-course-university/content";
@@ -21,7 +19,7 @@ import TeachingTeam from "../../components/TeachingTeam.astro";
 import { formatCourseDate } from "../../lib/dates";
 import { courseMeta } from "../../course-config";
 import { graphCollections, siteConfig } from "../../site-config";
-import "../../styles/canvas-reset.css";
+import "../../styles/tone.css";
 
 const [lecture] = await getPublishedCollection("lectures", (entry) => entry.id === "week-03");
 if (!lecture) {
@@ -30,50 +28,129 @@ if (!lecture) {
 
 const { Content } = await render(lecture);
 const title = `Week ${lecture.data.week}: ${lecture.data.title}`;
-const teacherOverrides = (lecture.data as { teacherOverrides?: Record<string, string> }).teacherOverrides;
+const teacherOverrides = (lecture.data as { teacherOverrides?: Record<string, string> })
+  .teacherOverrides;
 ---
 
 <BaseLayout
   title={title}
   description={lecture.data.description ?? undefined}
-  mainAttrs={{ "data-canvas": true }}
+  mainAttrs={{ "data-tone": true }}
   {...siteConfig}
-  name={`${courseMeta.code} / ${courseMeta.title.toUpperCase()}`}
+  name={courseMeta.code}
   logo={undefined}
   logoDark={undefined}
   logoCompact={undefined}
   logoCompactDark={undefined}
 >
-  <Content />
-  {
-    /* The date/slides line ContentLayout would normally print before the
-       content (the "old H1/date structure" Section 8 bans as an opener) is
-       kept — Section 2 requires the functional info to survive — but moved
-       to the close of the page instead, alongside TeachingTeam/
-       RelatedContent, which are shared, unstyled components used
-       identically on all 12 weeks. [data-canvas] only removes the theme's
-       grid for the module composition above; this wrapper deliberately
-       reintroduces the theme's normal reading-column width for this
-       footer block so it still looks like it does on every other week,
-       rather than going full-bleed by accident. */
-  }
-  <div class="lecture-footer-column">
-    <p><strong>{formatCourseDate(lecture.data.date)}</strong></p>
-    {lecture.data.slides && (
-      <p>
-        <a href={withBase(lecture.data.slides)}>Open the slides</a>
-      </p>
-    )}
-    <TeachingTeam teachers={lecture.data.teachers} nameOverrides={teacherOverrides} />
-    <RelatedContent entry={lecture} collections={graphCollections} />
+  {/* See index.astro: the nav appends the course title via CSS. */}
+  <style
+    slot="head"
+    is:inline
+    set:html={`body{--course-title:${JSON.stringify(courseMeta.title)}}`}
+  />
+
+  <div class="t-graticule" aria-hidden="true"></div>
+
+  <div class="t-layer">
+    <Content />
+
+    {
+      /* The date, slides link, teaching team and related content that
+         ContentLayout would normally print above the content. The functional
+         information is kept; it just stops being the page's opening move. */
+    }
+    <div class="week-meta">
+      <div class="t-shell">
+        <dl class="week-meta-facts">
+          <div>
+            <dt class="t-label">Teaching date</dt>
+            <dd>{formatCourseDate(lecture.data.date)}</dd>
+          </div>
+          {
+            lecture.data.slides && (
+              <div>
+                <dt class="t-label">Slides</dt>
+                <dd>
+                  <a class="t-link" href={withBase(lecture.data.slides)}>
+                    Open the deck <span class="t-arrow" aria-hidden="true">&rarr;</span>
+                  </a>
+                </dd>
+              </div>
+            )
+          }
+        </dl>
+
+        <div class="week-meta-related">
+          <TeachingTeam teachers={lecture.data.teachers} nameOverrides={teacherOverrides} />
+          <RelatedContent entry={lecture} collections={graphCollections} />
+        </div>
+      </div>
+    </div>
   </div>
 </BaseLayout>
 
+<script>
+  const nav = document.querySelector<HTMLElement>(".at-nav");
+  if (nav) {
+    const sync = () => {
+      if (window.scrollY > 24) nav.dataset.scrolled = "";
+      else delete nav.dataset.scrolled;
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    document.addEventListener("astro:before-swap", () =>
+      window.removeEventListener("scroll", sync),
+    );
+  }
+</script>
+
 <style>
-  .lecture-footer-column {
-    max-width: var(--at-content-width);
-    margin-inline: auto;
-    padding-inline: var(--at-gutter);
-    padding-block: var(--at-spacing-xl);
+  .week-meta {
+    border-block-start: 1px solid var(--t-line);
+    padding-block: var(--t-band) clamp(3rem, 6vw, 5rem);
+  }
+
+  .week-meta-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin: 0 0 clamp(2rem, 4vw, 3rem);
+  }
+
+  .week-meta-facts dd {
+    margin: 0.4rem 0 0;
+    font-size: 1.05rem;
+    color: var(--t-paper);
+  }
+
+  .week-meta-related {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3rem);
+    color: var(--t-dim);
+  }
+
+  .week-meta-related :global(h2),
+  .week-meta-related :global(h3) {
+    font-size: var(--t-label);
+    font-family: var(--t-mono);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--t-mute);
+  }
+
+  .week-meta-related :global(a) {
+    color: var(--t-paper);
+  }
+
+  .week-meta-related :global(a:hover) {
+    color: var(--t-signal);
+  }
+
+  @media (min-width: 60rem) {
+    .week-meta-related {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 </style>

@@ -632,6 +632,10 @@ export interface CompleteChainOptions {
   ampToneHz: number;
   cabinetProfile: CabinetProfile;
   onEnded?: () => void;
+  /** An extra node the chain's output is copied to, in addition to the
+   *  destination — an AnalyserNode, so a page can display the signal it is
+   *  actually playing rather than a separately-computed picture of it. */
+  tap?: AudioNode;
 }
 
 export class CompleteChainGraph {
@@ -776,6 +780,7 @@ export class CompleteChainGraph {
     this.output.gain.value = CHAIN_OUTPUT_GAIN;
     this.cabinetLowpass.connect(this.output);
     this.output.connect(context.destination);
+    if (options.tap) this.output.connect(options.tap);
 
     this.wireEQPosition(this.eqPosition);
     this.applyParams(options);

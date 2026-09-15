@@ -138,6 +138,16 @@ exception, and it is now the authoritative audio policy:
    recording, never a claim of commercially accurate amp modelling. The bar
    is a clearly audible, educationally meaningful CONTROL → SIGNAL CHANGE →
    AUDIBLE CHANGE relationship, not studio-quality tone.
+7. **One model drives the picture and the sound.** A demonstration must never
+   compute its graph from one model and its audio from another — a control
+   that visibly moves a curve while the tone stays put is worse than no
+   demonstration, because it teaches a relationship that isn't there. Where
+   the two can be literally the same function, make them the same function:
+   Week 3's pickup lab plots |sin(πfp/f₀)| and filters the audio with a comb
+   whose magnitude response *is* |sin(πfp/f₀)| (`src/lib/audio/pickup.ts`),
+   so a predicted null and a measured null land on the same frequency and the
+   lab can draw the analyser's measurement over the prediction. Where they
+   can't, say what the difference is next to the control.
 
 Never autoplay audio (unchanged from the original rule).
 
@@ -191,29 +201,76 @@ those stay judged, by you and at the crit.
 ## Website structure and visual identity
 
 Structure and visual design aren't prescribed by the reference document —
-that's yours to design. Bold, distinctive, or experimental is fine, drawing
-on signal chains, waveforms, spectra, analogue-electronics and
-oscilloscope/measurement-instrument aesthetics if that fits, as long as the
-result stays coherent with the subject and easy to navigate and read as a
-university course site. Aim for a recognisable identity rather than an
-untouched template, but this isn't the main point of the assignment — don't
-trade curriculum time for animation or decorative effects.
+that's yours to design. The result has to stay coherent with the subject and
+easy to navigate and read, but it should read as a designed experience rather
+than a template with a custom colour scheme.
 
-The visual design is intentionally unconstrained and may depart
-substantially from the starter template and previous iterations. Do not
-preserve existing layouts, containers, rails, cards, colour systems,
-typography systems, image treatments, or section structures merely for
-consistency. Visual continuity is not a requirement if the current system is
-weak. When a new art direction is requested, prefer re-composition over
-incremental restyling. Shared components may be removed, replaced, or
-bypassed if they constrain the intended visual result. Do not treat the
-starter course-site design as a visual baseline. Do not automatically use
-cards, bordered panels, centred containers, dark bands, or decorative rails.
-Choose layout based on the subject and the current design goal. Real
-photography, sourced diagrams, CSS, Canvas, SVG, or other visual techniques
-may all be used depending on what communicates the concept best. SVG is not
-the default. Cards are not the default. A centred content column is not the
-default. Existing visual components are not sacred.
+### astro-theme-university is infrastructure, not a visual baseline
+
+The vendored theme supplies routing, content collections, the build pipeline,
+search, the link and accessibility checkers, and the shared `<nav>`/`<footer>`
+elements. It does **not** get to decide page width, composition, spacing, hero
+layout, content alignment, section geometry, or visual hierarchy.
+
+Concretely: the theme makes `body` a five-column grid capped at 48rem, paints
+an accent rail via `body::after`, and places `.at-nav-inner` in that same
+narrow column. Every one of those is dismantled for a page that opts in, by
+`src/styles/tone.css` plus `mainAttrs={{ "data-tone": true }}` on BaseLayout.
+Nothing in `node_modules` is edited; the overrides simply win the cascade.
+A redesigned page owns its own margins and has no grid left to break out of,
+so it must never reach for a per-section "wide" breakout hack.
+
+Do not reintroduce the theme's narrow centred column, its margins, or its
+institutional white framing on a redesigned page. The course identity
+(`SLOP2186 — The Science of Guitar Tone`) is the primary mark; the
+institution is secondary.
+
+### The TONE visual system
+
+`src/styles/tone.css` is the system: colour tokens, the type scale, the
+gutter/shell/grid primitives, the nav and footer treatment, and the motion
+defaults. Read it before adding a component. Its rules:
+
+- **Two signal channels, used semantically and never as decoration.** Copper
+  (`--t-copper`) is the physical/mechanical side — string, magnet, coil,
+  anything you could hold. Cyan (`--t-signal`) is the electrical/measured
+  side — voltage, waveform, spectrum, an active control. `--t-hot` is
+  overload. If a colour is not making one of those distinctions, it is
+  decoration and does not belong.
+- **Typography**: Archivo for everything readable (800 tight for display, 400
+  for body), IBM Plex Mono *only* for technical metadata — units, axis
+  labels, signal-path stages, instrument readouts. Never mono for running
+  text. Both are registered in `astro.config.ts`.
+- **Composition**: body text may be narrow; the page must not be. Alternate
+  deliberately — full-bleed, centred, left-heavy, right-heavy — rather than
+  stacking equal sections. `--t-band` is the one vertical-rhythm token;
+  sections use it as symmetric padding so gaps never accumulate.
+- **Precision**: labels, diagrams and text blocks land on the 12-column
+  `.t-grid` or on a stated fraction, not by eye. If a canvas draws something
+  at 0.63 of its width, the HTML label above it is positioned at 63% too, and
+  the code says so.
+
+Cards, bordered panels, centred containers and decorative rails are not
+defaults. Real photography, sourced diagrams, CSS, Canvas and SVG are all
+available; pick by what teaches, not by what is easy to generate.
+
+### Animation
+
+Motion must serve the subject: a string resolving into a waveform, a signal
+travelling a chain, a spectrum changing, a stage energising. Not fades on
+everything, not particles, not parallax. Every page must still look right as
+a static screenshot, and every animated element's **resting** state is its
+finished state — entry states are applied by script only once motion is known
+to be allowed, so a reduced-motion visitor, or one whose JavaScript fails,
+sees the composition rather than a page of invisible blocks.
+
+### Propagation
+
+The system currently covers the **Homepage** and **Week 3**. Weeks 1–2, 4–12,
+Sessions, Assessment, People and Policies are still on the previous register
+and are deliberately untouched — every rule in `tone.css` is scoped to
+`[data-tone]`. Propagating it is a separate, later piece of work; don't do it
+piecemeal as a side effect of another change.
 
 Make page-structure and visual-design decisions on your own. Escalate only
 when a call would substantially change the course's identity, curriculum,

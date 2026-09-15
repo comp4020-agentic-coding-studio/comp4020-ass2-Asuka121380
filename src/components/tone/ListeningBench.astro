@@ -1,0 +1,611 @@
+---
+// One recording, three chains. The homepage's proof that the course's claim
+// is audible and not just assertable: the performance is held constant so
+// everything a visitor hears is attributable to the processing.
+//
+// The analyser is the point of the composition. Each chain is drawn as an
+// actual signal path with its stages named, and the live spectrum above it is
+// the signal leaving that path right now — so the picture and the sound
+// cannot disagree, which is the standard every demonstration on this site is
+// held to.
+import { withBase } from "astro-theme-university/url";
+import type { CompleteChainOptions } from "../../lib/audio/engine";
+
+interface Preset {
+  id: string;
+  name: string;
+  summary: string;
+  /** Named stages, in order, as the signal actually passes through them. */
+  path: string[];
+  params: Omit<CompleteChainOptions, "onEnded" | "tap">;
+}
+
+const PRESETS: Preset[] = [
+  {
+    id: "bench-clean",
+    name: "Clean",
+    summary:
+      "Neck position, little gain, a wide-open filter. Close to the string's own shape.",
+    path: ["Neck", "EQ 6k", "Gain ×0.5", "Amp", "Flat cab"],
+    params: {
+      pickupPosition: "neck",
+      eqCutoffHz: 6000,
+      eqPosition: "pre",
+      drive: 0.5,
+      topology: "symmetric-soft",
+      modulationOn: false,
+      modulationDepth: 0,
+      delayMode: "off",
+      delayAmount: 0,
+      ampDrive: 0.6,
+      ampToneHz: 5000,
+      cabinetProfile: "flat",
+    },
+  },
+  {
+    id: "bench-driven",
+    name: "Driven",
+    summary:
+      "Bridge position, a darker filter, and enough gain to round the peaks asymmetrically.",
+    path: ["Bridge", "EQ 3k", "Gain ×4", "Asym. clip", "Amp", "Dark cab"],
+    params: {
+      pickupPosition: "bridge",
+      eqCutoffHz: 3000,
+      eqPosition: "pre",
+      drive: 4,
+      topology: "asymmetric-soft",
+      modulationOn: false,
+      modulationDepth: 0,
+      delayMode: "off",
+      delayAmount: 0,
+      ampDrive: 3,
+      ampToneHz: 2400,
+      cabinetProfile: "dark",
+    },
+  },
+  {
+    id: "bench-full",
+    name: "Full chain",
+    summary:
+      "Every stage engaged at once: fuzz clipping, modulation, reverb, a resonant cabinet.",
+    path: ["Bridge", "Gain ×6", "Fuzz", "EQ 2k2", "Mod", "Reverb", "Amp", "Res. cab"],
+    params: {
+      pickupPosition: "bridge",
+      eqCutoffHz: 2200,
+      eqPosition: "post",
+      drive: 6,
+      topology: "fuzz",
+      modulationOn: true,
+      modulationDepth: 0.5,
+      delayMode: "reverb",
+      delayAmount: 0.55,
+      ampDrive: 4,
+      ampToneHz: 2000,
+      cabinetProfile: "resonant",
+    },
+  },
+];
+
+const presetData = PRESETS.map(({ id, params }) => ({ id, params }));
+---
+
+<section
+  class="bench t-band"
+  id="listening-bench"
+  aria-labelledby="bench-heading"
+  data-bench
+  data-presets={JSON.stringify(presetData)}
+>
+  <div class="t-shell">
+    <div class="t-grid bench-head">
+      <div class="bench-head-main">
+        <p class="t-label">Listening bench</p>
+        <h2 class="t-h1" id="bench-heading">
+          One performance.<br />Three signal chains.
+        </h2>
+      </div>
+      <p class="t-body bench-head-note">
+        The same dry recording of an open low E runs through all three — the
+        course's one canonical DI take, reused by every guitar demonstration on
+        the site. Nothing about the playing changes between them, so anything
+        you hear change is the processing.
+      </p>
+    </div>
+
+    <div class="bench-instrument">
+      <div class="bench-scope">
+        <canvas
+          class="bench-scope-canvas"
+          data-bench-scope
+          role="img"
+          aria-label="A live spectrum analyser. While a chain is playing it shows the frequency content of the signal leaving that chain; at rest it shows a flat line."
+        ></canvas>
+        <div class="bench-scope-chrome" aria-hidden="true">
+          <span class="t-label bench-scope-title" data-bench-scope-title>No signal</span>
+          <span class="t-label bench-scope-axis">20 Hz — 8 kHz</span>
+        </div>
+      </div>
+
+      <ol class="bench-chains" role="list">
+        {
+          PRESETS.map((preset, i) => (
+            <li class="bench-chain" data-bench-chain={preset.id}>
+              <div class="bench-chain-head">
+                <span class="t-label bench-chain-index">CH {String(i + 1).padStart(2, "0")}</span>
+                <h3 class="t-h3 bench-chain-name">{preset.name}</h3>
+              </div>
+
+              <ol class="bench-path" role="list" aria-label={`${preset.name} signal path`}>
+                <li class="bench-path-step bench-path-step--source">DI</li>
+                {preset.path.map((step) => (
+                  <li class="bench-path-step">{step}</li>
+                ))}
+              </ol>
+
+              <p class="t-body bench-chain-summary">{preset.summary}</p>
+
+              <button
+                type="button"
+                class="bench-play"
+                id={`${preset.id}-toggle`}
+                aria-pressed="false"
+              >
+                <span class="bench-play-led" aria-hidden="true" />
+                <span class="bench-play-text">
+                  <span class="bench-play-on" aria-hidden="true">Stop</span>
+                  <span class="bench-play-off" aria-hidden="true">Play</span>
+                  <span class="visually-hidden">{`Play the ${preset.name} chain`}</span>
+                </span>
+              </button>
+            </li>
+          ))
+        }
+      </ol>
+
+      <p class="bench-note">
+        Audio never plays on its own — press play to start, press again to
+        stop. The processing is simplified browser DSP built to make one
+        relationship audible at a time, not an emulation of any particular
+        amplifier or pedal. <a class="bench-note-link" href={withBase("/lectures/week-05/")}>Week 5</a>
+        {" "}onward takes each stage apart on its own.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import type { CompleteChainOptions } from "../../lib/audio/engine";
+  import { CompleteChainGraph } from "../../lib/audio/engine";
+
+  interface PresetData {
+    id: string;
+    params: Omit<CompleteChainOptions, "onEnded" | "tap">;
+  }
+
+  const FFT_SIZE = 2048;
+  /** The analyser's bins run to Nyquist; guitar content worth drawing stops
+   *  well before that, so only the low fraction of the array is plotted. */
+  const TOP_HZ = 8000;
+
+  for (const section of document.querySelectorAll<HTMLElement>("[data-bench]")) {
+    if (section.dataset.benchInit) continue;
+    section.dataset.benchInit = "true";
+
+    const presets: PresetData[] = JSON.parse(section.dataset.presets ?? "[]");
+    const canvas = section.querySelector<HTMLCanvasElement>("[data-bench-scope]");
+    const title = section.querySelector<HTMLElement>("[data-bench-scope-title]");
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) continue;
+
+    const styles = getComputedStyle(section);
+    const signal = styles.getPropertyValue("--t-signal").trim() || "#59ddd2";
+    const faint = styles.getPropertyValue("--t-faint").trim() || "rgba(255,255,255,0.12)";
+
+    let context: AudioContext | null = null;
+    let analyser: AnalyserNode | null = null;
+    let graph: CompleteChainGraph | null = null;
+    let activeId: string | null = null;
+    let frame = 0;
+    let bins: Uint8Array<ArrayBuffer> | null = null;
+
+    let width = 0;
+    let height = 0;
+
+    function resize(): void {
+      const rect = canvas!.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = Math.max(1, Math.round(rect.width));
+      height = Math.max(1, Math.round(rect.height));
+      canvas!.width = Math.round(width * dpr);
+      canvas!.height = Math.round(height * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    const MIN_HZ = 20;
+    const LOG_MIN = Math.log10(MIN_HZ);
+    const LOG_MAX = Math.log10(TOP_HZ);
+    const GRID_HZ = [50, 100, 200, 500, 1000, 2000, 5000];
+
+    function xForHz(hz: number): number {
+      return ((Math.log10(hz) - LOG_MIN) / (LOG_MAX - LOG_MIN)) * width;
+    }
+
+    /** The instrument's own graticule — drawn whether or not anything is
+     *  playing, so the display reads as a measurement surface at rest rather
+     *  than an empty box waiting to be filled. */
+    function drawGraticule(): void {
+      ctx!.clearRect(0, 0, width, height);
+      ctx!.lineWidth = 1;
+      ctx!.font = '9px var(--t-mono, ui-monospace), ui-monospace, monospace';
+      ctx!.textBaseline = "bottom";
+
+      for (const hz of GRID_HZ) {
+        const x = Math.round(xForHz(hz)) + 0.5;
+        ctx!.beginPath();
+        ctx!.moveTo(x, 0);
+        ctx!.lineTo(x, height - 14);
+        ctx!.strokeStyle = faint;
+        ctx!.stroke();
+
+        ctx!.fillStyle = "rgba(241,239,234,0.28)";
+        ctx!.textAlign = "center";
+        ctx!.fillText(hz >= 1000 ? `${hz / 1000}k` : String(hz), x, height - 3);
+      }
+
+      ctx!.beginPath();
+      ctx!.moveTo(0, height - 14.5);
+      ctx!.lineTo(width, height - 14.5);
+      ctx!.strokeStyle = faint;
+      ctx!.stroke();
+    }
+
+    function drawIdle(): void {
+      drawGraticule();
+    }
+
+    function drawSpectrum(): void {
+      if (!analyser || !context || !bins) return;
+      analyser.getByteFrequencyData(bins);
+
+      const nyquist = context.sampleRate / 2;
+      const usable = Math.max(2, Math.floor((TOP_HZ / nyquist) * bins.length));
+      const floorY = height - 15;
+
+      drawGraticule();
+
+      // Logarithmic frequency axis: on a linear one, everything a guitar
+      // actually does is squeezed into the leftmost eighth of the display.
+      ctx!.beginPath();
+      ctx!.moveTo(0, floorY);
+      for (let i = 1; i < usable; i++) {
+        const hz = (i / bins.length) * nyquist;
+        const x = xForHz(hz);
+        const y = floorY - (bins[i] / 255) * (floorY - 6);
+        if (x < 0) continue;
+        ctx!.lineTo(x, y);
+      }
+      ctx!.lineTo(width, floorY);
+      ctx!.closePath();
+
+      const fill = ctx!.createLinearGradient(0, 0, 0, floorY);
+      fill.addColorStop(0, "rgba(89,221,210,0.34)");
+      fill.addColorStop(1, "rgba(89,221,210,0.02)");
+      ctx!.fillStyle = fill;
+      ctx!.fill();
+
+      ctx!.strokeStyle = signal;
+      ctx!.lineWidth = 1.4;
+      ctx!.lineJoin = "round";
+      ctx!.stroke();
+
+      frame = requestAnimationFrame(drawSpectrum);
+    }
+
+    function setPressed(id: string, playing: boolean): void {
+      document.getElementById(`${id}-toggle`)?.setAttribute("aria-pressed", String(playing));
+      section
+        .querySelector(`[data-bench-chain="${id}"]`)
+        ?.toggleAttribute("data-playing", playing);
+    }
+
+    function stopActive(): void {
+      graph?.stop();
+      if (activeId) setPressed(activeId, false);
+      graph = null;
+      activeId = null;
+      cancelAnimationFrame(frame);
+      if (title) title.textContent = "No signal";
+      drawIdle();
+    }
+
+    for (const preset of presets) {
+      const button = document.getElementById(`${preset.id}-toggle`);
+      if (!button) continue;
+
+      button.addEventListener("click", async () => {
+        const wasActive = activeId === preset.id;
+        stopActive();
+        if (wasActive) return;
+
+        context = context ?? new AudioContext();
+        if (!analyser) {
+          analyser = context.createAnalyser();
+          analyser.fftSize = FFT_SIZE;
+          analyser.smoothingTimeConstant = 0.78;
+          bins = new Uint8Array(analyser.frequencyBinCount);
+        }
+
+        const started = new CompleteChainGraph(context, {
+          ...preset.params,
+          tap: analyser,
+          onEnded: () => {
+            if (activeId === preset.id) stopActive();
+          },
+        });
+        graph = started;
+        activeId = preset.id;
+        await started.start();
+        if (graph !== started) return;
+
+        setPressed(preset.id, true);
+        if (title) {
+          const name = section.querySelector(
+            `[data-bench-chain="${preset.id}"] .bench-chain-name`,
+          )?.textContent;
+          title.textContent = name ? `${name} — output spectrum` : "Output spectrum";
+        }
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(drawSpectrum);
+      });
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+      if (!activeId) drawIdle();
+    });
+    resize();
+    drawIdle();
+    resizeObserver.observe(canvas);
+
+    document.addEventListener("astro:before-swap", () => {
+      stopActive();
+      resizeObserver.disconnect();
+    });
+  }
+</script>
+
+<style>
+  .bench-head-main {
+    grid-column: 1 / 8;
+  }
+
+  .bench-head-main .t-label {
+    margin-block-end: 1rem;
+  }
+
+  .bench-head-note {
+    grid-column: 9 / 13;
+    align-self: end;
+    margin: 0;
+    font-size: var(--t-small);
+  }
+
+  .bench-instrument {
+    margin-block-start: clamp(2.5rem, 5vw, 3.5rem);
+    border-block-start: 1px solid var(--t-line-strong);
+  }
+
+  .bench-scope {
+    position: relative;
+    background: linear-gradient(to bottom, var(--t-deep), var(--t-void));
+  }
+
+  .bench-scope-canvas {
+    display: block;
+    width: 100%;
+    height: clamp(7rem, 14vw, 11rem);
+  }
+
+  .bench-scope-chrome {
+    position: absolute;
+    inset: 0.85rem 1rem auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    pointer-events: none;
+  }
+
+  .bench-scope-title {
+    color: var(--t-signal);
+  }
+
+  .bench-chains {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--t-line);
+  }
+
+  .bench-chain {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 1rem;
+    padding: 1.75rem clamp(1rem, 2vw, 2rem) 1.75rem 0;
+    border-inline-start: 1px solid var(--t-line);
+    padding-inline-start: clamp(1rem, 2vw, 2rem);
+    transition: background 0.3s ease;
+  }
+
+  .bench-chain:first-child {
+    border-inline-start: none;
+    padding-inline-start: 0;
+  }
+
+  .bench-chain[data-playing] {
+    background: var(--t-signal-glow);
+  }
+
+  .bench-chain-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+  }
+
+  .bench-chain-index {
+    display: inline;
+    flex: none;
+  }
+
+  .bench-chain[data-playing] .bench-chain-index {
+    color: var(--t-signal);
+  }
+
+  .bench-chain-name {
+    margin: 0;
+  }
+
+  /* The signal path, drawn as it runs: stage chips separated by a connector
+     rather than a comma list, so the order is visibly an order. */
+  .bench-path {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bench-path-step {
+    font-family: var(--t-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--t-dim);
+    border: 1px solid var(--t-line);
+    border-radius: 1rem;
+    padding: 0.2rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .bench-path-step--source {
+    color: var(--t-copper);
+    border-color: var(--t-copper-dim);
+  }
+
+  .bench-path-step + .bench-path-step::before {
+    content: "";
+    display: inline-block;
+    width: 0.45rem;
+    height: 1px;
+    background: var(--t-line-strong);
+    margin-inline-end: 0.45rem;
+    vertical-align: middle;
+  }
+
+  .bench-chain-summary {
+    margin: 0;
+    font-size: var(--t-small);
+  }
+
+  .bench-play {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    justify-self: start;
+    padding: 0.55rem 1.1rem;
+    background: transparent;
+    border: 1px solid var(--t-line-strong);
+    border-radius: 2rem;
+    color: var(--t-paper);
+    font-family: var(--t-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+
+  .bench-play:hover {
+    border-color: var(--t-signal);
+    color: var(--t-signal);
+  }
+
+  .bench-play-led {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--t-edge);
+    flex: none;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .bench-play[aria-pressed="true"] {
+    border-color: var(--t-signal);
+    background: var(--t-signal);
+    color: var(--t-void);
+  }
+
+  .bench-play[aria-pressed="true"] .bench-play-led {
+    background: var(--t-void);
+    box-shadow: none;
+  }
+
+  .bench-play-on {
+    display: none;
+  }
+
+  .bench-play[aria-pressed="true"] .bench-play-on {
+    display: inline;
+  }
+
+  .bench-play[aria-pressed="true"] .bench-play-off {
+    display: none;
+  }
+
+  .bench-note {
+    margin: 0;
+    border-block-start: 1px solid var(--t-line);
+    padding-block: 1.25rem;
+    font-size: 0.8125rem;
+    color: var(--t-mute);
+    max-width: 68ch;
+  }
+
+  .bench-note-link {
+    color: var(--t-dim);
+    text-decoration-color: var(--t-line-strong);
+  }
+
+  .bench-note-link:hover {
+    color: var(--t-signal);
+  }
+
+  @media (width < 60rem) {
+    .bench-head-main,
+    .bench-head-note {
+      grid-column: 1 / -1;
+    }
+
+    .bench-head-note {
+      margin-block-start: 1.25rem;
+    }
+
+    .bench-chains {
+      grid-template-columns: 1fr;
+    }
+
+    .bench-chain {
+      border-inline-start: none;
+      padding-inline: 0;
+      border-block-end: 1px solid var(--t-line);
+    }
+
+    .bench-chain[data-playing] {
+      padding-inline: 1rem;
+      margin-inline: -1rem;
+    }
+  }
+</style>

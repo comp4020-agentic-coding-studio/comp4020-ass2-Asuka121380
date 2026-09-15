@@ -1,0 +1,393 @@
+---
+// The course as one continuous signal path: twelve weeks strung along a
+// single line that runs the full width of the viewport. It is the homepage's
+// main navigation as well as its main diagram — every stage is a real link to
+// its week.
+//
+// The rail is built as a grid of equal cells with one line drawn through
+// them, rather than twelve cards laid side by side, so the eye reads a
+// *chain* and not a catalogue. Copper marks the stages where the signal is
+// mechanical (a moving string, a moving cone); cyan marks the stages where it
+// is electrical. That single colour change across the row is the whole
+// course: two transductions, ten stages of processing in between.
+//
+// On scroll the line draws itself left to right and the stages energise in
+// sequence — the signal arriving. It starts fully drawn and only rewinds when
+// motion is allowed, so a reduced-motion visitor and a visitor whose
+// JavaScript fails both get the finished picture.
+import { getPublishedCollection } from "astro-course-university/content";
+import { withBase } from "astro-theme-university/url";
+import { waveformPath } from "../../lib/draw/svgTrace";
+import { stageCycle } from "../../lib/course/stageTrace";
+import { stageMeta } from "../../lib/course/stages";
+
+const lectures = (await getPublishedCollection("lectures")).sort((a, b) => a.data.week - b.data.week);
+
+const stages = lectures.map((lecture) => {
+  const meta = stageMeta(lecture.data.week);
+  return {
+    href: withBase(`/lectures/${lecture.id}/`),
+    week: String(lecture.data.week).padStart(2, "0"),
+    title: lecture.data.title,
+    trace: waveformPath(stageCycle(lecture.data.week), { width: 100, height: 26, padding: 2 }),
+    ...meta,
+  };
+});
+
+const firstSignal = stages.findIndex((stage) => stage.domain === "signal");
+const lastSignal = stages.map((stage) => stage.domain).lastIndexOf("signal");
+---
+
+<section class="chain" id="chain" aria-labelledby="chain-heading" data-chain>
+  <div class="t-shell chain-head">
+    <div class="t-grid">
+      <div class="chain-head-main">
+        <p class="t-label">The course</p>
+        <h2 class="t-h1" id="chain-heading">Twelve weeks, one signal chain</h2>
+      </div>
+      <p class="t-body chain-head-note">
+        Each week is the next stage the signal passes through, and takes as its
+        input whatever the week before it produced. Two of those stages are
+        transductions — where the signal stops being one kind of thing and
+        starts being another.
+      </p>
+    </div>
+  </div>
+
+  <div class="t-bleed chain-rail-wrap">
+    <div class="chain-legend" aria-hidden="true">
+      <span class="chain-legend-item chain-legend-item--copper">Mechanical</span>
+      <span class="chain-legend-item chain-legend-item--signal">Electrical</span>
+    </div>
+
+    <ol class="chain-rail" role="list">
+      {
+        stages.map((stage, i) => (
+          <li
+            class:list={["chain-stage", `chain-stage--${stage.domain}`]}
+            style={`--i:${i}`}
+            data-transduction={i === firstSignal || i === lastSignal + 1 ? "" : undefined}
+          >
+            <a class="chain-stage-link" href={stage.href}>
+              <span class="chain-stage-week t-num">{stage.week}</span>
+
+              <span class="chain-stage-wire" aria-hidden="true">
+                <svg class="chain-stage-trace" viewBox="0 0 100 26" preserveAspectRatio="none">
+                  <path d={stage.trace} fill="none" />
+                </svg>
+                <span class="chain-stage-node" />
+              </span>
+
+              <span class="chain-stage-tag">{stage.tag}</span>
+              <span class="chain-stage-title">{stage.title}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<script>
+  const RAIL_STAGGER = 55;
+
+  for (const section of document.querySelectorAll<HTMLElement>("[data-chain]")) {
+    if (section.dataset.chainInit) continue;
+    section.dataset.chainInit = "true";
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) continue;
+
+    const stages = Array.from(section.querySelectorAll<HTMLElement>(".chain-stage"));
+    // Rewind only now that JS is known to be running: the markup's resting
+    // state is "arrived", so nothing can get stuck invisible.
+    for (const stage of stages) stage.dataset.pending = "";
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          stages.forEach((stage, i) => {
+            window.setTimeout(() => delete stage.dataset.pending, i * RAIL_STAGGER);
+          });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.12 },
+    );
+
+    observer.observe(section);
+    document.addEventListener("astro:before-swap", () => observer.disconnect());
+  }
+</script>
+
+<style>
+  .chain {
+    padding-block: var(--t-band);
+  }
+
+  .chain-head-main {
+    grid-column: 1 / 8;
+  }
+
+  .chain-head-main .t-label {
+    margin-block-end: 1rem;
+  }
+
+  .chain-head-note {
+    grid-column: 9 / 13;
+    align-self: end;
+    margin: 0;
+    font-size: var(--t-small);
+  }
+
+  .chain-rail-wrap {
+    margin-block-start: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .chain-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-block-end: 1rem;
+  }
+
+  .chain-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--t-mute);
+  }
+
+  .chain-legend-item::before {
+    content: "";
+    width: 1.5rem;
+    height: 1px;
+  }
+
+  .chain-legend-item--copper::before {
+    background: var(--t-copper);
+  }
+
+  .chain-legend-item--signal::before {
+    background: var(--t-signal);
+  }
+
+  .chain-rail {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chain-stage {
+    min-width: 0;
+  }
+
+  /* Four rows, every cell the same shape: index, trace, stage name, week
+     title. The stage's one-line summary is deliberately not here — the tag
+     and the title already carry it, and twelve blurbs across one row is the
+     fastest way to turn a chain back into a catalogue. */
+  .chain-stage-link {
+    display: grid;
+    grid-template-rows: auto auto auto 1fr;
+    gap: 0.5rem;
+    height: 100%;
+    padding-block: 0.25rem 1.25rem;
+    padding-inline-end: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .chain-stage-week {
+    font-size: var(--t-label);
+    letter-spacing: 0.1em;
+    color: var(--t-mute);
+    transition: color 0.3s ease;
+  }
+
+  /* The rail itself: one hairline per cell, which reads as a single
+     continuous line because the cells tile with no gap. */
+  .chain-stage-wire {
+    position: relative;
+    display: block;
+    height: 2.25rem;
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .chain-stage-trace {
+    position: absolute;
+    inset: 0 0.5rem 0 0;
+    width: calc(100% - 0.5rem);
+    height: 100%;
+    overflow: visible;
+  }
+
+  .chain-stage-trace path {
+    stroke: var(--t-line-strong);
+    stroke-width: 1.25;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    transition: stroke 0.45s ease;
+  }
+
+  /* The node sits ON the rail, at the cell's leading edge, so the twelve of
+     them form an evenly spaced row of measurement points. */
+  .chain-stage-node {
+    position: absolute;
+    inset-block-end: -3.5px;
+    inset-inline-start: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--t-edge);
+    transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  /* The two points where the signal changes kind get a taller marker — the
+     only visual emphasis on the rail, and it marks the thing that matters. */
+  .chain-stage[data-transduction] .chain-stage-node {
+    width: 3px;
+    height: 1.1rem;
+    border-radius: 0;
+    inset-block-end: -0.45rem;
+  }
+
+  .chain-stage-tag {
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--t-mute);
+    transition: color 0.3s ease;
+  }
+
+  .chain-stage--physical .chain-stage-tag {
+    color: var(--t-copper);
+  }
+
+  .chain-stage--signal .chain-stage-tag {
+    color: var(--t-signal);
+  }
+
+  .chain-stage-title {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    font-weight: 500;
+    color: var(--t-dim);
+    text-wrap: pretty;
+    transition: color 0.3s ease;
+  }
+
+  /* Hover/focus raises one stage out of the row without moving anything. */
+  .chain-stage-link:hover .chain-stage-node,
+  .chain-stage-link:focus-visible .chain-stage-node {
+    transform: scale(1.5);
+  }
+
+  .chain-stage--physical .chain-stage-link:hover .chain-stage-node,
+  .chain-stage--physical .chain-stage-link:focus-visible .chain-stage-node {
+    background: var(--t-copper);
+    box-shadow: 0 0 10px var(--t-copper-dim);
+  }
+
+  .chain-stage--signal .chain-stage-link:hover .chain-stage-node,
+  .chain-stage--signal .chain-stage-link:focus-visible .chain-stage-node {
+    background: var(--t-signal);
+    box-shadow: 0 0 10px var(--t-signal-dim);
+  }
+
+  .chain-stage-link:hover .chain-stage-week,
+  .chain-stage-link:focus-visible .chain-stage-week {
+    color: var(--t-paper);
+  }
+
+  .chain-stage--physical .chain-stage-link:hover .chain-stage-trace path,
+  .chain-stage--physical .chain-stage-link:focus-visible .chain-stage-trace path {
+    stroke: var(--t-copper);
+  }
+
+  .chain-stage--signal .chain-stage-link:hover .chain-stage-trace path,
+  .chain-stage--signal .chain-stage-link:focus-visible .chain-stage-trace path {
+    stroke: var(--t-signal);
+  }
+
+  .chain-stage-link:hover .chain-stage-title,
+  .chain-stage-link:focus-visible .chain-stage-title {
+    color: var(--t-paper);
+  }
+
+  /* Resting state is arrived. `data-pending` is added by script only when
+     motion is allowed, and removed on a stagger as the rail scrolls in. */
+  @media (prefers-reduced-motion: no-preference) {
+    .chain-stage {
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .chain-stage[data-pending] {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+
+    .chain-stage[data-pending] .chain-stage-node {
+      transform: scale(0.2);
+    }
+  }
+
+  /* Recomposed, not shrunk: the twelve-across rail becomes six, then three,
+     then a vertical list where the rail runs down the leading edge. */
+  @media (width < 78rem) {
+    .chain-rail {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      row-gap: 2rem;
+    }
+  }
+
+  @media (width < 60rem) {
+    .chain-head-main,
+    .chain-head-note {
+      grid-column: 1 / -1;
+    }
+
+    .chain-head-note {
+      margin-block-start: 1.25rem;
+    }
+
+    .chain-rail {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (width < 34rem) {
+    .chain-rail {
+      grid-template-columns: 1fr;
+      row-gap: 0;
+    }
+
+    .chain-stage-link {
+      grid-template-columns: 2.5rem 1fr;
+      grid-template-rows: auto auto;
+      align-items: center;
+      column-gap: 1rem;
+      padding-block: 0.9rem;
+      border-block-end: 1px solid var(--t-line);
+    }
+
+    .chain-stage-week {
+      grid-row: 1 / 3;
+    }
+
+    .chain-stage-wire {
+      display: none;
+    }
+
+    .chain-stage-tag,
+    .chain-stage-title {
+      grid-column: 2;
+    }
+  }
+</style>

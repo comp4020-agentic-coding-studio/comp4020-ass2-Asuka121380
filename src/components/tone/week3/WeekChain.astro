@@ -1,0 +1,178 @@
+---
+// Where this week sits, and what it hands to the next one. The same rail as
+// the homepage, at week scale: the current stage is lit, its neighbours are
+// named, and the rest of the chain is still visible so the week never reads
+// as a standalone article.
+import { getPublishedCollection } from "astro-course-university/content";
+import { withBase } from "astro-theme-university/url";
+import { stageMeta } from "../../../lib/course/stages";
+
+interface Props {
+  week: number;
+}
+
+const { week } = Astro.props;
+
+const lectures = (await getPublishedCollection("lectures")).sort((a, b) => a.data.week - b.data.week);
+
+const stages = lectures.map((lecture) => ({
+  week: lecture.data.week,
+  title: lecture.data.title,
+  href: withBase(`/lectures/${lecture.id}/`),
+  ...stageMeta(lecture.data.week),
+}));
+
+const previous = stages.find((stage) => stage.week === week - 1);
+const next = stages.find((stage) => stage.week === week + 1);
+---
+
+<div class="where">
+  <ol class="where-rail" role="list">
+    {
+      stages.map((stage) => (
+        <li
+          class:list={[
+            "where-stage",
+            `where-stage--${stage.domain}`,
+            stage.week === week && "where-stage--current",
+          ]}
+        >
+          <a href={stage.href} aria-current={stage.week === week ? "page" : undefined}>
+            <span class="where-node" aria-hidden="true" />
+            <span class="t-num where-week">{String(stage.week).padStart(2, "0")}</span>
+            <span class="where-tag">{stage.tag}</span>
+            <span class="visually-hidden">{stage.title}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="where-neighbours">
+    {
+      previous && (
+        <a class="where-neighbour" href={previous.href}>
+          <span class="t-label">
+            <span aria-hidden="true">&larr;</span> Week {String(previous.week).padStart(2, "0")} gave us
+          </span>
+          <span class="where-neighbour-title">{previous.title}</span>
+        </a>
+      )
+    }
+    {
+      next && (
+        <a class="where-neighbour where-neighbour--next" href={next.href}>
+          <span class="t-label">
+            Week {String(next.week).padStart(2, "0")} takes it on <span aria-hidden="true">&rarr;</span>
+          </span>
+          <span class="where-neighbour-title">{next.title}</span>
+        </a>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .where {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .where-rail {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .where-stage a {
+    display: grid;
+    gap: 0.4rem;
+    padding-block: 0.5rem 0.75rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .where-node {
+    display: block;
+    height: 3px;
+    background: var(--t-edge);
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .where-stage--physical .where-node {
+    background: color-mix(in srgb, var(--t-copper) 40%, transparent);
+  }
+
+  .where-stage--signal .where-node {
+    background: color-mix(in srgb, var(--t-signal) 32%, transparent);
+  }
+
+  .where-stage--current .where-node {
+    background: var(--t-signal);
+    box-shadow: 0 0 12px var(--t-signal-dim);
+  }
+
+  .where-week,
+  .where-tag {
+    font-family: var(--t-mono);
+    font-size: 0.5625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--t-mute);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .where-stage--current :where(.where-week, .where-tag) {
+    color: var(--t-signal);
+  }
+
+  .where-stage a:hover :where(.where-week, .where-tag) {
+    color: var(--t-paper);
+  }
+
+  .where-neighbours {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .where-neighbour {
+    display: grid;
+    gap: 0.4rem;
+    padding-block: 1rem;
+    border-block-start: 1px solid var(--t-line);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .where-neighbour-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    transition: color 0.2s ease;
+  }
+
+  .where-neighbour:hover .where-neighbour-title {
+    color: var(--t-signal);
+  }
+
+  @media (min-width: 52rem) {
+    .where-neighbours {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(1.5rem, 4vw, 4rem);
+    }
+
+    .where-neighbour--next {
+      text-align: end;
+    }
+  }
+
+  @media (width < 40rem) {
+    .where-tag {
+      display: none;
+    }
+  }
+</style>

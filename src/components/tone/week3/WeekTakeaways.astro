@@ -1,0 +1,58 @@
+---
+// The week's claims, numbered. Not a bordered callout — a numbered list set
+// at a size that says "these are the five things", with the number carried in
+// the mono voice every other measurement on the site uses.
+interface Props {
+  items: string[];
+}
+
+const { items } = Astro.props;
+---
+
+<ol class="takeaways" role="list">
+  {
+    items.map((item, i) => (
+      <li class="takeaway">
+        <span class="t-num takeaway-index" aria-hidden="true">
+          {String(i + 1).padStart(2, "0")}
+        </span>
+        <p class="takeaway-text">{item}</p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .takeaways {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: takeaway;
+    border-block-start: 1px solid var(--t-line);
+  }
+
+  .takeaway {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    padding-block: 1.1rem;
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .takeaway-index {
+    font-size: var(--t-label);
+    letter-spacing: 0.1em;
+    color: var(--t-signal);
+    padding-block-start: 0.3em;
+  }
+
+  .takeaway-text {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: var(--t-paper);
+    text-wrap: pretty;
+    max-width: 62ch;
+  }
+</style>

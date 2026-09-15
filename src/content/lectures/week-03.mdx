@@ -9,173 +9,128 @@ teachers:
   - marisol-quaye
 ---
 
-import RigModuleOpener from "../../components/rig/RigModuleOpener.astro";
-import RigModuleFrame from "../../components/rig/RigModuleFrame.astro";
-import RigModuleBand from "../../components/rig/RigModuleBand.astro";
-import pickupPhoto from "../../assets/images/week3-pickup-anatomy.jpg";
-import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
-import PickupDiagram from "../../components/diagrams/PickupDiagram.astro";
-import CoilComparisonDiagram from "../../components/diagrams/CoilComparisonDiagram.astro";
-import PickupBench from "../../components/lab/PickupBench.astro";
-import SignalChainStrip from "../../components/SignalChainStrip.astro";
-import TakeawaysList from "../../components/TakeawaysList.astro";
+import pickupPhoto from "../../assets/images/week3-hero-humbucker-sg.jpg";
+import WeekOpener from "../../components/tone/week3/WeekOpener.astro";
+import WeekBand from "../../components/tone/week3/WeekBand.astro";
+import WeekChain from "../../components/tone/week3/WeekChain.astro";
+import WeekTakeaways from "../../components/tone/week3/WeekTakeaways.astro";
+import InductionFigure from "../../components/tone/week3/InductionFigure.astro";
+import ModeSampling from "../../components/tone/week3/ModeSampling.astro";
+import CoilComparison from "../../components/tone/week3/CoilComparison.astro";
+import PickupLab from "../../components/tone/week3/PickupLab.astro";
 
-<RigModuleFrame week={3} topic="PICKUP">
-
-<RigModuleOpener
+<WeekOpener
   week={3}
-  topic="PICKUP"
+  tag="Pickup"
   title="From Vibration to Voltage"
+  question="How does a magnetic pickup convert string motion into an electrical signal?"
   input="String motion"
   process="Magnetic field variation"
   output="Electrical voltage"
   image={pickupPhoto}
->
-
-## How does a magnetic pickup convert string motion into an electrical signal?
-
-<p class="lecture-connection">
-Week 2 explained the spatial vibration modes a string supports. This week
-shows that pickup placement effectively samples those modes, converting
-motion at one specific point into a voltage. Week 4 follows that voltage
-into the guitar's own passive circuit, where resistance and capacitance
-start reshaping it before it ever leaves the instrument.
-</p>
-
-</RigModuleOpener>
-
-<RigModuleBand mode="model" label="SIGNAL MODEL">
-
-## How does a magnetic pickup convert string motion into an electrical signal?
-
-<p class="bench-prose">
-Week 2 explained where a string's vibration comes from, but a vibrating
-string on its own only produces mechanical motion — no electrical signal
-exists until something senses that motion. That something is the pickup, and
-what it senses, and where, turns out to already shape the resulting tone.
-</p>
-
-<div class="bench-callout bench-prose">
-
-By the end of this week you should be able to: describe a magnetic pickup's
-basic structure; explain, conceptually, how string motion induces a voltage;
-explain why pickup position changes the measured harmonic balance; contrast
-neck and bridge pickup positions without relying only on subjective
-language; and describe, at a broad level, why humbuckers use two coils.
-
-</div>
-
-<CausalChainStrip
-  steps={["String motion", "Changing magnetic flux", "Induced voltage", "Pickup position → harmonic balance"]}
+  imageAlt="Two nickel-covered humbucking pickups mounted on the deep red mahogany body of an electric guitar, one close to the bridge and one close to the neck, with the strings running across their pole pieces."
+  credit="Photo: John Tuggle · CC BY 2.0"
 />
 
-</RigModuleBand>
+<WeekBand index={1} label="Where we left off" heading="A vibrating string is not yet a signal">
 
-<RigModuleBand mode="lab" label="→ ENTER THE LAB">
+Week 2 explained where a string's vibration comes from and what shape it
+takes: a sum of standing-wave modes, each with its own frequency and its own
+spatial pattern of nodes and antinodes. But a vibrating string on its own
+produces only mechanical motion. No electrical signal exists anywhere in the
+instrument until something senses that motion — and what does the sensing,
+and **where it sits**, turns out to already shape the tone before a single
+cable is plugged in.
 
-## Pickup structure and electromagnetic induction
+This week is the first of the course's two transductions: the point where the
+signal stops being a moving object and starts being a voltage. Everything
+from Week 4 onward operates on that voltage.
 
-<div class="bench-annotated">
-  <PickupDiagram />
-  <p class="bench-prose">
-  A magnetic pickup is built from a permanent magnet, one or more
-  ferromagnetic pole pieces, and a coil of wire wound around them — sitting
-  beneath a string that itself needs to be ferromagnetic to interact with the
-  field at all. As the string vibrates, its changing position changes the
-  magnetic flux passing through the coil, and a changing flux is exactly what
-  induces a voltage across that coil. It's the *change* in flux that matters,
-  not the string's position by itself — a string held perfectly still,
-  however close to the magnet, induces nothing.
-  </p>
-</div>
+By the end of it you should be able to describe a magnetic pickup's basic
+structure; explain, conceptually, how string motion induces a voltage; explain
+why pickup position changes the measured harmonic balance; contrast neck and
+bridge positions without relying only on subjective language; and describe, at
+a broad level, why humbuckers use two coils.
 
-</RigModuleBand>
+</WeekBand>
 
-<RigModuleBand mode="model" label="→ SIGNAL MODEL">
+<WeekBand index={2} label="Mechanism" heading="Structure, and what actually induces the voltage" layout="wide">
 
-## Pickup position: sampling the string's modes
+A magnetic pickup is built from a permanent magnet, one or more ferromagnetic
+pole pieces, and a coil of wire wound around them — sitting beneath a string
+that itself has to be ferromagnetic to interact with the field at all. The
+magnet magnetises the part of the string directly above it, and the field of
+that magnetised section threads back down through the coil. As the string
+vibrates, the flux through the coil rises and falls, and a changing flux is
+exactly what induces a voltage across a coil. It is the *change* that matters,
+not the string's position by itself — which the figure below lets you test
+directly.
 
-<p class="bench-prose">
-Week 2 showed that a string's vibration is a sum of standing-wave modes, each
-with its own spatial pattern of nodes and antinodes. A pickup only senses
-motion at the one location it sits at, so it effectively samples that sum at
-a single point — and because each mode has a different amplitude at that
-point, pickup position changes the measured balance between harmonics, just
-as picking position did for excitation in Week 2. A bridge-position pickup
-sits closer to a region with relatively more high-frequency content; a
-neck-position pickup sits somewhere with a different balance. The more useful
-description is exactly that — *which* harmonics are relatively stronger or
-weaker at that position — rather than reaching for language like "warm" or
-"bright" on its own.
-</p>
+<InductionFigure />
 
-</RigModuleBand>
+</WeekBand>
 
-<RigModuleBand mode="lab" label="→ ENTER THE LAB">
+<WeekBand index={3} label="Position" heading="A pickup samples the string at one point" layout="wide">
 
-## Single-coil versus humbucker
+Week 2 showed that a string's vibration is a sum of modes, each with a
+different spatial pattern. A pickup senses motion only at the one location it
+sits at, so it effectively samples that sum at a single point — and because
+each mode has a different amplitude at that point, position changes the
+measured balance between harmonics, just as picking position did for
+excitation in Week 2. The useful description is exactly that: *which*
+partials are relatively stronger or weaker at that position, rather than
+reaching for "warm" or "bright" on their own.
 
-<div class="bench-annotated">
-  <CoilComparisonDiagram />
-  <p class="bench-prose">
-  A single-coil pickup is exactly one coil sensing the string directly — simple,
-  but with nothing to reject electromagnetic interference picked up from
-  nearby equipment, which is the source of its characteristic hum. A
-  humbucker uses two coils, wound in opposite directions with opposite
-  magnetic polarity: interference reaching both coils equally cancels out,
-  while each coil's response to the string itself combines rather than
-  cancelling. The detailed wiring that makes this work is beyond this week's
-  scope — the broad principle is what matters here.
-  </p>
-</div>
+<ModeSampling />
 
-<CausalChainStrip compact />
+</WeekBand>
 
-## Try it: move the pickup
+<WeekBand index={4} label="Try it" heading="Move the pickup, and listen" layout="wide" bleed>
 
-<p class="bench-prose">
-Drag the pickup position below, or snap to a neck or bridge preset, and watch
-the harmonic-sensitivity display change using the same standing-wave mode
-shapes as Week 2's string bench — now applied to sensing rather than
-exciting. The preset audio is a simple two-preset approximation, for
-conceptual comparison rather than an accurate emulation of any real pickup.
-</p>
+Drag the pickup along the string and the sensitivity curve moves with it.
+Press play and drag again: the sound moves too, because the filter processing
+the recording is the same expression the curve plots — the nulls you can see
+are the nulls you can hear. Watch the measured spectrum settle onto the
+predicted curve while a note rings.
 
-<PickupBench />
+<PickupLab />
 
-</RigModuleBand>
+</WeekBand>
 
-<RigModuleBand mode="model" label="→ SIGNAL MODEL">
+<WeekBand index={5} label="Two coils" heading="Single coil versus humbucker" layout="wide">
 
-## Key takeaways
+Everything so far has assumed one coil. A single-coil pickup is exactly
+that — simple, and with nothing to reject the electromagnetic interference it
+picks up from nearby equipment, which is the source of its characteristic hum.
+A humbucker solves that with a second coil, and the solution is worth
+understanding because the same trick appears again later in the chain.
 
-<TakeawaysList
+<CoilComparison />
+
+</WeekBand>
+
+<WeekBand index={6} label="Takeaways" heading="What this week establishes">
+
+<WeekTakeaways
   items={[
-    "A pickup is a magnet, pole piece(s), and a coil, sensing a ferromagnetic string above it.",
-    "String motion changes the magnetic flux through the coil, and a changing flux induces the voltage — position alone induces nothing.",
-    "A pickup senses motion at one point, so it samples the string's standing-wave modes at that location — changing position changes the measured harmonic balance.",
-    "Neck versus bridge position is best described by which harmonics are stronger or weaker, not by subjective terms alone.",
-    "A humbucker's two oppositely-wound coils cancel shared interference while still combining the string's own signal.",
+    "A pickup is a magnet, one or more pole pieces, and a coil, sensing a ferromagnetic string above it.",
+    "String motion changes the magnetic flux through the coil, and it is the changing flux that induces the voltage — a string held still, however close, induces nothing.",
+    "A pickup senses motion at one point, so it samples the string's standing-wave modes at that location; changing position changes the measured harmonic balance.",
+    "Neck versus bridge is best described by which partials are stronger or weaker, not by subjective terms alone — at a bridge-like position the fundamental is sensed at roughly a fifth of its amplitude.",
+    "A humbucker's two oppositely-wound coils cancel what is common to both — interference — while adding what is not: the string.",
   ]}
 />
 
-## Where this sits in the signal chain
+</WeekBand>
 
-<SignalChainStrip current="Pickup" />
+<WeekBand index={7} label="The chain" heading="Where this sits, and what comes next" layout="wide">
 
-## Connection to Week 2, and where this goes next
+<WeekChain week={3} />
 
-<p class="bench-prose">
-Week 2 explained the spatial vibration modes a string supports. This week
-showed that pickup placement effectively samples those modes, converting
-motion at one specific point into a voltage. But that voltage doesn't reach
-the rest of the signal chain untouched — it immediately meets resistance,
-capacitance, cables, and the guitar's own volume and tone controls. Week 4
-studies that electrical system.
-</p>
+Week 2 explained the modes a string supports. This week showed that pickup
+placement samples those modes, converting motion at one specific point into a
+voltage. But that voltage does not reach the rest of the signal chain
+untouched — it immediately meets resistance, capacitance, cable, and the
+guitar's own volume and tone controls. Week 4 studies that electrical system.
 
-<CausalChainStrip compact />
-
-</RigModuleBand>
-
-</RigModuleFrame>
+</WeekBand>

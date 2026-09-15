@@ -1,0 +1,186 @@
+---
+// A week opens on the object it is about. The photograph runs the full width
+// and fades into the page's own ground rather than sitting in a frame, so the
+// page begins with the instrument and the identity sits inside that image
+// instead of above it in a separate header block.
+//
+// The INPUT / PROCESS / OUTPUT strip underneath is the week's contract: every
+// stage of this course takes something and returns something else, and naming
+// both is what makes twelve weeks one chain rather than twelve articles.
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  week: number;
+  tag: string;
+  title: string;
+  question: string;
+  input: string;
+  process: string;
+  output: string;
+  image: ImageMetadata;
+  imageAlt: string;
+  credit: string;
+}
+
+const { week, tag, title, question, input, process, output, image, imageAlt, credit } =
+  Astro.props;
+
+const chain = [
+  { role: "Input", value: input, channel: "copper" },
+  { role: "Process", value: process, channel: "neutral" },
+  { role: "Output", value: output, channel: "signal" },
+];
+---
+
+<header class="opener">
+  <div class="opener-plate">
+    <Image
+      src={image}
+      alt={imageAlt}
+      widths={[720, 1200, 1800]}
+      sizes="100vw"
+      format="avif"
+      loading="eager"
+      class="opener-image"
+    />
+    <span class="opener-veil" aria-hidden="true"></span>
+
+    <div class="opener-identity t-bleed">
+      <p class="t-label opener-eyebrow">
+        Week {String(week).padStart(2, "0")} <span aria-hidden="true">·</span> Stage: {tag}
+      </p>
+      <h1 class="opener-title">{title}</h1>
+    </div>
+
+    <p class="t-label opener-credit">{credit}</p>
+  </div>
+
+  <div class="t-shell">
+    <div class="t-grid opener-body">
+      <p class="opener-question t-h2">{question}</p>
+
+      <ol class="opener-chain" role="list">
+        {
+          chain.map((link) => (
+            <li class={`opener-chain-item opener-chain-item--${link.channel}`}>
+              <span class="t-label opener-chain-role">{link.role}</span>
+              <span class="opener-chain-value">{link.value}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</header>
+
+<style>
+  .opener-plate {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .opener-image {
+    display: block;
+    width: 100%;
+    height: clamp(17rem, 44vw, 32rem);
+    object-fit: cover;
+    object-position: 50% 46%;
+    filter: saturate(0.85) contrast(1.05) brightness(0.92);
+  }
+
+  /* The image is not cropped to a box; it dissolves into the page. */
+  .opener-veil {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, var(--t-void) 2%, rgb(10 11 12 / 30%) 42%, transparent 72%),
+      linear-gradient(to right, rgb(10 11 12 / 72%) 0%, transparent 52%);
+  }
+
+  .opener-identity {
+    position: absolute;
+    inset-block-end: clamp(1.25rem, 3vw, 2.5rem);
+    inset-inline: 0;
+    max-width: var(--t-shell);
+    margin-inline: auto;
+  }
+
+  .opener-eyebrow {
+    color: var(--t-signal);
+    margin-block-end: clamp(0.5rem, 1.5vw, 1rem);
+  }
+
+  .opener-title {
+    font-size: clamp(2.4rem, 6.4vw, 5.5rem);
+    font-weight: 800;
+    line-height: 0.94;
+    letter-spacing: -0.035em;
+    max-width: 16ch;
+    margin-inline-start: -0.04em;
+  }
+
+  /* Bottom-right, where the veil has already darkened the plate — top-right
+     put it over the brightest part of most photographs. */
+  .opener-credit {
+    position: absolute;
+    inset-block-end: 0.7rem;
+    inset-inline-end: var(--t-gutter);
+    font-size: 0.5625rem;
+    color: rgb(241 239 234 / 50%);
+    text-shadow: 0 1px 4px rgb(0 0 0 / 70%);
+  }
+
+  .opener-body {
+    padding-block: clamp(2rem, 4vw, 3.5rem);
+    row-gap: 2rem;
+    align-items: start;
+  }
+
+  .opener-question {
+    grid-column: 1 / 8;
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  .opener-chain {
+    grid-column: 9 / 13;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0;
+  }
+
+  .opener-chain-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding-block: 0.7rem;
+    border-block-start: 1px solid var(--t-line);
+  }
+
+  .opener-chain-item:last-child {
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .opener-chain-value {
+    font-size: 0.95rem;
+    color: var(--t-paper);
+  }
+
+  .opener-chain-item--copper .opener-chain-role {
+    color: var(--t-copper);
+  }
+
+  .opener-chain-item--signal .opener-chain-role {
+    color: var(--t-signal);
+  }
+
+  @media (width < 60rem) {
+    .opener-question,
+    .opener-chain {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

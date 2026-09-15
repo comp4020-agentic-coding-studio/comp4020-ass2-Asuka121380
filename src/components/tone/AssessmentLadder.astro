@@ -1,0 +1,226 @@
+---
+// Analyse → Manipulate → Design, as a ladder rather than three equal cards:
+// the weight of each assessment sets the height of its own bar, so the
+// progression is legible before a word is read. Right-heavy composition,
+// answering the left-heavy listening bench above it.
+//
+// Weights, titles, due dates and descriptions all come from the assessments
+// collection; nothing about the assessment structure is restated here.
+import { getPublishedCollection } from "astro-course-university/content";
+import { withBase } from "astro-theme-university/url";
+import { formatCourseDate } from "../../lib/dates";
+
+const VERBS: Record<string, string> = {
+  "tone-autopsy": "Analyse",
+  "pedal-laboratory": "Manipulate",
+  "engineer-a-guitar-tone": "Design",
+};
+
+const assessments = (await getPublishedCollection("assessments")).sort(
+  (a, b) => Number(a.data.weight) - Number(b.data.weight),
+);
+
+const maxWeight = Math.max(...assessments.map((entry) => Number(entry.data.weight)));
+---
+
+<section class="ladder t-band" aria-labelledby="ladder-heading">
+  <div class="t-shell">
+    <div class="t-grid ladder-head">
+      <p class="t-body ladder-head-note">
+        Each assessment may only assume what the course has already covered by
+        the time it is due, so the three of them track the chain rather than
+        sampling it at random.
+      </p>
+      <div class="ladder-head-main">
+        <p class="t-label">Assessment</p>
+        <h2 class="t-h1" id="ladder-heading">Analyse, then manipulate, then design</h2>
+      </div>
+    </div>
+
+    <ol class="ladder-list" role="list">
+      {
+        assessments.map((entry, i) => {
+          const weight = Number(entry.data.weight);
+          return (
+            <li class="ladder-item" style={`--weight:${(weight / maxWeight) * 100}%`}>
+              <a class="ladder-link" href={withBase(`/assessments/${entry.id}/`)}>
+                <span class="ladder-bar" aria-hidden="true">
+                  <span class="ladder-bar-fill" />
+                </span>
+
+                <span class="ladder-body">
+                  <span class="t-label ladder-stage">
+                    Stage {i + 1} <span aria-hidden="true">·</span> {VERBS[entry.id] ?? "Assessment"}
+                  </span>
+                  <span class="t-h2 ladder-title">{entry.data.title}</span>
+                  <span class="t-body ladder-desc">{entry.data.description}</span>
+                  <span class="t-label ladder-due">Due {formatCourseDate(entry.data.due)}</span>
+                </span>
+
+                <span class="ladder-weight">
+                  <span class="t-num ladder-weight-value">{weight}</span>
+                  <span class="ladder-weight-unit" aria-hidden="true">%</span>
+                  <span class="visually-hidden">per cent of the final mark</span>
+                </span>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .ladder-head {
+    align-items: end;
+    row-gap: 1.25rem;
+  }
+
+  /* The note leads on the left and the heading answers on the right — the
+     mirror of the listening bench above, which keeps the page from settling
+     into a single alignment for its whole length. */
+  .ladder-head-note {
+    grid-column: 1 / 5;
+    margin: 0;
+    font-size: var(--t-small);
+  }
+
+  .ladder-head-main {
+    grid-column: 6 / 13;
+  }
+
+  .ladder-head-main .t-label {
+    margin-block-end: 1rem;
+  }
+
+  .ladder-list {
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ladder-item {
+    border-block-start: 1px solid var(--t-line);
+  }
+
+  .ladder-item:last-child {
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .ladder-link {
+    display: grid;
+    grid-template-columns: 0.75rem 1fr auto;
+    align-items: start;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    padding-block: clamp(1.75rem, 3vw, 2.5rem);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* The bar is the assessment's weight, drawn to scale. All three tracks are
+     the same fixed height — if they stretched to their own row, a 25% fill of
+     a short row could out-measure a 45% fill of a tall one and the comparison
+     the bars exist to make would be false. */
+  .ladder-bar {
+    display: block;
+    position: relative;
+    height: 8.5rem;
+    background: var(--t-faint);
+  }
+
+  .ladder-bar-fill {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 0;
+    height: var(--weight);
+    background: var(--t-signal);
+    transition: box-shadow 0.25s ease;
+  }
+
+  .ladder-link:hover .ladder-bar-fill,
+  .ladder-link:focus-visible .ladder-bar-fill {
+    box-shadow: 0 0 16px var(--t-signal-dim);
+  }
+
+  .ladder-body {
+    display: grid;
+    gap: 0.6rem;
+    max-width: 52ch;
+  }
+
+  .ladder-stage {
+    color: var(--t-signal);
+  }
+
+  .ladder-title {
+    display: block;
+    transition: color 0.2s ease;
+  }
+
+  .ladder-link:hover .ladder-title {
+    color: var(--t-signal);
+  }
+
+  .ladder-desc {
+    display: block;
+    color: var(--t-dim);
+    font-size: var(--t-small);
+  }
+
+  .ladder-due {
+    margin-block-start: 0.25rem;
+  }
+
+  .ladder-weight {
+    display: flex;
+    align-items: baseline;
+    gap: 0.1em;
+    color: var(--t-paper);
+    line-height: 0.85;
+  }
+
+  .ladder-weight-value {
+    font-size: clamp(2.75rem, 6vw, 5rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+  }
+
+  .ladder-weight-unit {
+    font-family: var(--t-mono);
+    font-size: 1rem;
+    color: var(--t-mute);
+  }
+
+  @media (width < 60rem) {
+    .ladder-head-note,
+    .ladder-head-main {
+      grid-column: 1 / -1;
+    }
+
+    .ladder-head-note {
+      order: 2;
+      margin-block-start: 1.25rem;
+    }
+
+    .ladder-link {
+      grid-template-columns: 0.5rem 1fr;
+      grid-template-areas:
+        "bar weight"
+        "bar body";
+      gap: 1.25rem;
+    }
+
+    .ladder-bar {
+      grid-area: bar;
+    }
+
+    .ladder-body {
+      grid-area: body;
+    }
+
+    .ladder-weight {
+      grid-area: weight;
+    }
+  }
+</style>

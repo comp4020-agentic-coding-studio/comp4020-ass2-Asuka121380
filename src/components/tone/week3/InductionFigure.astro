@@ -1,0 +1,571 @@
+---
+// The mechanism, drawn so it can be falsified.
+//
+// The week's central claim is that it is the *change* in magnetic flux that
+// induces a voltage, not the string's nearness to the magnet — and the
+// cleanest way to teach that is to let the reader switch the string's motion
+// off and watch the output collapse to zero while the string stays exactly
+// where it was. The "Held still" control exists for that one sentence.
+//
+// Everything on the right is computed from the string's velocity, not its
+// position: the trace, the reading, and the state of the lamp. A custom
+// drawing earns its place here for the same reason a photograph does not —
+// a photograph cannot show flux, and this is about flux changing over time.
+---
+
+<figure class="induction" data-induction>
+  <div class="induction-grid">
+    <div class="induction-stage">
+      <svg
+        class="induction-schematic"
+        viewBox="0 0 340 222"
+        role="img"
+        aria-label="Cross-section of a magnetic pickup. A steel string lies above a cylindrical pole piece, which is wound with a coil of fine wire and stands on a permanent magnet. Magnetic flux leaves the top of the pole piece, arcs out past the string, and returns to the bottom of the magnet. As the string moves, those arcs are pulled with it, so the amount of flux passing through the coil changes."
+      >
+        <defs>
+          <marker
+            id="induction-flux-arrow"
+            viewBox="0 0 8 8"
+            refX="4"
+            refY="4"
+            markerWidth="5"
+            markerHeight="5"
+            orient="auto-start-reverse"
+          >
+            <path d="M 1 1 L 7 4 L 1 7 z" class="induction-flux-head" />
+          </marker>
+        </defs>
+
+        {/* Flux arcs, redrawn each frame: pole top, up past the string, out
+            and down, back into the bottom of the magnet. */}
+        <g class="induction-flux">
+          {
+            Array.from({ length: 4 }, (_, i) => (
+              <path
+                class="induction-flux-line"
+                data-flux-line={i}
+                fill="none"
+                marker-mid="url(#induction-flux-arrow)"
+              />
+            ))
+          }
+        </g>
+
+        {/* magnet */}
+        <g class="induction-magnet">
+          <rect x="108" y="166" width="44" height="40" rx="2" class="induction-magnet-body" />
+          <line x1="108" y1="186" x2="152" y2="186" class="induction-hairline" />
+          <text x="130" y="181" class="induction-glyph">N</text>
+          <text x="130" y="201" class="induction-glyph">S</text>
+        </g>
+
+        {/* pole piece */}
+        <rect x="121" y="90" width="18" height="76" rx="1" class="induction-pole" />
+
+        {/* coil: several thousand turns, drawn as turns */}
+        <g class="induction-coil">
+          {
+            Array.from({ length: 10 }, (_, i) => (
+              <ellipse cx="130" cy={104 + i * 5.6} rx="22" ry="2.3" />
+            ))
+          }
+        </g>
+
+        {/* leads out to the rest of the guitar */}
+        <path class="induction-lead" d="M 152 146 C 176 146 176 158 200 158" fill="none" />
+        <path class="induction-lead" d="M 152 156 C 180 156 180 166 200 166" fill="none" />
+
+        {/* string */}
+        <line x1="0" y1="44" x2="340" y2="44" class="induction-string-rest" />
+        <line x1="0" y1="44" x2="340" y2="44" class="induction-string" data-string-line />
+
+        {/* Labels sit in the clear column to the right of the widest flux arc,
+            each on the same baseline as the part it names. */}
+        <text x="4" y="20" class="induction-caption">String (steel)</text>
+        <g class="induction-labels">
+          <line x1="212" y1="94" x2="232" y2="94" class="induction-leader" />
+          <text x="238" y="97" class="induction-caption">Pole piece</text>
+          <line x1="212" y1="128" x2="232" y2="128" class="induction-leader" />
+          <text x="238" y="131" class="induction-caption induction-caption--copper">Coil</text>
+          <text x="206" y="165" class="induction-caption">To circuit</text>
+          <line x1="212" y1="190" x2="232" y2="190" class="induction-leader" />
+          <text x="238" y="193" class="induction-caption">Magnet</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="induction-out">
+      <div class="induction-out-head">
+        <span class="t-label">Induced voltage</span>
+        <span class="induction-lamp" data-lamp aria-hidden="true"></span>
+      </div>
+
+      <canvas
+        class="induction-trace"
+        data-induction-trace
+        role="img"
+        aria-label="A voltage trace. While the string is vibrating it shows an oscillating waveform; while the string is held still it is a flat line at zero."
+      ></canvas>
+
+      <dl class="induction-meters">
+        <div>
+          <dt class="t-label">Flux through coil</dt>
+          <dd class="t-num" data-meter="flux">changing</dd>
+        </div>
+        <div>
+          <dt class="t-label">Rate of change dΦ/dt</dt>
+          <dd class="t-num" data-meter="rate">high</dd>
+        </div>
+      </dl>
+
+      <fieldset class="induction-controls">
+        <legend class="t-label">String</legend>
+        <label class="induction-choice">
+          <input type="radio" name="induction-state" value="moving" checked />
+          <span>Vibrating</span>
+        </label>
+        <label class="induction-choice">
+          <input type="radio" name="induction-state" value="still" />
+          <span>Held still, same distance</span>
+        </label>
+      </fieldset>
+
+      <p class="induction-verdict t-body" aria-live="polite" data-verdict></p>
+    </div>
+  </div>
+</figure>
+
+<script>
+  const STRING_REST_Y = 44;
+  const SWING = 15;
+  const VISUAL_HZ = 0.55;
+  // Two full cycles across the canvas: enough for the shape to read as
+  // periodic, few enough that the motion is followable.
+  const TRACE_SECONDS = 2 / VISUAL_HZ;
+  const POLE_TOP_X = 130;
+  const POLE_TOP_Y = 90;
+  const MAGNET_BOTTOM_Y = 206;
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-induction]")) {
+    if (root.dataset.inductionInit) continue;
+    root.dataset.inductionInit = "true";
+
+    const stringLine = root.querySelector<SVGLineElement>("[data-string-line]")!;
+    const fluxLines = Array.from(root.querySelectorAll<SVGPathElement>("[data-flux-line]"));
+    const canvas = root.querySelector<HTMLCanvasElement>("[data-induction-trace]")!;
+    const ctx = canvas.getContext("2d")!;
+    const lamp = root.querySelector<HTMLElement>("[data-lamp]")!;
+    const verdict = root.querySelector<HTMLElement>("[data-verdict]")!;
+    const fluxMeter = root.querySelector<HTMLElement>('[data-meter="flux"]')!;
+    const rateMeter = root.querySelector<HTMLElement>('[data-meter="rate"]')!;
+    const choices = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="induction-state"]'));
+
+    const styles = getComputedStyle(root);
+    const SIGNAL = styles.getPropertyValue("--t-signal").trim() || "#59ddd2";
+    const LINE = styles.getPropertyValue("--t-line").trim() || "rgba(241,239,234,0.11)";
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let moving = true;
+    // The trace is stored as (time, value) pairs and plotted against time
+    // rather than against sample index. Plotting one frame per pixel column
+    // assumes every frame arrives on schedule; when the browser drops frames
+    // the samples are still spread evenly across the canvas, and the
+    // waveform comes out stretched and kinked. A time axis is also what the
+    // figure claims to be showing.
+    let history: { t: number; v: number }[] = [];
+    let frame = 0;
+    let startedAt = 0;
+    let width = 0;
+    let height = 0;
+
+    function resize(): void {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = Math.max(1, Math.round(rect.width));
+      height = Math.max(1, Math.round(rect.height));
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      history = [];
+    }
+
+    /**
+     * One flux arc: out of the top of the pole piece, over past the string,
+     * down the outside and back into the bottom of the magnet. Three per
+     * side, mirrored.
+     *
+     * The apex is tied to the string's current height, and the arcs closest
+     * to the pole are pulled hardest — a steel string is far more permeable
+     * than air, so the field crowds into it, and that crowding is what
+     * changes as the string moves. Schematic, not a field solution: real flux
+     * lines are the level sets of a potential, not Béziers.
+     */
+    function fluxPath(index: number, stringY: number): string {
+      const side = index % 2 === 0 ? -1 : 1;
+      const rank = Math.floor(index / 2);
+      const spread = 46 + rank * 34;
+      // The arc's high point tracks the string: as the string drops toward
+      // the pole the field crowds into it, and as it lifts away the arc
+      // relaxes back down. That is the change the coil responds to.
+      const crest = stringY + 2 + rank * 11;
+      const out = POLE_TOP_X + side * spread;
+      const shoulder = POLE_TOP_X + side * spread * 0.62;
+      const endY = crest + 34;
+      // A quadratic passes nowhere near its control point, so the control is
+      // solved for rather than guessed: at t = ½ the curve sits at
+      // ¼P₀ + ½C + ¼P₂, so C = 2·crest − ½(P₀ + P₂) puts the crest exactly on
+      // the string. Guessing it is what left the arcs sitting under the
+      // string in the first version of this figure.
+      const control = 2 * crest - 0.5 * (POLE_TOP_Y + endY);
+      return [
+        `M ${POLE_TOP_X} ${POLE_TOP_Y}`,
+        // up out of the pole and over, cresting at the string
+        `Q ${shoulder} ${control.toFixed(1)} ${out} ${endY.toFixed(1)}`,
+        // the mid-point the direction arrow is placed on
+        `L ${out} ${endY.toFixed(1)}`,
+        // down the outside and back into the foot of the magnet
+        `C ${out + side * 8} ${MAGNET_BOTTOM_Y - 46}, ${shoulder} ${MAGNET_BOTTOM_Y + 10}, ${POLE_TOP_X} ${MAGNET_BOTTOM_Y}`,
+      ].join(" ");
+    }
+
+    function drawTrace(now: number): void {
+      ctx.clearRect(0, 0, width, height);
+      const mid = height / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, mid + 0.5);
+      ctx.lineTo(width, mid + 0.5);
+      ctx.strokeStyle = LINE;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      if (history.length < 2) return;
+      ctx.beginPath();
+      for (const sample of history) {
+        // The one sample past the window plots just off the left edge, where
+        // the canvas clips it — the line reaches the edge instead of stopping
+        // a frame short of it.
+        const age = (now - sample.t) / TRACE_SECONDS;
+        ctx.lineTo(width * (1 - age), mid - sample.v * (height * 0.4));
+      }
+      ctx.strokeStyle = SIGNAL;
+      ctx.lineWidth = 1.6;
+      ctx.lineJoin = "round";
+      ctx.stroke();
+    }
+
+    function setState(next: boolean): void {
+      moving = next;
+      lamp.toggleAttribute("data-on", next);
+      fluxMeter.textContent = next ? "changing" : "constant";
+      rateMeter.textContent = next ? "non-zero" : "zero";
+      verdict.textContent = next
+        ? "The string is moving, so the flux through the coil is changing — and a changing flux induces a voltage across it. That voltage is the guitar's entire output signal."
+        : "The string is exactly as close to the magnet as it was a moment ago, and the output is zero. Nearness alone induces nothing: the coil responds to flux changing over time, which is why a guitar falls silent the instant the strings stop.";
+    }
+
+    function draw(t: number): void {
+      // Position and velocity of a single mode, so displacement and the
+      // induced voltage stay properly 90° out of phase with each other.
+      const omega = 2 * Math.PI * VISUAL_HZ;
+      const y = moving ? Math.cos(omega * t) : 0;
+      const v = moving ? -Math.sin(omega * t) : 0;
+
+      const stringY = STRING_REST_Y - y * SWING;
+      stringLine.setAttribute("y1", String(stringY));
+      stringLine.setAttribute("y2", String(stringY));
+      for (const [i, line] of fluxLines.entries()) line.setAttribute("d", fluxPath(i, stringY));
+
+      history.unshift({ t, v });
+      // One sample past the window is kept so the leftmost segment still has
+      // somewhere to travel to rather than ending short of the edge.
+      const keep = history.findIndex((sample) => t - sample.t > TRACE_SECONDS);
+      if (keep >= 0) history.length = keep + 1;
+      drawTrace(t);
+    }
+
+    function loop(now: number): void {
+      if (!startedAt) startedAt = now;
+      draw((now - startedAt) / 1000);
+      frame = requestAnimationFrame(loop);
+    }
+
+    function start(): void {
+      if (frame || reduceMotion.matches) return;
+      startedAt = 0;
+      frame = requestAnimationFrame(loop);
+    }
+
+    function stop(): void {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+
+    /** Reduced motion still gets the comparison, as two still pictures: one
+     *  frame of a moving string with its trace, or a flat line. */
+    function drawStill(): void {
+      // Synthesised backwards from a fixed instant, at roughly one sample per
+      // pixel column, so the still frame shows the same two cycles the
+      // animated trace does.
+      const now = 0.3;
+      const slots = Math.max(2, Math.ceil(width / 2));
+      const step = TRACE_SECONDS / slots;
+      history = [];
+      for (let i = 0; i <= slots; i++) {
+        const t = now - i * step;
+        history.push({ t, v: moving ? -Math.sin(2 * Math.PI * VISUAL_HZ * t) : 0 });
+      }
+      draw(now);
+    }
+
+    for (const choice of choices) {
+      choice.addEventListener("change", () => {
+        if (!choice.checked) return;
+        setState(choice.value === "moving");
+        if (reduceMotion.matches) drawStill();
+      });
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+      if (!frame) drawStill();
+    });
+
+    resize();
+    setState(true);
+    drawStill();
+    resizeObserver.observe(canvas);
+
+    const visibility = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()), {
+      threshold: 0,
+    });
+    visibility.observe(root);
+
+    document.addEventListener("astro:before-swap", () => {
+      stop();
+      visibility.disconnect();
+      resizeObserver.disconnect();
+    });
+  }
+</script>
+
+<style>
+  .induction {
+    margin: 0;
+  }
+
+  .induction-grid {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    align-items: start;
+    border: 1px solid var(--t-line-strong);
+    background: linear-gradient(to bottom, var(--t-deep), var(--t-void));
+    padding: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .induction-stage {
+    display: flex;
+    justify-content: center;
+    align-items: start;
+  }
+
+  .induction-schematic {
+    width: 100%;
+    max-width: 26rem;
+    height: auto;
+  }
+
+  .induction-magnet-body {
+    fill: #32373d;
+  }
+
+  .induction-hairline {
+    stroke: rgb(241 239 234 / 30%);
+    stroke-width: 1;
+  }
+
+  .induction-glyph {
+    fill: var(--t-dim);
+    font-family: var(--t-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-anchor: middle;
+  }
+
+  .induction-caption--copper {
+    fill: color-mix(in srgb, var(--t-copper) 80%, transparent);
+  }
+
+  .induction-caption {
+    fill: var(--t-mute);
+    font-family: var(--t-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .induction-pole {
+    fill: #454b52;
+    stroke: rgb(241 239 234 / 22%);
+    stroke-width: 1;
+  }
+
+  .induction-coil ellipse {
+    fill: none;
+    stroke: var(--t-copper);
+    stroke-width: 1.5;
+    opacity: 0.9;
+  }
+
+  .induction-lead {
+    stroke: var(--t-copper);
+    stroke-width: 1.2;
+    opacity: 0.6;
+  }
+
+  .induction-leader {
+    stroke: var(--t-line-strong);
+    stroke-width: 1;
+  }
+
+  .induction-flux-line {
+    stroke: var(--t-signal);
+    stroke-width: 1;
+    opacity: 0.3;
+  }
+
+  .induction-flux-head {
+    fill: var(--t-signal);
+    opacity: 0.45;
+  }
+
+  .induction-string-rest {
+    stroke: var(--t-line);
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+  }
+
+  .induction-string {
+    stroke: var(--t-copper);
+    stroke-width: 3;
+  }
+
+  .induction-out {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  .induction-out-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .induction-lamp {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--t-edge);
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .induction-lamp[data-on] {
+    background: var(--t-signal);
+    box-shadow: 0 0 10px var(--t-signal-dim);
+  }
+
+  .induction-trace {
+    display: block;
+    width: 100%;
+    height: clamp(5rem, 10vw, 7rem);
+    border-block: 1px solid var(--t-line);
+  }
+
+  .induction-meters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin: 0;
+  }
+
+  .induction-meters dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: var(--t-paper);
+  }
+
+  .induction-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .induction-controls legend {
+    float: inline-start;
+    margin-inline-end: 0.75rem;
+    padding: 0;
+    line-height: 2;
+  }
+
+  .induction-choice {
+    position: relative;
+    margin: 0;
+    font-weight: 400;
+  }
+
+  .induction-choice input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .induction-choice span {
+    display: block;
+    padding: 0.35rem 0.85rem;
+    border: 1px solid var(--t-line-strong);
+    border-radius: 2rem;
+    font-family: var(--t-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--t-dim);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+
+  .induction-choice input:checked + span {
+    border-color: var(--t-signal);
+    background: var(--t-signal);
+    color: var(--t-void);
+  }
+
+  .induction-choice input:focus-visible + span {
+    outline: 2px solid var(--t-signal);
+    outline-offset: 2px;
+  }
+
+  /* Both states' text is written to about the same length and the box is
+     reserved for the longer one, so toggling does not jump the layout. */
+  .induction-verdict {
+    margin: 0;
+    font-size: var(--t-small);
+    min-height: 5em;
+  }
+
+  @media (min-width: 52rem) {
+    .induction-grid {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    }
+  }
+</style>

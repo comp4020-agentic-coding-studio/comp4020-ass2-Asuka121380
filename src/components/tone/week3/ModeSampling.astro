@@ -1,0 +1,270 @@
+---
+// Why position changes the balance — the spatial half of the argument, which
+// the lab's frequency display cannot show.
+//
+// Four modes, drawn across the whole string from bridge to nut, with their
+// nodes marked. Two vertical lines cut through all four at a bridge-like and
+// a neck-like position, and the disc at each crossing is how much of that
+// mode the pickup there can sense: |sin(n·π·p)|, the same expression the lab
+// filters the audio with.
+//
+// Drawing the full string rather than just the pickup region is deliberate.
+// It shows that every pickup on a normal guitar lives in the first quarter of
+// the string, which is why the differences between positions are differences
+// of degree rather than of kind.
+interface Sample {
+  position: number;
+  label: string;
+  channel: "signal" | "copper";
+}
+
+const MODES = 4;
+const WIDTH = 1000;
+const LANE = 104;
+const PAD_TOP = 26;
+const HEIGHT = PAD_TOP + MODES * LANE + 34;
+const AMPLITUDE = 30;
+
+const samples: Sample[] = [
+  { position: 0.07, label: "Bridge-like", channel: "signal" },
+  { position: 0.24, label: "Neck-like", channel: "copper" },
+];
+
+function modePath(mode: number, midY: number): string {
+  const points: string[] = [];
+  for (let i = 0; i <= 200; i++) {
+    const x = i / 200;
+    const y = midY - Math.sin(mode * Math.PI * x) * AMPLITUDE;
+    points.push(`${i === 0 ? "M" : "L"} ${(x * WIDTH).toFixed(1)} ${y.toFixed(1)}`);
+  }
+  return points.join(" ");
+}
+
+const lanes = Array.from({ length: MODES }, (_, i) => {
+  const mode = i + 1;
+  const midY = PAD_TOP + i * LANE + LANE / 2;
+  return {
+    mode,
+    midY,
+    path: modePath(mode, midY),
+    // Interior nodes only — the two ends are fixed on every mode, so marking
+    // them adds nothing.
+    nodes: Array.from({ length: mode - 1 }, (_, k) => ((k + 1) / mode) * WIDTH),
+    readings: samples.map((sample) => {
+      const sensitivity = Math.abs(Math.sin(mode * Math.PI * sample.position));
+      return {
+        ...sample,
+        x: sample.position * WIDTH,
+        y: midY - Math.sin(mode * Math.PI * sample.position) * AMPLITUDE,
+        sensitivity,
+        // The disc is the reading, so the label clears the disc rather than
+        // sitting a fixed distance out — otherwise the largest discs swallow
+        // their own number and the smallest float away from theirs.
+        radius: 4 + sensitivity * 8,
+      };
+    }),
+  };
+});
+---
+
+<figure class="modes">
+  <svg
+    class="modes-svg"
+    viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+    role="img"
+    aria-label="The first four vibration modes of a string, drawn from the bridge on the left to the nut on the right. Two vertical lines mark a bridge-like pickup position at seven per cent of the string's length and a neck-like position at twenty-four per cent. At each crossing a disc shows how much of that mode a pickup there senses: near the bridge the first mode reaches only twenty-two per cent, while at the neck-like position it reaches sixty-eight per cent — but the fourth mode there falls to thirteen per cent, because one of its nodes sits at a quarter of the string, almost exactly where the pickup is."
+  >
+    {
+      samples.map((sample) => (
+        <line
+          class={`modes-cut modes-cut--${sample.channel}`}
+          x1={sample.position * WIDTH}
+          y1={PAD_TOP - 14}
+          x2={sample.position * WIDTH}
+          y2={PAD_TOP + MODES * LANE}
+        />
+      ))
+    }
+
+    {
+      lanes.map((lane) => (
+        <g>
+          <line class="modes-axis" x1="0" y1={lane.midY} x2={WIDTH} y2={lane.midY} />
+          <path class="modes-shape" d={lane.path} fill="none" />
+
+          {lane.nodes.map((x) => (
+            <circle class="modes-node" cx={x} cy={lane.midY} r="3.5" />
+          ))}
+
+          <text class="modes-lane-label" x="0" y={lane.midY - AMPLITUDE - 12}>
+            {`Mode ${lane.mode} · ${lane.mode === 1 ? "f₀" : `${lane.mode}f₀`}`}
+          </text>
+
+          {lane.readings.map((reading) => (
+            <g>
+              <circle
+                class={`modes-reading modes-reading--${reading.channel}`}
+                cx={reading.x}
+                cy={reading.y}
+                r={reading.radius}
+              />
+              <text
+                class={`modes-reading-value modes-reading-value--${reading.channel}`}
+                x={reading.x + (reading.channel === "signal" ? -1 : 1) * (reading.radius + 9)}
+                y={reading.y + 4}
+                text-anchor={reading.channel === "signal" ? "end" : "start"}
+              >
+                {`${Math.round(reading.sensitivity * 100)}%`}
+              </text>
+            </g>
+          ))}
+        </g>
+      ))
+    }
+
+    <text class="modes-end" x="0" y={HEIGHT - 10}>Bridge</text>
+    <text class="modes-end modes-end--right" x={WIDTH} y={HEIGHT - 10}>Nut</text>
+    {
+      samples.map((sample) => (
+        <text
+          class={`modes-cut-label modes-cut-label--${sample.channel}`}
+          x={sample.position * WIDTH}
+          y={PAD_TOP - 20}
+        >
+          {sample.label}
+        </text>
+      ))
+    }
+  </svg>
+
+  <figcaption class="modes-caption">
+    <p class="t-body">
+      A pickup senses the string at one point, so it reads each mode at
+      whatever displacement that mode happens to have there. Close to the
+      bridge every mode is near its fixed end, and the lowest one — which
+      carries most of the energy — is sensed at barely a fifth of its
+      amplitude, so the partials above it dominate what leaves the guitar.
+      Move to the neck-like position and the first mode comes through at three
+      times that, while the <em>fourth</em> collapses to 13%: one of its nodes
+      sits a quarter of the way along the string, almost exactly where the
+      pickup is, so there is very little there for it to sense. That is the
+      whole mechanism. Not &ldquo;warmer&rdquo; — a different set of numbers in
+      this figure.
+    </p>
+  </figcaption>
+</figure>
+
+<style>
+  .modes {
+    margin: 0;
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .modes-svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .modes-axis {
+    stroke: var(--t-line);
+    stroke-width: 1;
+  }
+
+  .modes-shape {
+    stroke: var(--t-paper);
+    stroke-width: 1.6;
+    opacity: 0.55;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .modes-node {
+    fill: var(--t-void);
+    stroke: var(--t-mute);
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .modes-cut {
+    stroke-width: 1;
+    stroke-dasharray: 3 5;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .modes-cut--signal {
+    stroke: var(--t-signal);
+    opacity: 0.55;
+  }
+
+  .modes-cut--copper {
+    stroke: var(--t-copper);
+    opacity: 0.55;
+  }
+
+  .modes-reading--signal {
+    fill: var(--t-signal);
+  }
+
+  .modes-reading--copper {
+    fill: var(--t-copper);
+  }
+
+  .modes-lane-label,
+  .modes-end,
+  .modes-cut-label,
+  .modes-reading-value {
+    font-family: var(--t-mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    fill: var(--t-mute);
+  }
+
+  /* The readings sit on the curve they are measuring, so the mode line ran
+     straight through the digits and read as a strike-through. Knocking the
+     ground out around the glyphs is what a plot does; moving the labels off
+     the curve would break the link between the number and the point. */
+  .modes-reading-value {
+    font-size: 12px;
+    paint-order: stroke;
+    stroke: var(--t-void);
+    stroke-width: 3.5px;
+    stroke-linejoin: round;
+  }
+
+  .modes-reading-value--signal {
+    fill: var(--t-signal);
+  }
+
+  .modes-reading-value--copper {
+    fill: var(--t-copper);
+  }
+
+  .modes-cut-label {
+    text-anchor: middle;
+  }
+
+  .modes-cut-label--signal {
+    fill: var(--t-signal);
+  }
+
+  .modes-cut-label--copper {
+    fill: var(--t-copper);
+  }
+
+  .modes-end--right {
+    text-anchor: end;
+  }
+
+  .modes-caption {
+    /* The theme's figcaption adds a border and a smaller size; this caption
+       is body copy, not a label. */
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: inherit;
+    color: inherit;
+    max-width: 68ch;
+  }
+</style>

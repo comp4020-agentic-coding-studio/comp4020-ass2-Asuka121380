@@ -1,0 +1,935 @@
+---
+// Week 3's lab: move the pickup along the string and hear the harmonic
+// balance change.
+//
+// The previous version of this bench had a real problem — the knob redrew the
+// graph continuously, but the sound was a two-preset fixed low-pass switched
+// by the Neck/Bridge buttons, so dragging the control changed the picture and
+// not the tone. The graph was, in effect, illustrating something the audio
+// was not doing.
+//
+// It is now one model driving both. `src/lib/audio/pickup.ts` derives a comb
+// filter whose magnitude response IS |sin(nπp)| — the same expression
+// `pickupHarmonicWeights` draws — so:
+//   * the CURVE on the display is the model's predicted sensitivity;
+//   * the FILLED TRACE is the analyser's measurement of the audio actually
+//     leaving the filter;
+//   * and they line up, because they are the same function. A student can
+//     watch a predicted null and a measured null sit on top of each other,
+//     and drag the control to move both at once.
+//
+// The position control is a plain range input rather than a knob: position
+// along a string is a linear quantity, and the slider's travel is drawn on
+// the same axis as the string above it, so the handle sits under the pickup
+// it moves.
+import { withBase } from "astro-theme-university/url";
+
+const BRIDGE_POSITION = 0.07;
+const MIDDLE_POSITION = 0.16;
+const NECK_POSITION = 0.24;
+// The string strip and the slider are drawn across this same interval, so
+// the handle always sits directly under the pickup it moves. Starting at
+// 0.01 rather than 0 keeps the bridge itself out of range: a pickup exactly
+// at the bridge sits on a node of every mode and would sense silence.
+const MIN_POSITION = 0.01;
+const MAX_POSITION = 0.5;
+
+const presets = [
+  { value: String(NECK_POSITION), label: "Neck" },
+  { value: String(MIDDLE_POSITION), label: "Middle" },
+  { value: String(BRIDGE_POSITION), label: "Bridge" },
+];
+---
+
+<section
+  class="lab"
+  aria-labelledby="pickup-lab-heading"
+  data-pickup-lab
+  data-min={MIN_POSITION}
+  data-max={MAX_POSITION}
+  data-default={NECK_POSITION}
+>
+  <header class="lab-bar">
+    <p class="t-label lab-id">
+      <span class="lab-id-index">Lab 03</span>
+      <span class="lab-id-name" id="pickup-lab-heading">Pickup position</span>
+    </p>
+
+    <fieldset class="lab-presets">
+      <legend class="visually-hidden">Jump to a representative position</legend>
+      {
+        presets.map((preset) => (
+          <label class="lab-preset">
+            <input
+              type="radio"
+              name="pickup-preset"
+              value={preset.value}
+              checked={preset.value === String(NECK_POSITION)}
+            />
+            <span class="lab-preset-face">{preset.label}</span>
+          </label>
+        ))
+      }
+    </fieldset>
+  </header>
+
+  {/* --- where the pickup is ------------------------------------------- */}
+  <div class="lab-locator">
+    <canvas
+      data-lab-string
+      role="img"
+      aria-label="A side view of the vibrating string, with the bridge at the left and the midpoint of the string at the right. A pickup marker sits under the string at the currently selected position."
+    ></canvas>
+    <div class="lab-locator-scale" aria-hidden="true">
+      <span class="t-label">Bridge</span>
+      <span class="t-label lab-locator-mid">½ string</span>
+    </div>
+  </div>
+
+  {/* --- the control, on the same axis as the string -------------------- */}
+  <div class="lab-control">
+    <label class="t-label lab-control-label" for="pickup-position">
+      Pickup position along the string
+    </label>
+    <input
+      type="range"
+      id="pickup-position"
+      class="lab-slider"
+      min={MIN_POSITION}
+      max={MAX_POSITION}
+      step="0.005"
+      value={NECK_POSITION}
+      aria-describedby="pickup-readout"
+    />
+  </div>
+
+  {/* --- what it senses ------------------------------------------------- */}
+  <div class="lab-display">
+    <div class="lab-display-chrome">
+      <span class="t-label lab-display-title">Sensitivity vs frequency</span>
+      <span class="lab-display-keys">
+        <span class="t-label lab-key lab-key--model">Model</span>
+        <span class="t-label lab-key lab-key--measured" data-lab-measured-key>Measured</span>
+      </span>
+    </div>
+    <canvas
+      data-lab-response
+      role="img"
+      aria-label="Predicted pickup sensitivity plotted against frequency on a logarithmic axis. The curve dips to zero at regularly spaced frequencies; moving the pickup toward the bridge moves those dips higher in frequency. While audio is playing, the measured spectrum of the processed recording is drawn over the same axes."
+    ></canvas>
+  </div>
+
+  {/* --- numbers and transport ----------------------------------------- */}
+  <div class="lab-meters">
+    <div class="lab-meter">
+      <span class="t-label">Position</span>
+      <span class="t-num lab-meter-value" data-lab-meter="position">0.240</span>
+      <span class="lab-meter-unit">&times; L</span>
+    </div>
+    <div class="lab-meter">
+      <span class="t-label">Comb delay</span>
+      <span class="t-num lab-meter-value" data-lab-meter="delay">2.91</span>
+      <span class="lab-meter-unit">ms</span>
+    </div>
+    <div class="lab-meter">
+      <span class="t-label">First null</span>
+      <span class="t-num lab-meter-value" data-lab-meter="null">343</span>
+      <span class="lab-meter-unit">Hz</span>
+    </div>
+    <div class="lab-meter">
+      <span class="t-label">Fundamental sensed</span>
+      <span class="t-num lab-meter-value" data-lab-meter="fundamental">69</span>
+      <span class="lab-meter-unit">%</span>
+    </div>
+
+    <button type="button" class="lab-play" data-lab-play aria-pressed="false">
+      <span class="lab-play-led" aria-hidden="true"></span>
+      <span class="lab-play-on" aria-hidden="true">Stop</span>
+      <span class="lab-play-off" aria-hidden="true">Play</span>
+      <span class="visually-hidden">Play the guitar recording through the pickup at this position</span>
+    </button>
+  </div>
+
+  <div class="lab-readout-row">
+    <p class="lab-readout t-body" id="pickup-readout" aria-live="polite" data-lab-readout></p>
+  </div>
+
+  <p class="lab-scope">
+    The recording is the course's{" "}
+    <a class="lab-scope-link" href={withBase("/lectures/week-01/")}>canonical dry DI take</a>{" "}
+    of an open low E, and the comb spacing is derived from that note's
+    fundamental — the same position on a higher note would space the nulls
+    further apart. This is an idealised point sensor: a real pickup senses
+    across the width of its pole pieces, which softens the deepest nulls, and
+    its coil adds a resonance this model does not include.
+  </p>
+</section>
+
+<script>
+  import { loadDiGuitarBuffer } from "../../../lib/audio/diSample";
+  import { modalDisplacement, modalWeights } from "../../../lib/audio/analysis";
+  import {
+    DI_FUNDAMENTAL_HZ,
+    PickupGraph,
+    pickupCombDelaySeconds,
+    pickupResponseAt,
+  } from "../../../lib/audio/pickup";
+
+  // A LINEAR frequency axis, unusually for an audio display — and on purpose.
+  // A comb's nulls are evenly spaced in frequency, so on a linear axis they
+  // draw an actual comb, and moving the pickup visibly changes the spacing of
+  // its teeth. A log axis (right for broadband EQ, and what the homepage
+  // analyser uses) crushes those teeth into a picket fence at the top end and
+  // hides the one structure this lab exists to show.
+  const MIN_HZ = 0;
+  const MAX_HZ = 3000;
+  const GRID_HZ = [500, 1000, 1500, 2000, 2500];
+  const MODES = 14;
+  const STRING_F0 = 82.41 / 60;
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-pickup-lab]")) {
+    if (root.dataset.labInit) continue;
+    root.dataset.labInit = "true";
+
+    const slider = root.querySelector<HTMLInputElement>("#pickup-position")!;
+    const presets = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="pickup-preset"]'));
+    const stringCanvas = root.querySelector<HTMLCanvasElement>("[data-lab-string]")!;
+    const responseCanvas = root.querySelector<HTMLCanvasElement>("[data-lab-response]")!;
+    const playButton = root.querySelector<HTMLButtonElement>("[data-lab-play]")!;
+    const readout = root.querySelector<HTMLElement>("[data-lab-readout]")!;
+    const measuredKey = root.querySelector<HTMLElement>("[data-lab-measured-key]")!;
+    const meters = new Map(
+      Array.from(root.querySelectorAll<HTMLElement>("[data-lab-meter]")).map((el) => [
+        el.dataset.labMeter!,
+        el,
+      ]),
+    );
+
+    const stringCtx = stringCanvas.getContext("2d")!;
+    const responseCtx = responseCanvas.getContext("2d")!;
+
+    const styles = getComputedStyle(root);
+    const read = (name: string, fallback: string) =>
+      styles.getPropertyValue(name).trim() || fallback;
+    const COPPER = read("--t-copper", "#e0a24a");
+    const SIGNAL = read("--t-signal", "#59ddd2");
+    const LINE = read("--t-line", "rgba(241,239,234,0.11)");
+    const MUTE = read("--t-mute", "rgba(241,239,234,0.44)");
+
+    const minPosition = Number(root.dataset.min ?? "0.01");
+    const maxPosition = Number(root.dataset.max ?? "0.5");
+    const span = maxPosition - minPosition;
+    /** Canvas x for a string fraction, on the slider's own scale. */
+    const xForPosition = (p: number, w: number) => ((p - minPosition) / span) * w;
+    /** The string fraction a canvas x corresponds to. */
+    const positionForX = (x: number, w: number) => minPosition + (x / w) * span;
+    const weights = modalWeights(0.22, MODES);
+
+    /** Σ wₙ|sin(nπx)| — the shape the string's motion sweeps out. */
+    function envelopeAt(fraction: number): number {
+      let total = 0;
+      for (let n = 1; n <= MODES; n++) {
+        total += weights[n - 1] * Math.abs(Math.sin(n * Math.PI * fraction));
+      }
+      return total;
+    }
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    let position = Number(slider.value);
+    let context: AudioContext | null = null;
+    let analyser: AnalyserNode | null = null;
+    let bins: Uint8Array<ArrayBuffer> | null = null;
+    let graph: PickupGraph | null = null;
+    let playing = false;
+    let frame = 0;
+    let startedAt = 0;
+
+    // ---------------------------------------------------------------- utils
+
+    function fit(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.max(1, Math.round(rect.width));
+      const h = Math.max(1, Math.round(rect.height));
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { w, h };
+    }
+
+    const xForHz = (hz: number, w: number) => ((hz - MIN_HZ) / (MAX_HZ - MIN_HZ)) * w;
+
+    // ------------------------------------------------- the string and pickup
+
+    function drawString(t: number): void {
+      const { w, h } = fit(stringCanvas, stringCtx);
+      const baseY = h * 0.40;
+      const swing = h * 0.33;
+      const px = xForPosition(position, w);
+
+      stringCtx.clearRect(0, 0, w, h);
+
+      // Bridge: the string is anchored here, which is why nothing moves at
+      // the left edge however hard it is plucked.
+      stringCtx.fillStyle = MUTE;
+      stringCtx.fillRect(0, baseY - h * 0.2, 2, h * 0.4);
+
+      const step = 2;
+      const decay = reduceMotion.matches ? 0.55 : Math.exp(-((t % 6) / 3.2));
+      const amplitude = 0.45 + 0.55 * decay;
+
+      // Envelope of the motion across the strip.
+      stringCtx.beginPath();
+      for (let x = 0; x <= w; x += step) {
+        stringCtx.lineTo(x, baseY - envelopeAt(positionForX(x, w)) * swing * amplitude);
+      }
+      for (let x = w; x >= 0; x -= step) {
+        stringCtx.lineTo(x, baseY + envelopeAt(positionForX(x, w)) * swing * amplitude);
+      }
+      stringCtx.closePath();
+      stringCtx.fillStyle = COPPER;
+      stringCtx.globalAlpha = 0.12;
+      stringCtx.fill();
+      stringCtx.globalAlpha = 1;
+
+      // The string itself, at this instant.
+      const phase = reduceMotion.matches ? 0.18 : t % 6;
+      stringCtx.beginPath();
+      for (let x = 0; x <= w; x += step) {
+        const frac = positionForX(x, w);
+        const { y } = modalDisplacement(weights, frac, phase, {
+          frequency: STRING_F0,
+          decay: 3.2,
+          amplitude: 1,
+        });
+        stringCtx.lineTo(x, baseY - y * swing);
+      }
+      stringCtx.strokeStyle = COPPER;
+      stringCtx.lineWidth = 1.8;
+      stringCtx.stroke();
+
+      // The pickup, and the one point on the string it can see.
+      const { y: sensedY } = modalDisplacement(weights, position, phase, {
+        frequency: STRING_F0,
+        decay: 3.2,
+        amplitude: 1,
+      });
+
+      stringCtx.beginPath();
+      stringCtx.setLineDash([2, 4]);
+      stringCtx.moveTo(px, 0);
+      stringCtx.lineTo(px, h);
+      stringCtx.strokeStyle = LINE;
+      stringCtx.lineWidth = 1;
+      stringCtx.stroke();
+      stringCtx.setLineDash([]);
+
+      // The pickup body, with its pole visible, sitting under the string.
+      const pw = 16;
+      const ph = h * 0.34;
+      const py = baseY + h * 0.24;
+      stringCtx.fillStyle = "#1d2125";
+      stringCtx.strokeStyle = SIGNAL;
+      stringCtx.lineWidth = 1.2;
+      stringCtx.beginPath();
+      stringCtx.roundRect(px - pw / 2, py, pw, ph, 2);
+      stringCtx.fill();
+      stringCtx.stroke();
+
+      stringCtx.beginPath();
+      stringCtx.moveTo(px, py + 3);
+      stringCtx.lineTo(px, py + ph - 3);
+      stringCtx.strokeStyle = SIGNAL;
+      stringCtx.lineWidth = 2.5;
+      stringCtx.globalAlpha = 0.45;
+      stringCtx.stroke();
+      stringCtx.globalAlpha = 1;
+
+      // The one point on the string the pickup can actually see, and how far
+      // that point is from rest right now.
+      const sensedPointY = baseY - sensedY * swing;
+      stringCtx.beginPath();
+      stringCtx.moveTo(px, baseY);
+      stringCtx.lineTo(px, sensedPointY);
+      stringCtx.strokeStyle = SIGNAL;
+      stringCtx.lineWidth = 2;
+      stringCtx.stroke();
+
+      stringCtx.beginPath();
+      stringCtx.arc(px, sensedPointY, 4, 0, Math.PI * 2);
+      stringCtx.fillStyle = SIGNAL;
+      stringCtx.fill();
+    }
+
+    // ------------------------------------------------ sensitivity + measured
+
+    function drawResponse(): void {
+      const { w, h } = fit(responseCanvas, responseCtx);
+      const floorY = h - 16;
+
+      responseCtx.clearRect(0, 0, w, h);
+      responseCtx.font = '9px ui-monospace, monospace';
+      responseCtx.textBaseline = "bottom";
+      responseCtx.textAlign = "center";
+
+      for (const hz of GRID_HZ) {
+        const x = Math.round(xForHz(hz, w)) + 0.5;
+        responseCtx.beginPath();
+        responseCtx.moveTo(x, 0);
+        responseCtx.lineTo(x, floorY);
+        responseCtx.strokeStyle = LINE;
+        responseCtx.lineWidth = 1;
+        responseCtx.stroke();
+        responseCtx.fillStyle = MUTE;
+        responseCtx.fillText(hz >= 1000 ? `${hz / 1000} kHz` : `${hz}`, x, h - 3);
+      }
+
+      responseCtx.beginPath();
+      responseCtx.moveTo(0, floorY + 0.5);
+      responseCtx.lineTo(w, floorY + 0.5);
+      responseCtx.strokeStyle = LINE;
+      responseCtx.stroke();
+
+      // Harmonics of the recording's own note: the frequencies the model is
+      // really making a claim about.
+      for (let n = 1; n * DI_FUNDAMENTAL_HZ <= MAX_HZ; n++) {
+        const hz = n * DI_FUNDAMENTAL_HZ;
+        const x = xForHz(hz, w);
+        const response = pickupResponseAt(hz, position);
+        responseCtx.beginPath();
+        responseCtx.moveTo(x, floorY);
+        responseCtx.lineTo(x, floorY - response * (floorY - 8));
+        responseCtx.strokeStyle = COPPER;
+        responseCtx.globalAlpha = 0.4;
+        responseCtx.lineWidth = 1.5;
+        responseCtx.stroke();
+        responseCtx.globalAlpha = 1;
+      }
+
+      // Measured: the spectrum of the audio leaving the filter right now.
+      if (playing && analyser && bins && context) {
+        analyser.getByteFrequencyData(bins);
+        const nyquist = context.sampleRate / 2;
+        responseCtx.beginPath();
+        responseCtx.moveTo(0, floorY);
+        for (let i = 1; i < bins.length; i++) {
+          const hz = (i / bins.length) * nyquist;
+          if (hz > MAX_HZ) break;
+          responseCtx.lineTo(xForHz(hz, w), floorY - (bins[i] / 255) * (floorY - 8));
+        }
+        responseCtx.lineTo(w, floorY);
+        responseCtx.closePath();
+        responseCtx.fillStyle = "rgba(89,221,210,0.16)";
+        responseCtx.fill();
+        responseCtx.strokeStyle = SIGNAL;
+        responseCtx.lineWidth = 1;
+        responseCtx.globalAlpha = 0.6;
+        responseCtx.stroke();
+        responseCtx.globalAlpha = 1;
+      }
+
+      // Predicted sensitivity, drawn last so it stays readable over the fill.
+      responseCtx.beginPath();
+      for (let x = 0; x <= w; x++) {
+        const hz = MIN_HZ + (x / w) * (MAX_HZ - MIN_HZ);
+        responseCtx.lineTo(x, floorY - pickupResponseAt(hz, position) * (floorY - 8));
+      }
+      responseCtx.strokeStyle = SIGNAL;
+      responseCtx.lineWidth = 1.8;
+      responseCtx.stroke();
+    }
+
+    // --------------------------------------------------------------- readout
+
+    function describe(p: number): string {
+      const firstNull = 1 / pickupCombDelaySeconds(p);
+      const fundamental = pickupResponseAt(DI_FUNDAMENTAL_HZ, p);
+      if (p <= 0.11) {
+        return `Close to the bridge. The first mode barely moves here, so only ${Math.round(
+          fundamental * 100,
+        )}% of the fundamental is sensed and the partials above it dominate — the balance usually called bright or thin. The first null sits high, at ${Math.round(firstNull)} Hz.`;
+      }
+      if (p <= 0.19) {
+        return `Between the bridge and the neck. The fundamental comes through at ${Math.round(
+          fundamental * 100,
+        )}% and the first null has moved down to ${Math.round(
+          firstNull,
+        )} Hz, taking a bite out of the lower partials.`;
+      }
+      if (p <= 0.34) {
+        return `A neck-like position. The fundamental is sensed strongly, at ${Math.round(
+          fundamental * 100,
+        )}%, and the first null at ${Math.round(
+          firstNull,
+        )} Hz falls among the low partials — fuller, with a hollow notch rather than a roll-off.`;
+      }
+      return `Near the middle of the string, where no real pickup sits. Every even-numbered mode has a node here, so the even harmonics are cancelled outright and the tone goes hollow.`;
+    }
+
+    function updateMeters(): void {
+      const delayMs = pickupCombDelaySeconds(position) * 1000;
+      meters.get("position")!.textContent = position.toFixed(3);
+      meters.get("delay")!.textContent = delayMs.toFixed(2);
+      meters.get("null")!.textContent = String(Math.round(1000 / delayMs));
+      meters.get("fundamental")!.textContent = String(
+        Math.round(pickupResponseAt(DI_FUNDAMENTAL_HZ, position) * 100),
+      );
+      readout.textContent = describe(position);
+    }
+
+    // ------------------------------------------------------------- the loop
+
+    function loop(now: number): void {
+      if (!startedAt) startedAt = now;
+      drawString((now - startedAt) / 1000);
+      drawResponse();
+      frame = requestAnimationFrame(loop);
+    }
+
+    function startLoop(): void {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(loop);
+    }
+
+    function stopLoop(): void {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      drawString(0.18);
+      drawResponse();
+    }
+
+    // ------------------------------------------------------------- controls
+
+    function applyPosition(next: number, fromSlider: boolean): void {
+      position = next;
+      if (!fromSlider) slider.value = String(next);
+      for (const preset of presets) preset.checked = Number(preset.value) === next;
+      graph?.setPosition(next);
+      updateMeters();
+      if (!frame) {
+        drawString(0.18);
+        drawResponse();
+      }
+    }
+
+    slider.addEventListener("input", () => applyPosition(Number(slider.value), true));
+
+    for (const preset of presets) {
+      preset.addEventListener("change", () => {
+        if (preset.checked) applyPosition(Number(preset.value), false);
+      });
+    }
+
+    function setPlaying(next: boolean): void {
+      playing = next;
+      playButton.setAttribute("aria-pressed", String(next));
+      measuredKey.toggleAttribute("data-active", next);
+      if (!next && reduceMotion.matches) stopLoop();
+    }
+
+    function stopAudio(): void {
+      graph?.stop();
+      graph = null;
+      setPlaying(false);
+    }
+
+    playButton.addEventListener("click", async () => {
+      if (playing) {
+        stopAudio();
+        return;
+      }
+      context = context ?? new AudioContext();
+      if (!analyser) {
+        analyser = context.createAnalyser();
+        analyser.fftSize = 4096;
+        analyser.smoothingTimeConstant = 0.72;
+        bins = new Uint8Array(analyser.frequencyBinCount);
+      }
+      const buffer = await loadDiGuitarBuffer(context);
+      const next = new PickupGraph(context, {
+        position,
+        tap: analyser,
+        onEnded: () => {
+          if (graph === next) stopAudio();
+        },
+      });
+      graph = next;
+      await next.start(buffer);
+      if (graph !== next) return;
+      setPlaying(true);
+      startLoop();
+    });
+
+    // --------------------------------------------------------------- startup
+
+    const resizeObserver = new ResizeObserver(() => {
+      drawString(frame ? 0.18 : 0.18);
+      drawResponse();
+    });
+    resizeObserver.observe(stringCanvas);
+    resizeObserver.observe(responseCanvas);
+
+    updateMeters();
+    drawString(0.18);
+    drawResponse();
+
+    // The string animation runs only while the lab is on screen, and never
+    // under reduced motion — where it is drawn once, mid-decay, instead.
+    const visibility = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !reduceMotion.matches) startLoop();
+        else if (!playing) stopLoop();
+      },
+      { threshold: 0 },
+    );
+    visibility.observe(root);
+
+    document.addEventListener("astro:before-swap", () => {
+      stopAudio();
+      cancelAnimationFrame(frame);
+      visibility.disconnect();
+      resizeObserver.disconnect();
+    });
+  }
+</script>
+
+<style>
+  .lab {
+    --lab-pad: clamp(1rem, 2.5vw, 2rem);
+    border: 1px solid var(--t-line-strong);
+    background: linear-gradient(to bottom, var(--t-deep), var(--t-void));
+  }
+
+  .lab-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.85rem var(--lab-pad);
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .lab-id {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+    margin: 0;
+  }
+
+  .lab-id-index {
+    color: var(--t-signal);
+  }
+
+  .lab-id-name {
+    color: var(--t-dim);
+  }
+
+  .lab-presets {
+    display: flex;
+    gap: 0.4rem;
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .lab-preset {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .lab-preset input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .lab-preset-face {
+    display: block;
+    padding: 0.35rem 0.85rem;
+    border: 1px solid var(--t-line-strong);
+    border-radius: 2rem;
+    font-family: var(--t-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--t-dim);
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  }
+
+  .lab-preset input:checked + .lab-preset-face {
+    border-color: var(--t-signal);
+    background: var(--t-signal);
+    color: var(--t-void);
+  }
+
+  .lab-preset input:focus-visible + .lab-preset-face {
+    outline: 2px solid var(--t-signal);
+    outline-offset: 2px;
+  }
+
+  .lab-locator {
+    padding: var(--lab-pad) var(--lab-pad) 0;
+  }
+
+  .lab-locator canvas {
+    display: block;
+    width: 100%;
+    height: clamp(6.5rem, 12vw, 9rem);
+  }
+
+  .lab-locator-scale {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .lab-locator-mid {
+    text-align: end;
+  }
+
+  .lab-control {
+    padding: 0.75rem var(--lab-pad) var(--lab-pad);
+  }
+
+  .lab-control-label {
+    margin-block-end: 0.5rem;
+  }
+
+  /* The slider spans exactly the axis the string strip above it spans, so
+     the handle travels under the pickup it is moving. */
+  .lab-slider {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 1.5rem;
+    background: transparent;
+    appearance: none;
+    cursor: ew-resize;
+    border: none;
+  }
+
+  .lab-slider::-webkit-slider-runnable-track {
+    height: 2px;
+    background: var(--t-line-strong);
+  }
+
+  .lab-slider::-moz-range-track {
+    height: 2px;
+    background: var(--t-line-strong);
+  }
+
+  .lab-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 0.75rem;
+    height: 1.5rem;
+    margin-block-start: -0.7rem;
+    border: none;
+    border-radius: 1px;
+    background: var(--t-signal);
+    box-shadow: 0 0 12px var(--t-signal-dim);
+    cursor: ew-resize;
+  }
+
+  .lab-slider::-moz-range-thumb {
+    width: 0.75rem;
+    height: 1.5rem;
+    border: none;
+    border-radius: 1px;
+    background: var(--t-signal);
+    cursor: ew-resize;
+  }
+
+  .lab-display {
+    border-block-start: 1px solid var(--t-line);
+  }
+
+  .lab-display-chrome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding: 0.7rem var(--lab-pad) 0;
+  }
+
+  .lab-display-title {
+    color: var(--t-dim);
+  }
+
+  .lab-display-keys {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .lab-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .lab-key::before {
+    content: "";
+    width: 0.9rem;
+    height: 2px;
+  }
+
+  .lab-key--model::before {
+    background: var(--t-signal);
+  }
+
+  .lab-key--measured::before {
+    background: rgb(89 221 210 / 30%);
+  }
+
+  .lab-key--measured {
+    opacity: 0.4;
+    transition: opacity 0.25s ease;
+  }
+
+  .lab-key--measured[data-active] {
+    opacity: 1;
+  }
+
+  .lab-display canvas {
+    display: block;
+    width: 100%;
+    height: clamp(9rem, 18vw, 14rem);
+    padding-inline: var(--lab-pad);
+    box-sizing: border-box;
+  }
+
+  .lab-meters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(1.25rem, 3vw, 2.5rem);
+    padding: 1rem var(--lab-pad);
+    border-block-start: 1px solid var(--t-line);
+  }
+
+  .lab-meter {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+    column-gap: 0.3rem;
+    align-items: baseline;
+  }
+
+  .lab-meter > .t-label {
+    grid-column: 1 / -1;
+    margin-block-end: 0.15rem;
+  }
+
+  .lab-meter-value {
+    font-size: 1.35rem;
+    font-weight: 500;
+    color: var(--t-paper);
+    line-height: 1;
+  }
+
+  .lab-meter-unit {
+    font-family: var(--t-mono);
+    font-size: 0.6875rem;
+    color: var(--t-mute);
+  }
+
+  .lab-play {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-inline-start: auto;
+    padding: 0.6rem 1.35rem;
+    background: transparent;
+    border: 1px solid var(--t-line-strong);
+    border-radius: 2rem;
+    color: var(--t-paper);
+    font-family: var(--t-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+
+  .lab-play:hover {
+    border-color: var(--t-signal);
+    color: var(--t-signal);
+  }
+
+  .lab-play-led {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--t-edge);
+  }
+
+  .lab-play[aria-pressed="true"] {
+    border-color: var(--t-signal);
+    background: var(--t-signal);
+    color: var(--t-void);
+  }
+
+  .lab-play[aria-pressed="true"] .lab-play-led {
+    background: var(--t-void);
+  }
+
+  .lab-play-on {
+    display: none;
+  }
+
+  .lab-play[aria-pressed="true"] .lab-play-on {
+    display: inline;
+  }
+
+  .lab-play[aria-pressed="true"] .lab-play-off {
+    display: none;
+  }
+
+  .lab-readout-row {
+    border-block-start: 1px solid var(--t-line);
+    padding: 1rem var(--lab-pad);
+  }
+
+  /* Reserved for the longest of the four readings, so changing position does
+     not shunt everything below it up and down. */
+  .lab-readout {
+    margin: 0;
+    font-size: var(--t-small);
+    min-height: 4.5em;
+    max-width: 78ch;
+  }
+
+  .lab-scope {
+    margin: 0;
+    padding: 0 var(--lab-pad) 1.1rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--t-mute);
+    max-width: 82ch;
+  }
+
+  .lab-scope-link {
+    color: var(--t-dim);
+  }
+
+  .lab-scope-link:hover {
+    color: var(--t-signal);
+  }
+
+  @media (width < 40rem) {
+    .lab-meters {
+      gap: 1rem 1.5rem;
+    }
+
+    .lab-play {
+      margin-inline-start: 0;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

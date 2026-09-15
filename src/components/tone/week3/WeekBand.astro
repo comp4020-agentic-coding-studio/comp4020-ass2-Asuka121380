@@ -1,0 +1,209 @@
+---
+// A section of a week page. Three compositions, chosen per section so the
+// page changes shape as it argues rather than stacking one column twelve
+// times:
+//
+//   "split"   — numbered section heading on the left, prose beside it. The
+//               default reading shape.
+//   "wide"    — heading above, content running the full measure of the page.
+//               For figures and labs that need the width.
+//   "centred" — heading and a short passage centred. Used once or twice, for
+//               the moments the page wants the reader to stop.
+interface Props {
+  index?: number;
+  label?: string;
+  heading?: string;
+  layout?: "split" | "wide" | "centred";
+  bleed?: boolean;
+  id?: string;
+}
+
+const { index, label, heading, layout = "split", bleed = false, id } = Astro.props;
+const headingId = id ?? (heading ? heading.toLowerCase().replace(/[^a-z0-9]+/g, "-") : undefined);
+---
+
+<section
+  class:list={["band", `band--${layout}`]}
+  aria-labelledby={heading ? headingId : undefined}
+>
+  <div class={bleed ? "t-bleed" : "t-shell"}>
+    <div class="band-inner">
+      {
+        (heading || label) && (
+          <div class="band-head">
+            {(index !== undefined || label) && (
+              <p class="band-marker">
+                {index !== undefined && (
+                  <span class="t-num band-index" aria-hidden="true">
+                    {String(index).padStart(2, "0")}
+                  </span>
+                )}
+                {label && <span class="t-label band-label">{label}</span>}
+              </p>
+            )}
+            {heading && (
+              <h2 class="t-h2 band-heading" id={headingId}>
+                {heading}
+              </h2>
+            )}
+          </div>
+        )
+      }
+
+      <div class="band-body">
+        <slot />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .band {
+    padding-block: var(--t-band);
+  }
+
+  .band + .band {
+    padding-block-start: 0;
+  }
+
+  .band-head {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .band-marker {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0 0 0.35rem;
+  }
+
+  .band-index {
+    font-size: var(--t-label);
+    letter-spacing: 0.1em;
+    color: var(--t-signal);
+  }
+
+  .band-label {
+    display: inline;
+  }
+
+  .band-heading {
+    margin: 0;
+    max-width: 20ch;
+  }
+
+  /* The week's own prose, matched on the element rather than on a class.
+     The project's MDX pipeline strips class and style attributes from
+     paragraphs authored as raw HTML in a content file — `.t-body` written
+     there never reaches the browser — so the band gives its own paragraphs
+     the same treatment `.t-body` would have. Only direct children are
+     matched, so a figure's or a lab's internal paragraphs keep the styling
+     their component gave them.
+
+     The measure is capped even though the column holding it is wider: the
+     composition is wide, the line length is not. */
+  .band-body > :global(p) {
+    max-width: var(--t-measure);
+    margin-block: 0 1.15em;
+    line-height: 1.65;
+    color: var(--t-dim);
+    text-wrap: pretty;
+  }
+
+  /* Paragraphs inside one passage sit a line apart; the gap between the prose
+     and a figure, a lab or a chain is a section break, and is wider. */
+  .band-body > :global(p:has(+ :not(p))) {
+    margin-block-end: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .band-body > :global(:not(p) + p) {
+    margin-block-start: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .band-body > :global(p:last-child) {
+    margin-block-end: 0;
+  }
+
+  .band-body > :global(p) :global(strong),
+  .band-body > :global(p) :global(em) {
+    color: var(--t-paper);
+  }
+
+  .band-body > :global(p) :global(strong) {
+    font-weight: 600;
+  }
+
+  /* split: the heading holds the left columns and the prose sits beside it,
+     so a long section never becomes one undifferentiated column. */
+  @media (min-width: 62rem) {
+    .band--split .band-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+      column-gap: clamp(2rem, 5vw, 5rem);
+      align-items: start;
+    }
+
+    .band--split .band-head {
+      position: sticky;
+      top: 5.5rem;
+    }
+  }
+
+  .band--wide .band-head {
+    margin-block-end: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .band--wide .band-heading {
+    max-width: 24ch;
+  }
+
+  /* wide: the figure or lab wants the whole width, but the paragraph
+     introducing it does not — stacking both on the left left a column of
+     nothing beside the prose in every one of these sections. The body is
+     dissolved into the band's own grid (`display: contents`) so its opening
+     paragraph can sit beside the heading, on the same top line, while
+     everything after it still spans edge to edge underneath. */
+  @media (min-width: 62rem) {
+    .band--wide .band-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+      column-gap: clamp(2rem, 5vw, 5rem);
+      align-items: start;
+    }
+
+    .band--wide .band-body {
+      display: contents;
+    }
+
+    .band--wide .band-body > :global(*) {
+      grid-column: 1 / -1;
+    }
+
+    .band--wide .band-body > :global(p:first-child) {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+
+  .band--centred {
+    text-align: center;
+  }
+
+  .band--centred .band-marker {
+    justify-content: center;
+  }
+
+  .band--centred .band-head {
+    justify-items: center;
+    margin-block-end: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .band--centred .band-heading {
+    max-width: 26ch;
+  }
+
+  .band--centred :global(.t-body) {
+    margin-inline: auto;
+  }
+</style>

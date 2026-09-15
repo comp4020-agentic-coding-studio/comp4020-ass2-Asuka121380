@@ -1,0 +1,357 @@
+---
+// The course's method, stated once and shown three times: a tone word on its
+// own describes a listener, not a signal, so every week's job is to replace
+// it with the thing that physically changed.
+//
+// A centred composition, deliberately — it is the one moment on the page that
+// stops moving left-to-right, which is what gives the scroll its rhythm
+// between the full-bleed hero above and the full-bleed signal chain below.
+//
+// Each spectrum is computed here from the same analysis primitives the labs
+// use, so the picture beside a claim is the claim, not an illustration of it.
+import {
+  applyCurve,
+  harmonicSeriesCycle,
+  magnitudeSpectrum,
+  pickupHarmonicWeights,
+  pluckHarmonicWeights,
+} from "../../lib/audio/analysis";
+import { lowpassMagnitudeResponse } from "../../lib/audio/filters";
+import { buildClippingCurve } from "../../lib/audio/waveshaping";
+
+const BINS = 14;
+const FUNDAMENTAL_HZ = 82.41;
+/** Bars are drawn on a decibel scale, as a spectrum analyser draws them: on a
+ *  linear scale a guitar's fundamental is so much larger than its harmonics
+ *  that every bar past the second flattens to nothing. */
+const FLOOR_DB = 48;
+
+/** The string's own harmonic content, before anything senses or shapes it. */
+const source = pluckHarmonicWeights(0.25, BINS);
+
+/**
+ * Two magnitude sets scaled into drawable heights against ONE shared
+ * reference — the input's loudest partial — so the pair can be read as a
+ * before and after rather than two separately normalised pictures.
+ */
+function decibelPair(input: number[], output: number[]): { input: number[]; output: number[] } {
+  const reference = Math.max(...input, 1e-9);
+  const scale = (magnitudes: number[]) =>
+    magnitudes.map((magnitude) => {
+      const db = 20 * Math.log10(Math.max(magnitude, 1e-9) / reference);
+      return Math.max(0, 1 + db / FLOOR_DB);
+    });
+  return { input: scale(input), output: scale(output) };
+}
+
+/** The same partials through a low-pass filter — the literal meaning of
+ *  rolling the tone control back. */
+function filtered(cutoffHz: number): number[] {
+  const harmonics = source.map((_, i) => (i + 1) * FUNDAMENTAL_HZ);
+  const response = lowpassMagnitudeResponse(harmonics, cutoffHz);
+  return source.map((amplitude, i) => amplitude * response[i]);
+}
+
+/** The same partials as sensed by a pickup at `position`: each mode is
+ *  scaled by how much that mode actually moves where the pickup sits. */
+function sensedAt(position: number): number[] {
+  const sensitivity = pickupHarmonicWeights(position, BINS);
+  return source.map((amplitude, i) => amplitude * sensitivity[i]);
+}
+
+/** The same signal driven into a hard clipper. The flattened peaks put energy
+ *  into partials the clean signal did not contain. */
+function clipped(): number[] {
+  const clean = harmonicSeriesCycle(source, 512);
+  const driven = applyCurve(
+    Float64Array.from(clean, (sample) => Math.max(-1, Math.min(1, sample * 5))),
+    buildClippingCurve("hard", 1),
+  );
+  const spectrum = Array.from(magnitudeSpectrum(driven, BINS + 1)).slice(1);
+  // magnitudeSpectrum normalises to its own peak; rescale so the fundamental
+  // matches the input's, which is what makes the added partials readable as
+  // additions rather than as a change in level.
+  const factor = source[0] / Math.max(spectrum[0], 1e-9);
+  return spectrum.map((magnitude) => magnitude * factor);
+}
+
+interface Conversion {
+  word: string;
+  measured: string;
+  detail: string;
+  bars: { input: number[]; output: number[] };
+  /** Where the change is — the partials the eye should land on. */
+  mark: number[];
+  channel: "copper" | "signal" | "hot";
+  week: string;
+}
+
+const conversions: Conversion[] = [
+  {
+    word: "warm",
+    measured: "Upper harmonics rolled off",
+    detail:
+      "A filter, a pickup position or a tone control has reduced everything above roughly the fourth harmonic. The fundamental is untouched; its neighbours are not.",
+    bars: decibelPair(source, filtered(420)),
+    mark: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    channel: "copper",
+    week: "Weeks 3, 4, 7",
+  },
+  {
+    word: "bright",
+    measured: "Fundamental weak relative to its harmonics",
+    detail:
+      "Sensing the string close to the bridge samples a point where the lowest mode barely moves, so the partials above it dominate the balance that leaves the guitar.",
+    bars: decibelPair(source, sensedAt(0.08)),
+    mark: [0, 1],
+    channel: "signal",
+    week: "Week 3",
+  },
+  {
+    word: "aggressive",
+    measured: "Partials that were not in the input",
+    detail:
+      "Clipping flattens the peaks of the waveform. A flattened wave is a different wave, and its Fourier series contains partials the clean signal never had.",
+    bars: decibelPair(source, clipped()),
+    mark: [5, 6, 7, 8, 9, 10, 11, 12, 13],
+    channel: "hot",
+    week: "Weeks 5, 6",
+  },
+];
+---
+
+<section class="vocab t-band" aria-labelledby="vocab-heading">
+  <div class="t-shell">
+    <p class="t-label vocab-eyebrow">Method</p>
+    <h2 class="t-h1 vocab-heading" id="vocab-heading">
+      Tone words describe a listener.<br />
+      <span class="vocab-heading-em">This course describes the signal.</span>
+    </h2>
+    <p class="t-body vocab-intro">
+      Nothing here is anti-vocabulary — &ldquo;warm&rdquo; and &ldquo;bright&rdquo;
+      are useful shorthand, and every engineer uses them. They are just not
+      explanations.
+      Each week takes one of them apart and puts back what physically changed,
+      what that did to the waveform, and why the result sounds the way it does.
+    </p>
+  </div>
+
+  <div class="t-shell">
+    <ul class="vocab-list" role="list">
+      {
+        conversions.map((conversion) => (
+          <li class={`vocab-item vocab-item--${conversion.channel}`}>
+            <p class="vocab-word">
+              <span class="vocab-word-strike">{conversion.word}</span>
+            </p>
+
+            <svg
+              class="vocab-spectrum"
+              viewBox={`0 0 ${BINS * 9} 48`}
+              preserveAspectRatio="none"
+              role="img"
+              aria-label={`Harmonic spectrum, decibel scale. The outlined bars are the string's own partials; the filled bars are the same partials after the change. ${conversion.measured}.`}
+            >
+              {
+                conversion.bars.input.map((magnitude, i) => (
+                  <rect
+                    x={i * 9}
+                    y={48 - Math.max(0.8, magnitude * 46)}
+                    width={7}
+                    height={Math.max(0.8, magnitude * 46)}
+                    class="vocab-bar vocab-bar--input"
+                  />
+                ))
+              }
+              {
+                conversion.bars.output.map((magnitude, i) => (
+                  <rect
+                    x={i * 9}
+                    y={48 - Math.max(0.8, magnitude * 46)}
+                    width={7}
+                    height={Math.max(0.8, magnitude * 46)}
+                    class={conversion.mark.includes(i) ? "vocab-bar vocab-bar--mark" : "vocab-bar"}
+                  />
+                ))
+              }
+            </svg>
+
+            <p class="t-label vocab-key" aria-hidden="true">
+              <span class="vocab-key-item vocab-key-item--input">String</span>
+              <span class="vocab-key-item vocab-key-item--output">After</span>
+            </p>
+
+            <p class="t-h3 vocab-measured">{conversion.measured}</p>
+            <p class="t-body vocab-detail">{conversion.detail}</p>
+            <p class="t-label vocab-week">{conversion.week}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .vocab {
+    text-align: center;
+  }
+
+  .vocab-eyebrow {
+    margin-block-end: 1.5rem;
+  }
+
+  /* Sized so the explicit line break lands two balanced lines rather than
+     leaving a single orphaned word — the measure is set by the longer of the
+     two sentences, not by an arbitrary character count. */
+  .vocab-heading {
+    margin-inline: auto;
+    max-width: 34ch;
+    font-size: clamp(1.9rem, 3.8vw, 3.4rem);
+  }
+
+  .vocab-heading-em {
+    color: var(--t-signal);
+  }
+
+  .vocab-intro {
+    margin: clamp(1.5rem, 3vw, 2.25rem) auto 0;
+    max-width: 58ch;
+  }
+
+  .vocab-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: clamp(2rem, 4vw, 3.5rem);
+    margin: clamp(3rem, 6vw, 5rem) 0 0;
+    padding: 0;
+    text-align: start;
+  }
+
+  /* Flex rather than grid so the week reference can be pushed to a common
+     baseline with `margin-block-start: auto`. The three explanations are
+     different lengths, and letting the labels follow them left the row of
+     metadata stepped — the one piece of the column that should line up
+     across all three. */
+  .vocab-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border-block-start: 1px solid var(--t-line);
+    padding-block-start: 1.5rem;
+  }
+
+  .vocab-word {
+    margin: 0;
+    font-size: clamp(2rem, 3.4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--t-mute);
+  }
+
+  /* Drawn as a gradient rather than `line-through` so the rule sits on the
+     x-height centre and keeps the channel's own colour. */
+  .vocab-word-strike {
+    background-image: linear-gradient(currentcolor, currentcolor);
+    background-repeat: no-repeat;
+    background-size: 100% 2px;
+    background-position: 0 56%;
+  }
+
+  .vocab-word::after {
+    content: " ";
+  }
+
+  .vocab-spectrum {
+    flex: none; /* a column flex item's height is its main size, so it would otherwise shrink */
+    width: 100%;
+    height: 3rem;
+    overflow: visible;
+  }
+
+  /* The string's own partials sit behind as an outline; the processed ones
+     are drawn solid on top, so the height difference between them is the
+     change being named. */
+  .vocab-bar--input {
+    fill: none;
+    stroke: var(--t-line-strong);
+    stroke-width: 0.75;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .vocab-bar {
+    fill: var(--t-faint);
+  }
+
+  .vocab-key {
+    display: flex;
+    gap: 1rem;
+    margin: -0.25rem 0 0;
+  }
+
+  .vocab-key-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .vocab-key-item::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  .vocab-key-item--input::before {
+    border: 1px solid var(--t-line-strong);
+  }
+
+  .vocab-item--copper .vocab-key-item--output::before {
+    background: var(--t-copper);
+  }
+
+  .vocab-item--signal .vocab-key-item--output::before {
+    background: var(--t-signal);
+  }
+
+  .vocab-item--hot .vocab-key-item--output::before {
+    background: var(--t-hot);
+  }
+
+  .vocab-item--copper .vocab-bar--mark {
+    fill: var(--t-copper);
+  }
+
+  .vocab-item--signal .vocab-bar--mark {
+    fill: var(--t-signal);
+  }
+
+  .vocab-item--hot .vocab-bar--mark {
+    fill: var(--t-hot);
+  }
+
+  .vocab-item--copper .vocab-word {
+    color: var(--t-copper);
+  }
+
+  .vocab-item--signal .vocab-word {
+    color: var(--t-signal);
+  }
+
+  .vocab-item--hot .vocab-word {
+    color: var(--t-hot);
+  }
+
+  .vocab-measured {
+    margin: 0;
+  }
+
+  .vocab-detail {
+    margin: 0;
+    font-size: var(--t-small);
+  }
+
+  .vocab-week {
+    margin: auto 0 0;
+    padding-block-start: 0.5rem;
+  }
+</style>

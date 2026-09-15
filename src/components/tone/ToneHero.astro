@@ -1,0 +1,176 @@
+---
+// The first viewport. Three bands: identity + headline (left-heavy, with a
+// technical spec column holding the right side deliberately rather than
+// leaving it empty), the full-bleed string field, and a readout strip that
+// hands the visitor their two routes on.
+//
+// The headline is the only display-size type on the page; everything else
+// steps down from it, which is what keeps the hierarchy legible once the
+// visitor starts scrolling.
+import StringField from "./StringField.astro";
+import { courseMeta } from "../../course-config";
+import { withBase } from "astro-theme-university/url";
+
+interface SpecRow {
+  label: string;
+  value: string;
+}
+
+const specs: SpecRow[] = [
+  { label: "Teaching weeks", value: "12" },
+  { label: "Signal stages", value: "12" },
+  { label: "Assessments", value: "3" },
+  { label: "Level", value: String(courseMeta.level * 1000) },
+];
+---
+
+<header class="hero">
+  <div class="t-shell">
+    <div class="t-grid hero-top">
+      <div class="hero-head">
+        <p class="t-label hero-eyebrow">
+          {`${courseMeta.code} · ${courseMeta.session} ${courseMeta.year}`}
+        </p>
+        <h1 class="t-display hero-title">
+          The Science<br />of Guitar Tone
+        </h1>
+      </div>
+
+      <dl class="hero-spec">
+        {
+          specs.map((spec) => (
+            <div class="hero-spec-row">
+              <dt class="t-label">{spec.label}</dt>
+              <dd class="t-num hero-spec-value">{spec.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+
+  {/* Deliberately not `.t-bleed`: the strings run off both viewport edges,
+      so the instrument reads as continuing past the screen rather than
+      sitting inside the page's margin like a figure. */}
+  <div class="hero-field">
+    <StringField />
+  </div>
+
+  <div class="t-shell">
+    <div class="t-grid hero-foot">
+      <p class="t-lede hero-lede">
+        A vibrating string is not yet a sound, and a sound is not yet a tone.
+        This course follows one guitar signal through every stage that stands
+        between them — string, pickup, circuit, gain, clipping, filter,
+        modulation, delay, amplifier, speaker — and asks the same question at
+        each one: <strong>what physically changed, and what did that do to the
+        waveform?</strong>
+      </p>
+
+      <div class="hero-actions">
+        <a class="t-link" href={withBase("/lectures/week-01/")}>
+          Start at week 01 <span class="t-arrow" aria-hidden="true">&rarr;</span>
+        </a>
+        <a class="t-link hero-link-quiet" href="#chain">
+          The whole chain <span class="t-arrow" aria-hidden="true">&darr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .hero {
+    padding-block-start: clamp(2rem, 5vw, 4.5rem);
+  }
+
+  .hero-top {
+    row-gap: 2rem;
+    align-items: end;
+  }
+
+  .hero-head {
+    grid-column: 1 / 9;
+  }
+
+  .hero-eyebrow {
+    margin-block-end: clamp(1rem, 2.5vw, 1.75rem);
+  }
+
+  .hero-title {
+    /* Optical alignment: the cap stem of "T" sits slightly inside the type
+       box, so nudging left puts the letterform, not the box, on the gutter
+       line that every label and rule below shares. */
+    margin-inline-start: -0.045em;
+  }
+
+  .hero-spec {
+    grid-column: 10 / 13;
+    margin: 0;
+    display: grid;
+    gap: 0.6rem;
+    align-content: end;
+    padding-block-end: 0.5rem;
+  }
+
+  .hero-spec-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    border-block-start: 1px solid var(--t-line);
+    padding-block-start: 0.5rem;
+  }
+
+  .hero-spec-row dt {
+    margin: 0;
+  }
+
+  .hero-spec-value {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--t-paper);
+  }
+
+  .hero-field {
+    margin-block: clamp(1.75rem, 3.5vw, 2.75rem) clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .hero-foot {
+    row-gap: 1.75rem;
+    align-items: start;
+  }
+
+  .hero-lede {
+    grid-column: 1 / 8;
+    margin: 0;
+    max-width: 46rem;
+  }
+
+  .hero-actions {
+    grid-column: 9 / 13;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.9rem;
+  }
+
+  .hero-link-quiet {
+    color: var(--t-dim);
+    border-block-end-color: var(--t-line);
+  }
+
+  @media (width < 60rem) {
+    .hero-spec {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem 2rem;
+    }
+
+    .hero-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+  }
+</style>

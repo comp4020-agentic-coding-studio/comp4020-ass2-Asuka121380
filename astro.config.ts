@@ -1,4 +1,4 @@
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 import courseGraph from "astro-course-university";
 import universityTheme from "astro-theme-university";
 import { astromotion, deckRemarkPlugins } from "astromotion";
@@ -17,6 +17,29 @@ export default defineConfig({
   // and what a visitor clicks in agreement --- otherwise each click costs a
   // 301 on GitHub Pages.
   trailingSlash: "always",
+  // The course's own typeface pair, registered alongside (not instead of) the
+  // theme's Public Sans / Roboto Mono, which the pages still on the theme's
+  // register keep using. Archivo is an industrial grotesque with a full
+  // variable weight axis and tabular lining figures — it carries display
+  // headlines at 700-800 and reads cleanly as body text at 400, so the TONE
+  // pages need only one text family. IBM Plex Mono handles technical
+  // metadata: units, axis labels, signal-path labels, instrument readouts.
+  fonts: [
+    {
+      name: "Archivo",
+      cssVariable: "--font-archivo",
+      provider: fontProviders.google(),
+      weights: ["100 900"],
+    },
+    {
+      name: "IBM Plex Mono",
+      cssVariable: "--font-plex-mono",
+      provider: fontProviders.google(),
+      weights: ["400", "500", "600"],
+      styles: ["normal"],
+      fallbacks: ["monospace"],
+    },
+  ],
   integrations: [
     universityTheme({
       defaultLayout: "src/layouts/PageLayout.astro",

@@ -1,0 +1,555 @@
+/*
+ * TONE — the course's own visual system.
+ *
+ * astro-theme-university is infrastructure here, not a visual baseline. This
+ * stylesheet is the root-level escape from its shell: a page opts in with
+ * `mainAttrs={{ class: "tone-page", "data-tone": true }}` on BaseLayout, and
+ * from that point the page owns its own width, margins, composition, type and
+ * colour. Pages that have not been redesigned yet are untouched — every rule
+ * below is scoped to `[data-tone]` or to `body:has([data-tone])`.
+ *
+ * What the theme does that has to be undone, and where:
+ *   - base.css makes `body` a 5-column named-line grid capped at
+ *     --at-content-width (48rem), and every direct child defaults to the
+ *     narrow `content` track. Undone in "Escape" below.
+ *   - base.css paints an unconditional 1px accent rule via `body::after`.
+ *   - components.css puts `.at-nav-inner` in that same 48rem `content` track,
+ *     which is why the wordmark sits indented from the page edge and the
+ *     search button wraps to a second row. Rebuilt in "Nav".
+ *   - components.css gives `.at-main` its own padding and subgrid placement.
+ *
+ * Nothing in node_modules is edited; these rules simply win the cascade. The
+ * theme's own styles live in @layer at.*, and everything here is unlayered,
+ * so unlayered wins regardless of specificity.
+ */
+
+/* ------------------------------------------------------------------ *
+ * Tokens
+ * ------------------------------------------------------------------ */
+
+body:has([data-tone]) {
+  /* Ground: a near-black with a faint cool cast, so copper reads warm
+     against it. Not pure black — pure black kills the sense of depth that
+     makes the photography sit in the page rather than on it. */
+  --t-void: #0a0b0c;
+  --t-deep: #0f1113;
+  --t-surface: #15181b;
+  --t-raised: #1d2125;
+  --t-edge: #2a2f34;
+
+  /* Ink. Warm off-white, not #fff — bone against graphite. */
+  --t-paper: #f1efea;
+  --t-dim: rgb(241 239 234 / 68%);
+  --t-mute: rgb(241 239 234 / 44%);
+  --t-faint: rgb(241 239 234 / 14%);
+
+  /* Two signal channels, used semantically and never as decoration.
+     COPPER  = physical / mechanical / analogue — the string, the magnet,
+               the coil, anything you could hold.
+     SIGNAL  = electrical / measured — voltage, waveform, spectrum, the
+               active state of a control.
+     HOT     = overload, clipping, the limit of a range. */
+  --t-copper: #e0a24a;
+  --t-copper-dim: rgb(224 162 74 / 40%);
+  --t-signal: #59ddd2;
+  --t-signal-dim: rgb(89 221 210 / 38%);
+  --t-signal-glow: rgb(89 221 210 / 14%);
+  --t-hot: #ff6a45;
+
+  /* Hairlines and the measurement graticule. */
+  --t-line: rgb(241 239 234 / 11%);
+  --t-line-strong: rgb(241 239 234 / 20%);
+  --t-grid: rgb(241 239 234 / 4%);
+
+  /* Type */
+  --t-sans: var(--font-archivo, "Archivo"), "Helvetica Neue", arial, sans-serif;
+  --t-mono: var(--font-plex-mono, "IBM Plex Mono"), ui-monospace, "SFMono-Regular", menlo, monospace;
+
+  --t-display: clamp(3.2rem, 8.4vw, 7.5rem);
+  --t-h1: clamp(2.4rem, 5.2vw, 4.25rem);
+  --t-h2: clamp(1.8rem, 3.4vw, 2.9rem);
+  --t-h3: clamp(1.25rem, 1.8vw, 1.6rem);
+  --t-lede: clamp(1.1rem, 1.35vw, 1.35rem);
+  --t-body: clamp(1rem, 0.94rem + 0.28vw, 1.125rem);
+  --t-small: 0.875rem;
+  --t-label: 0.6875rem;
+
+  /* Space. One gutter token drives every horizontal margin on the page, so
+     nothing needs a per-section breakout hack to reach the viewport edge. */
+  --t-gutter: clamp(1.25rem, 4.5vw, 5rem);
+  --t-shell: 112rem;
+  /* Reading measure. `ch` is the advance of "0", which in Archivo is wider
+     than the average lowercase letter, so 62ch measured out at 76 characters
+     a line — long for 20px body text. 54ch lands at roughly 66. */
+  --t-measure: 54ch;
+  /* One vertical rhythm token. Sections use it as symmetric block padding, so
+     the space between any two is exactly 2 × this and never accumulates from
+     a stack of ad-hoc margins. */
+  --t-band: clamp(3rem, 5.5vw, 5.5rem);
+}
+
+/* ------------------------------------------------------------------ *
+ * Escape — dismantle the theme's page shell
+ * ------------------------------------------------------------------ */
+
+body:has([data-tone]) {
+  display: block;
+  background: var(--t-void);
+  color: var(--t-paper);
+  font-family: var(--t-sans);
+  font-size: var(--t-body);
+  line-height: 1.6;
+
+  /* Remap the theme's semantic tokens as well, so any shared component still
+     reading --at-* (Waveform, Spectrum, form controls, focus rings) re-themes
+     without being rewritten. */
+  --at-bg: var(--t-void);
+  --at-bg-alt: var(--t-surface);
+  --at-bg-elevated: var(--t-raised);
+  --at-border: var(--t-line);
+  --at-divider: var(--t-line);
+  --at-text: var(--t-paper);
+  --at-text-secondary: var(--t-dim);
+  --at-text-muted: var(--t-mute);
+  --at-heading: var(--t-paper);
+  --at-accent: var(--t-signal);
+  --at-link: var(--t-signal);
+  --at-link-hover: var(--t-paper);
+  --at-font-mono: var(--t-mono);
+  --at-nav-height: 4rem;
+}
+
+body:has([data-tone])::after {
+  display: none;
+}
+
+.at-main[data-tone] {
+  display: block;
+  padding: 0;
+  margin: 0;
+  min-height: 0;
+  max-width: none;
+}
+
+/* The theme's small-viewport rule drags every `.at-main` image outside its
+   own box by a negative inline margin. Under a full-bleed composition that is
+   the cause of horizontal page overflow, not a bleed effect. */
+@media (width < 640px) {
+  .at-main[data-tone] > img,
+  .at-main[data-tone] :where(p, figure) > img {
+    margin-inline: 0;
+    max-width: 100%;
+    width: auto;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Nav — course identity first, institution second
+ * ------------------------------------------------------------------ */
+
+body:has([data-tone]) .at-nav {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--t-void) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border-block-end: 1px solid transparent;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+/* Hairline appears only once the hero has scrolled past, so the nav is part
+   of the hero composition at rest and a separate bar in use. */
+body:has([data-tone]) .at-nav[data-scrolled] {
+  background: color-mix(in srgb, var(--t-void) 94%, transparent);
+  border-block-end-color: var(--t-line);
+}
+
+body:has([data-tone]) .at-nav-inner {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  max-width: var(--t-shell);
+  margin-inline: auto;
+  padding-block: 0.85rem;
+  padding-inline: var(--t-gutter);
+}
+
+/* `flex: none` matters: the wordmark is `white-space: nowrap`, so if the
+   brand is allowed to shrink its box stops matching the text, the text
+   overflows, and the menu button is laid out on top of it. */
+body:has([data-tone]) .at-nav-brand {
+  transform: none;
+  font-weight: 400;
+  flex: none;
+  margin-inline-end: auto;
+}
+
+body:has([data-tone]) .at-nav-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--t-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--t-paper);
+  white-space: nowrap;
+}
+
+body:has([data-tone]) .at-nav-wordmark::before {
+  content: "";
+  flex: none;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--t-signal);
+  box-shadow: 0 0 8px var(--t-signal-dim);
+}
+
+/* The course code is the identity and always shows; the title trails it and
+   is the first thing dropped when the bar runs out of room, so the wordmark
+   never collides with the menu and search buttons. `--course-title` is set
+   per page from `courseMeta` (see the head slot in index.astro), so the
+   string is not duplicated here. */
+body:has([data-tone]) .at-nav-wordmark::after {
+  content: " · " var(--course-title, "");
+  color: var(--t-dim);
+  font-weight: 400;
+}
+
+@media (width < 52rem) {
+  body:has([data-tone]) .at-nav-wordmark::after {
+    content: none;
+  }
+}
+
+body:has([data-tone]) .at-nav-links {
+  gap: clamp(0.5rem, 1.6vw, 1.5rem);
+}
+
+body:has([data-tone]) .at-nav-links a {
+  font-family: var(--t-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-dim);
+  text-decoration: none;
+  padding-block: 0.4rem;
+  border-block-end: 1px solid transparent;
+}
+
+body:has([data-tone]) .at-nav-links a:hover {
+  color: var(--t-paper);
+}
+
+body:has([data-tone]) .at-nav-links a[aria-current="page"] {
+  color: var(--t-signal);
+  border-block-end-color: var(--t-signal);
+}
+
+body:has([data-tone]) .at-icon-button {
+  border-color: var(--t-line);
+  color: var(--t-dim);
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: none;
+}
+
+body:has([data-tone]) .at-icon-button:hover {
+  color: var(--t-paper);
+  border-color: var(--t-line-strong);
+}
+
+@media (width < 46rem) {
+  /* Below the theme's own nav breakpoint the links become a dropped panel;
+     give it this page's surface rather than the theme's light one. */
+  body:has([data-tone]) .at-nav-links-wrapper {
+    background: var(--t-deep);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Footer — continuous with the page, not an institutional band
+ * ------------------------------------------------------------------ */
+
+body:has([data-tone]) .at-footer {
+  display: block;
+  background: var(--t-void);
+  border-block-start: 1px solid var(--t-line);
+  color: var(--t-dim);
+}
+
+body:has([data-tone]) .at-footer :where(.at-footer-inner, .at-footer-ack, .at-footer-legal) {
+  max-width: var(--t-shell);
+  margin-inline: auto;
+  padding-inline: var(--t-gutter);
+}
+
+body:has([data-tone]) .at-footer :where(h2, h3, .at-footer-name) {
+  font-family: var(--t-sans);
+  color: var(--t-paper);
+}
+
+body:has([data-tone]) .at-footer :where(a, li, p, small) {
+  color: var(--t-dim);
+}
+
+body:has([data-tone]) .at-footer a:hover {
+  color: var(--t-signal);
+}
+
+/* The theme's Footer prints a separator before the theme toggle whether or
+   not anything precedes it, so with no legal links the row opens on an
+   orphaned "|". It is aria-hidden, so dropping it when it is first removes a
+   stray mark and nothing else. Scoped, like everything here, to the two
+   redesigned pages. */
+body:has([data-tone]) .at-footer-legal > span[aria-hidden]:first-child {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Layout primitives
+ *
+ * `.t-shell` is the only thing that sets a horizontal margin. Sections that
+ * want the viewport take `.t-bleed` and re-apply the gutter themselves; there
+ * is no grid left to break out of.
+ * ------------------------------------------------------------------ */
+
+[data-tone] .t-shell {
+  max-width: var(--t-shell);
+  margin-inline: auto;
+  padding-inline: var(--t-gutter);
+}
+
+[data-tone] .t-bleed {
+  width: 100%;
+  padding-inline: var(--t-gutter);
+}
+
+/* A 12-column field. Compositions place themselves on it by column, which is
+   what keeps labels, diagrams and text blocks landing on the same lines
+   rather than being positioned by eye. */
+[data-tone] .t-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(1rem, 2vw, 2rem);
+}
+
+@media (width < 60rem) {
+  [data-tone] .t-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  [data-tone] .t-grid > * {
+    grid-column: 1 / -1;
+  }
+}
+
+[data-tone] .t-band {
+  padding-block: var(--t-band);
+}
+
+[data-tone] .t-measure {
+  max-width: var(--t-measure);
+}
+
+/* The measurement graticule. A single element, fixed behind the page, giving
+   every composition the same substrate — the reason the page reads as one
+   instrument rather than a stack of dark boxes. Deliberately near-invisible:
+   it is texture, not ornament. */
+[data-tone] .t-graticule {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--t-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--t-grid) 1px, transparent 1px);
+  background-size: 5.5rem 5.5rem;
+  mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, #000 0%, transparent 78%);
+}
+
+[data-tone] .t-layer {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Type
+ * ------------------------------------------------------------------ */
+
+[data-tone] :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--t-sans);
+  color: var(--t-paper);
+  margin: 0;
+  text-wrap: balance;
+}
+
+[data-tone] .t-display {
+  font-size: var(--t-display);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+[data-tone] .t-h1 {
+  font-size: var(--t-h1);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+[data-tone] .t-h2 {
+  font-size: var(--t-h2);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.022em;
+}
+
+[data-tone] .t-h3 {
+  font-size: var(--t-h3);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+
+[data-tone] .t-lede {
+  font-size: var(--t-lede);
+  line-height: 1.5;
+  color: var(--t-dim);
+  font-weight: 400;
+  text-wrap: pretty;
+}
+
+[data-tone] .t-body {
+  font-size: var(--t-body);
+  line-height: 1.65;
+  color: var(--t-dim);
+  text-wrap: pretty;
+}
+
+[data-tone] .t-body strong,
+[data-tone] .t-lede strong {
+  color: var(--t-paper);
+  font-weight: 600;
+}
+
+[data-tone] .t-body em {
+  color: var(--t-paper);
+  font-style: italic;
+}
+
+/* Every technical label on the site: axis names, units, signal-path stages,
+   week numbers, instrument readouts. Mono is reserved for these — never for
+   running text. */
+[data-tone] .t-label {
+  display: block;
+  font-family: var(--t-mono);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--t-mute);
+}
+
+[data-tone] .t-label--signal {
+  color: var(--t-signal);
+}
+
+[data-tone] .t-label--copper {
+  color: var(--t-copper);
+}
+
+[data-tone] .t-num {
+  font-family: var(--t-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* A rule that carries a label — the section marker used throughout, in place
+   of a bordered card header. */
+[data-tone] .t-rule {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-block-start: 1px solid var(--t-line);
+  padding-block-start: 0.85rem;
+}
+
+[data-tone] .t-rule::after {
+  content: "";
+  flex: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Links and controls
+ * ------------------------------------------------------------------ */
+
+[data-tone] a {
+  color: inherit;
+}
+
+[data-tone] .t-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--t-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--t-signal);
+  text-decoration: none;
+  padding-block: 0.3rem;
+  border-block-end: 1px solid var(--t-signal-dim);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+[data-tone] .t-link:hover {
+  color: var(--t-paper);
+  border-block-end-color: var(--t-paper);
+}
+
+[data-tone] .t-link .t-arrow {
+  transition: transform 0.2s ease;
+}
+
+[data-tone] .t-link:hover .t-arrow {
+  transform: translateX(0.25rem);
+}
+
+/* Also covers the shared nav and footer, which are siblings of <main> and so
+   outside `[data-tone]` — without the second selector the footer's theme
+   toggle is reachable by keyboard with no visible ring on these pages. */
+[data-tone] :focus-visible,
+body:has([data-tone]) :where(.at-nav, .at-footer) :focus-visible {
+  outline: 2px solid var(--t-signal);
+  outline-offset: 3px;
+  box-shadow: none;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Motion
+ *
+ * Every animated element starts from its final state and is moved to its
+ * entry state only inside this query, so a reduced-motion visitor — and a
+ * visitor whose JS never runs — sees the finished composition rather than a
+ * page of invisible blocks.
+ * ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-tone] .t-enter {
+    opacity: 0;
+    transform: translateY(1.25rem);
+    transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.3, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.3, 1);
+    transition-delay: var(--t-delay, 0ms);
+  }
+
+  [data-tone] .t-enter[data-shown] {
+    opacity: 1;
+    transform: none;
+  }
+}

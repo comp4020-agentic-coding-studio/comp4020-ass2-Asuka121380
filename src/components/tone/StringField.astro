@@ -1,0 +1,453 @@
+---
+// The homepage's opening image, and the course's thesis in one picture:
+// six strings running edge to edge, a pickup sensing them at one point, and
+// the voltage that sensing produces flowing out to the right.
+//
+// It is not decoration. Three things on the canvas are causally linked to
+// the same state, so the picture teaches something a still image could not:
+//   1. the string shape is a real modal sum, y(x,t) = Σ Aₙ sin(nπx/L)
+//      cos(2πnf₀t) e^(-t/τₙ), with a triangular-pluck spectrum Aₙ ∝
+//      sin(nπp)/n² — the same model Week 2 and Week 3 use;
+//   2. the pole pieces brighten with the string's *velocity* above them,
+//      not its displacement, because it is dΦ/dt that induces a voltage;
+//   3. the voltage trace's newest sample IS the string's displacement at
+//      the pickup's x position, this frame. Left of the pickup the trace is
+//      flat: before something senses the string there is no electrical
+//      signal at all, which is exactly where Week 3 starts.
+//
+// Motion is slowed 50× from E2's real 82.41 Hz, which is labelled on the
+// readout rather than left implied — an 82 Hz string renders as a blur.
+interface Props {
+  /** Fraction of the canvas width the pickup sits at. */
+  pickupX?: number;
+  /** Fraction of the string's length the pluck happens at. */
+  pluckPosition?: number;
+}
+
+const { pickupX = 0.63, pluckPosition = 0.22 } = Astro.props;
+---
+
+<div
+  class="string-field"
+  data-string-field
+  data-pickup-x={pickupX}
+  data-pluck={pluckPosition}
+>
+  <canvas
+    data-string-canvas
+    role="img"
+    aria-label="Six guitar strings run across the width of the page. A pickup sits beneath them, about two thirds of the way along. Where the strings pass over it, the pickup's pole pieces brighten as the strings move, and the string's motion at that single point is drawn below as a voltage waveform travelling away to the right. To the left of the pickup that lower line is flat: no electrical signal exists until the pickup senses the string."
+  ></canvas>
+
+  <div class="string-field-annotations" aria-hidden="true">
+    <span class="t-label t-label--copper sf-anno sf-anno--string">String · mechanical</span>
+    <span class="t-label sf-anno sf-anno--sense">Sensed here</span>
+    <span class="t-label sf-anno sf-anno--zero">0 V — nothing has sensed the string yet</span>
+    <span class="t-label t-label--signal sf-anno sf-anno--volt">Voltage · electrical</span>
+  </div>
+</div>
+
+<script>
+  import { modalDisplacement, modalWeights } from "../../lib/audio/analysis";
+
+  const PALETTE = {
+    copper: "#e0a24a",
+    copperDim: "rgba(224,162,74,0.30)",
+    signal: "#59ddd2",
+    signalDim: "rgba(89,221,210,0.28)",
+    body: "#1d2125",
+    edge: "rgba(241,239,234,0.16)",
+    faint: "rgba(241,239,234,0.09)",
+  };
+
+  // E2 = 82.41 Hz, drawn 50× slow so the fundamental is visible as motion.
+  const SLOWDOWN = 50;
+  const F0 = 82.41 / SLOWDOWN;
+  const MODES = 12;
+  const STRING_COUNT = 6;
+  const REPLUCK_AFTER = 7.5;
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-string-field]")) {
+    if (root.dataset.sfInit) continue;
+    root.dataset.sfInit = "true";
+
+    const canvas = root.querySelector<HTMLCanvasElement>("[data-string-canvas]");
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) continue;
+
+    const pickupFraction = Number(root.dataset.pickupX ?? "0.63");
+    const pluck = Number(root.dataset.pluck ?? "0.22");
+    const weights = modalWeights(pluck, MODES);
+
+    // Each string is plucked with its own amplitude and its own start time,
+    // so the set reads as an instrument being played rather than six copies
+    // of one animation. Index 0 is the low E — thickest, loudest, slowest to
+    // decay, and the one the pickup's readout follows.
+    const strings = Array.from({ length: STRING_COUNT }, (_, i) => ({
+      gauge: 2.2 - i * 0.24,
+      amplitude: i === 0 ? 1 : 0.34 + 0.22 * Math.random(),
+      pluckedAt: i === 0 ? 0 : -REPLUCK_AFTER * Math.random() - 1,
+      decay: i === 0 ? 3.8 : 2.1,
+    }));
+
+    let width = 0;
+    let height = 0;
+    let history: number[] = [];
+    let running = false;
+    let frame = 0;
+    let startedAt = 0;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    function resize(): void {
+      const rect = canvas!.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = Math.max(1, Math.round(rect.width));
+      height = Math.max(1, Math.round(rect.height));
+      canvas!.width = Math.round(width * dpr);
+      canvas!.height = Math.round(height * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      history = [];
+    }
+
+    // Σ wₙ|sin(nπx)| — the largest excursion the mode sum can reach at each
+    // point along the string, i.e. the shape of the blur in a photograph of
+    // one. Independent of time, so it is tabulated once per resize.
+    const ENVELOPE_STEPS = 256;
+    const envelopeTable = new Float64Array(ENVELOPE_STEPS + 1);
+    for (let i = 0; i <= ENVELOPE_STEPS; i++) {
+      const x = i / ENVELOPE_STEPS;
+      let total = 0;
+      for (let n = 1; n <= MODES; n++) total += weights[n - 1] * Math.abs(Math.sin(n * Math.PI * x));
+      envelopeTable[i] = total;
+    }
+
+    function envelopeAt(xFraction: number): number {
+      return envelopeTable[Math.round(xFraction * ENVELOPE_STEPS)] ?? 0;
+    }
+
+    /** How far through its decay a string is — a single exponential, so the
+     *  envelope is an approximation of a sum whose modes decay at different
+     *  rates. Close enough for a drawn envelope; the string's own shape below
+     *  is computed properly. */
+    function envelopeScale(stringIndex: number, t: number): number {
+      const s = strings[stringIndex];
+      const age = t - s.pluckedAt;
+      if (age < 0) return 0;
+      return s.amplitude * Math.exp(-age / s.decay);
+    }
+
+    /** Displacement and velocity of one string at `xFraction`, `t` seconds in. */
+    function sample(stringIndex: number, xFraction: number, t: number) {
+      const s = strings[stringIndex];
+      const age = t - s.pluckedAt;
+      if (age < 0) return { y: 0, v: 0 };
+      return modalDisplacement(weights, xFraction, age, {
+        frequency: F0,
+        decay: s.decay,
+        amplitude: s.amplitude,
+      });
+    }
+
+    function draw(t: number): void {
+      ctx!.clearRect(0, 0, width, height);
+
+      const pickupCx = width * pickupFraction;
+      const stringTop = height * 0.12;
+      const stringGap = (height * 0.34) / (STRING_COUNT - 1);
+      // Displacement is drawn well beyond life size — a real string moves a
+      // fraction of a millimetre. Strings are allowed to overlap at full
+      // swing, which is what makes the motion legible at this scale.
+      const swing = stringGap * 1.5;
+      // Kept in step with .sf-anno--zero's `top` in the stylesheet below, so
+      // the "0 V" label sits exactly on the baseline the canvas draws.
+      const traceY = height * 0.76;
+      const traceScale = height * 0.18;
+
+      // Re-pluck a string whose motion has died away, so the field never
+      // settles into a still picture while the visitor is reading.
+      for (let i = 0; i < STRING_COUNT; i++) {
+        if (t - strings[i].pluckedAt > REPLUCK_AFTER + i * 0.9) {
+          strings[i].pluckedAt = t;
+          strings[i].amplitude = i === 0 ? 1 : 0.16 + 0.14 * Math.random();
+        }
+      }
+
+      // --- pickup --------------------------------------------------------
+      // Drawn before the strings so they pass over it, the way they do on the
+      // instrument. Proportioned like a humbucker seen from above: two
+      // bobbins side by side inside one chassis.
+      const pw = Math.max(52, width * 0.055);
+      const ph = stringGap * (STRING_COUNT - 1) + 30;
+      const px0 = pickupCx - pw / 2;
+      const py0 = stringTop - 15;
+
+      ctx!.fillStyle = PALETTE.body;
+      ctx!.strokeStyle = PALETTE.edge;
+      ctx!.lineWidth = 1;
+      ctx!.beginPath();
+      ctx!.roundRect(px0, py0, pw, ph, 5);
+      ctx!.fill();
+      ctx!.stroke();
+
+      // Bobbin split and a top highlight, so it reads as a machined object
+      // rather than a flat rectangle.
+      ctx!.beginPath();
+      ctx!.moveTo(pickupCx, py0 + 4);
+      ctx!.lineTo(pickupCx, py0 + ph - 4);
+      ctx!.strokeStyle = PALETTE.faint;
+      ctx!.stroke();
+
+      ctx!.beginPath();
+      ctx!.moveTo(px0 + 5, py0 + 0.5);
+      ctx!.lineTo(px0 + pw - 5, py0 + 0.5);
+      ctx!.strokeStyle = "rgba(241,239,234,0.22)";
+      ctx!.stroke();
+
+      // Pole pieces track velocity, not position — it is the *rate* of flux
+      // change that induces a voltage, which is this course's Week 3 in one
+      // detail. A stationary string sitting right on a pole stays dark.
+      const poleColumns = [pickupCx - pw / 4, pickupCx + pw / 4];
+      for (let i = 0; i < STRING_COUNT; i++) {
+        const cy = stringTop + i * stringGap;
+        const glow = Math.min(1, Math.abs(sample(i, pickupFraction, t).v) * 1.9);
+        for (const cx of poleColumns) {
+          ctx!.beginPath();
+          ctx!.arc(cx, cy, 2.6, 0, Math.PI * 2);
+          ctx!.fillStyle = PALETTE.signal;
+          ctx!.globalAlpha = 0.14 + glow * 0.86;
+          ctx!.fill();
+          if (glow > 0.05) {
+            ctx!.beginPath();
+            ctx!.arc(cx, cy, 2.6 + glow * 5.5, 0, Math.PI * 2);
+            ctx!.fillStyle = PALETTE.signal;
+            ctx!.globalAlpha = glow * 0.13;
+            ctx!.fill();
+          }
+        }
+        ctx!.globalAlpha = 1;
+      }
+
+      // --- strings -------------------------------------------------------
+      // Each string is drawn twice: the envelope its motion sweeps out, and
+      // its actual shape inside that envelope. The envelope is what a camera
+      // sees when it photographs a vibrating string, and it is also what
+      // makes the motion legible at a glance — a single instantaneous curve
+      // at this scale just looks like a slightly bent line.
+      const step = Math.max(2, Math.round(width / 480));
+      for (let i = 0; i < STRING_COUNT; i++) {
+        const baseY = stringTop + i * stringGap;
+        const decayed = envelopeScale(i, t);
+
+        if (decayed > 0.02) {
+          ctx!.beginPath();
+          for (let px = 0; px <= width; px += step) {
+            ctx!.lineTo(px, baseY - envelopeAt(px / width) * decayed * swing);
+          }
+          for (let px = width; px >= 0; px -= step) {
+            ctx!.lineTo(px, baseY + envelopeAt(px / width) * decayed * swing);
+          }
+          ctx!.closePath();
+          ctx!.fillStyle = PALETTE.copper;
+          ctx!.globalAlpha = i === 0 ? 0.12 : 0.06;
+          ctx!.fill();
+          ctx!.globalAlpha = 1;
+        }
+
+        ctx!.beginPath();
+        for (let px = 0; px <= width; px += step) {
+          const y = baseY - sample(i, px / width, t).y * swing;
+          if (px === 0) ctx!.moveTo(px, y);
+          else ctx!.lineTo(px, y);
+        }
+        ctx!.strokeStyle = PALETTE.copper;
+        ctx!.globalAlpha = i === 0 ? 1 : 0.5 + decayed * 0.3;
+        ctx!.lineWidth = strings[i].gauge;
+        ctx!.lineCap = "round";
+        ctx!.stroke();
+        ctx!.globalAlpha = 1;
+      }
+
+      // --- sense line ----------------------------------------------------
+      ctx!.beginPath();
+      ctx!.setLineDash([2, 5]);
+      ctx!.moveTo(pickupCx, py0 + ph);
+      ctx!.lineTo(pickupCx, traceY);
+      ctx!.strokeStyle = PALETTE.signalDim;
+      ctx!.lineWidth = 1;
+      ctx!.stroke();
+      ctx!.setLineDash([]);
+
+      // --- voltage trace -------------------------------------------------
+      // Flat to the left of the pickup: nothing has sensed the string yet,
+      // so there is no signal there to draw.
+      ctx!.beginPath();
+      ctx!.moveTo(0, traceY);
+      ctx!.lineTo(pickupCx, traceY);
+      ctx!.strokeStyle = PALETTE.signalDim;
+      ctx!.lineWidth = 1;
+      ctx!.setLineDash([1, 6]);
+      ctx!.stroke();
+      ctx!.setLineDash([]);
+
+      const traceWidth = width - pickupCx;
+      const slots = Math.max(2, Math.ceil(traceWidth / 2));
+      history.unshift(sample(0, pickupFraction, t).y);
+      if (history.length > slots) history.length = slots;
+
+      ctx!.beginPath();
+      for (let i = 0; i < history.length; i++) {
+        const x = pickupCx + (i / (slots - 1)) * traceWidth;
+        const y = traceY - history[i] * traceScale;
+        if (i === 0) ctx!.moveTo(x, y);
+        else ctx!.lineTo(x, y);
+      }
+      ctx!.strokeStyle = PALETTE.signal;
+      ctx!.lineWidth = 1.6;
+      ctx!.lineJoin = "round";
+      ctx!.stroke();
+
+      // The output node the signal leaves through.
+      ctx!.beginPath();
+      ctx!.arc(pickupCx, traceY - (history[0] ?? 0) * traceScale, 3, 0, Math.PI * 2);
+      ctx!.fillStyle = PALETTE.signal;
+      ctx!.fill();
+    }
+
+    function loop(now: number): void {
+      if (!running) return;
+      if (!startedAt) startedAt = now;
+      draw((now - startedAt) / 1000);
+      frame = requestAnimationFrame(loop);
+    }
+
+    /** One representative frame, mid-decay, for reduced motion and for the
+     *  paused state — a still picture that still shows the whole mechanism. */
+    function drawStill(): void {
+      for (let i = 0; i < STRING_COUNT; i++) strings[i].pluckedAt = -0.55 - i * 0.12;
+      history = [];
+      const slots = Math.max(2, Math.ceil((width - width * pickupFraction) / 2));
+      for (let i = slots - 1; i >= 0; i--) {
+        history.unshift(sample(0, pickupFraction, 0.55 + i * 0.0026).y);
+      }
+      history.length = slots;
+      draw(0.55);
+    }
+
+    function start(): void {
+      if (running || reduceMotion.matches) return;
+      running = true;
+      startedAt = 0;
+      frame = requestAnimationFrame(loop);
+    }
+
+    function stop(): void {
+      running = false;
+      cancelAnimationFrame(frame);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => (entry.isIntersecting ? start() : stop()),
+      { threshold: 0 },
+    );
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+      if (!running) drawStill();
+    });
+
+    resize();
+    drawStill();
+    resizeObserver.observe(canvas);
+    observer.observe(root);
+    reduceMotion.addEventListener("change", () => {
+      if (reduceMotion.matches) {
+        stop();
+        drawStill();
+      } else {
+        start();
+      }
+    });
+
+    document.addEventListener("astro:before-swap", () => {
+      stop();
+      observer.disconnect();
+      resizeObserver.disconnect();
+    });
+  }
+</script>
+
+<style>
+  .string-field {
+    position: relative;
+    width: 100%;
+  }
+
+  .string-field canvas {
+    display: block;
+    width: 100%;
+    height: clamp(13rem, 25vw, 20rem);
+  }
+
+  /* The canvas is full-bleed but its labels are not: they sit on the same
+     gutter line as every other label on the page. */
+  .string-field-annotations {
+    position: absolute;
+    inset: 0;
+    padding-inline: var(--t-gutter);
+    pointer-events: none;
+  }
+
+  .sf-anno {
+    position: absolute;
+    white-space: nowrap;
+  }
+
+  /* Annotations are placed against the same fractions the canvas draws at,
+     so a label never drifts away from the thing it names. */
+  .sf-anno--string {
+    top: 0;
+    left: var(--t-gutter);
+  }
+
+  .sf-anno--sense {
+    top: 0;
+    left: 63%;
+    transform: translateX(-50%);
+  }
+
+  /* Sits on the canvas's own zero-volt baseline (traceY = 0.76 × height),
+     lifted by its own line height so the type rests on the line. */
+  .sf-anno--zero {
+    top: 76%;
+    left: var(--t-gutter);
+    transform: translateY(-1.6em);
+    color: var(--t-mute);
+  }
+
+  .sf-anno--volt {
+    bottom: 0;
+    right: var(--t-gutter);
+  }
+
+  /* Scoped through .string-field to out-specify tone.css's `.t-label
+     { display: block }`, which otherwise wins on source order and leaves the
+     labels stacked on top of each other at narrow widths. */
+  @media (width < 52rem) {
+    .string-field .sf-anno--zero {
+      display: none;
+    }
+  }
+
+  @media (width < 44rem) {
+    .string-field .sf-anno--sense {
+      display: none;
+    }
+
+    .string-field .sf-anno--volt,
+    .string-field .sf-anno--string {
+      font-size: 0.5625rem;
+      letter-spacing: 0.12em;
+    }
+  }
+</style>
