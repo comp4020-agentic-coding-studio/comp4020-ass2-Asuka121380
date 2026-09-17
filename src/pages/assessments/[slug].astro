@@ -34,6 +34,15 @@ const VERBS: Record<string, string> = {
   "pedal-laboratory": "Manipulate",
   "engineer-a-guitar-tone": "Design",
 };
+const STAGES = ["tone-autopsy", "pedal-laboratory", "engineer-a-guitar-tone"];
+const stageIndex = STAGES.indexOf(assessment.id);
+
+const relatedWeeks = (assessment.data.related ?? [])
+  .map((ref) => {
+    const match = /^lectures\/week-(\d+)$/.exec(ref);
+    return match ? { href: withBase(`/lectures/${match[0].split("/")[1]}/`), label: `Week ${match[1]}` } : null;
+  })
+  .filter((w): w is { href: string; label: string } => w !== null);
 ---
 
 <BaseLayout
@@ -76,38 +85,81 @@ const VERBS: Record<string, string> = {
           )
         }
 
-        <dl class="b-facts">
-          <div>
-            <dt class="t-label">Due</dt>
-            <dd class="t-num">{formatCourseDate(assessment.data.due)}</dd>
-          </div>
-          <div>
-            <dt class="t-label">Weight</dt>
-            <dd class="t-num">{assessment.data.weight}%</dd>
-          </div>
-          <div>
-            <dt class="t-label">Week set</dt>
-            <dd class="t-num">Week {assessment.data.week}</dd>
-          </div>
-        </dl>
       </div>
     </header>
 
     <section class="b-body">
       <div class="t-shell">
-        <div class="b-prose">
-          <Content />
+        <div class="t-grid b-grid">
+          <div class="b-main">
+            <div class="b-prose">
+              <Content />
+            </div>
+
+            <SpecList spec={assessment.data.spec}>
+              The brief poses the problem and leaves room for a response. The
+              spec is the fixed part: what a marker checks. Some lines can be
+              checked mechanically; the rest call for judgement.
+            </SpecList>
+
+            {assessment.data.marking && <MarkingModel marking={assessment.data.marking} />}
+
+            <RelatedContent entry={assessment} collections={graphCollections} />
+          </div>
+
+          <aside class="b-side">
+            <dl class="b-facts">
+              <div>
+                <dt class="t-label">Due</dt>
+                <dd class="t-num">{formatCourseDate(assessment.data.due)}</dd>
+              </div>
+              <div>
+                <dt class="t-label">Weight</dt>
+                <dd class="t-num">{assessment.data.weight}%</dd>
+              </div>
+              <div>
+                <dt class="t-label">Week set</dt>
+                <dd class="t-num">Week {assessment.data.week}</dd>
+              </div>
+            </dl>
+
+            <div class="b-side-block">
+              <p class="t-label b-side-heading">Expected evidence</p>
+              <ul class="b-side-spec" role="list">
+                {assessment.data.spec.map((line) => (
+                  <li>{line}</li>
+                ))}
+              </ul>
+            </div>
+
+            {relatedWeeks.length > 0 && (
+              <div class="b-side-block">
+                <p class="t-label b-side-heading">Relevant weeks</p>
+                <ul class="b-side-weeks" role="list">
+                  {relatedWeeks.map((w) => (
+                    <li>
+                      <a class="t-link b-side-week-link" href={w.href}>
+                        {w.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div class="b-side-block">
+              <p class="t-label b-side-heading">Progression</p>
+              <ol class="b-side-stages" role="list">
+                {STAGES.map((id, i) => (
+                  <li class:list={["b-side-stage", { "b-side-stage--current": i === stageIndex }]}>
+                    <span class="t-num b-side-stage-num">{i + 1}</span>
+                    <span class="t-label b-side-stage-verb">{VERBS[id]}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </aside>
         </div>
-
-        <SpecList spec={assessment.data.spec}>
-          The brief poses the problem and leaves room for a response. The
-          spec is the fixed part: what a marker checks. Some lines can be
-          checked mechanically; the rest call for judgement.
-        </SpecList>
-
-        {assessment.data.marking && <MarkingModel marking={assessment.data.marking} />}
-
-        <RelatedContent entry={assessment} collections={graphCollections} />
       </div>
     </section>
   </div>
@@ -164,21 +216,116 @@ const VERBS: Record<string, string> = {
     color: var(--t-paper);
   }
 
+  .b-body {
+    padding-block-end: clamp(4rem, 8vw, 6rem);
+  }
+
+  .b-grid {
+    row-gap: 3rem;
+    align-items: start;
+  }
+
+  .b-main {
+    grid-column: 1 / 8;
+  }
+
+  .b-side {
+    grid-column: 9 / 13;
+    position: sticky;
+    top: clamp(5rem, 10vw, 7rem);
+    display: grid;
+    gap: 2rem;
+  }
+
   .b-facts {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding-block-end: 1.75rem;
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .b-facts > div {
     display: flex;
-    flex-wrap: wrap;
-    gap: 2.5rem;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .b-facts dt {
     margin: 0;
   }
 
   .b-facts dd {
-    margin: 0.35rem 0 0;
+    margin: 0;
     font-size: 1.05rem;
     color: var(--t-paper);
   }
 
-  .b-body {
-    padding-block-end: clamp(4rem, 8vw, 6rem);
+  .b-side-heading {
+    color: var(--t-mute);
+    margin: 0 0 0.9rem;
+  }
+
+  .b-side-spec {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .b-side-spec li {
+    font-size: var(--t-small);
+    color: var(--t-dim);
+    line-height: 1.5;
+    padding-inline-start: 0.9rem;
+    border-inline-start: 2px solid var(--t-line-strong);
+  }
+
+  .b-side-weeks {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .b-side-week-link {
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--t-dim);
+    border-block-end-color: var(--t-line);
+  }
+
+  .b-side-stages {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .b-side-stage {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    color: var(--t-mute);
+  }
+
+  .b-side-stage-num {
+    font-size: 0.8rem;
+  }
+
+  .b-side-stage--current {
+    color: var(--t-signal);
+  }
+
+  .b-side-stage--current .b-side-stage-num {
+    color: var(--t-signal);
   }
 
   .b-prose {
@@ -256,5 +403,16 @@ const VERBS: Record<string, string> = {
 
   .b-body :global(.related-content a) {
     color: var(--t-signal);
+  }
+
+  @media (width < 60rem) {
+    .b-main,
+    .b-side {
+      grid-column: 1 / -1;
+    }
+
+    .b-side {
+      position: static;
+    }
   }
 </style>

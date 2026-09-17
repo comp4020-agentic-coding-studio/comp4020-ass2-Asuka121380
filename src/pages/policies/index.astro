@@ -36,66 +36,82 @@ import "../../styles/tone.css";
         <h1 class="t-h1 pol-title">Policies and support</h1>
         <p class="t-lede pol-lede">
           The course-wide rules for late work, extensions, academic integrity
-          and getting help.
+          and getting help. For how the three assessments build on each other
+          across the semester, see{" "}
+          <a href={withBase("/assessments/")}>Assessments</a>.
         </p>
       </div>
     </section>
 
     <section class="pol-body">
-      <div class="t-shell pol-prose">
-        <div class="t-rule pol-section">
-          <h2 class="t-h2">Assessment progression</h2>
-        </div>
-        <p class="t-body">
-          The three assessments follow the semester in order — Analyse, then
-          Manipulate, then Design — and each one only assumes material the
-          course has actually covered by its due date.
-        </p>
-        <p class="pol-note">
-          <a href={withBase("/assessments/tone-autopsy/")}>Tone Autopsy</a>
-          draws only on Weeks 1-4; you will not be expected to explain
-          distortion or amplifier behaviour there, because those come later.
-        </p>
+      <div class="t-shell">
+        <div class="t-grid pol-grid">
+          <nav class="pol-index" aria-label="Policy sections">
+            <ol class="pol-index-list" role="list">
+              <li>
+                <a class="t-label pol-index-link" href="#late-work">
+                  <span class="t-num pol-index-num">01</span> Late work &amp;
+                  extensions
+                </a>
+              </li>
+              <li>
+                <a class="t-label pol-index-link" href="#academic-integrity">
+                  <span class="t-num pol-index-num">02</span> Academic
+                  integrity
+                </a>
+              </li>
+              <li>
+                <a class="t-label pol-index-link" href="#getting-help">
+                  <span class="t-num pol-index-num">03</span> Getting help
+                </a>
+              </li>
+            </ol>
+          </nav>
 
-        <div class="t-rule pol-section">
-          <h2 class="t-h2">Late work and extensions</h2>
-        </div>
-        <p class="t-body">
-          If something outside your control is going to make a due date
-          genuinely unworkable, get in touch with the relevant assessment's
-          marker before the deadline, not after it.
-        </p>
-        <div class="pol-callout">
-          A short, specific extension request made early is easy to grant;
-          the same request made after the deadline has already passed is
-          not.
-        </div>
+          <div class="pol-prose">
+            <div class="t-rule pol-section" id="late-work">
+              <h2 class="t-h2">Late work and extensions</h2>
+            </div>
+            <p class="t-body">
+              If something outside your control is going to make a due date
+              genuinely unworkable, get in touch with the relevant
+              assessment's marker before the deadline, not after it.
+            </p>
+            <div class="pol-callout">
+              A short, specific extension request made early is easy to
+              grant; the same request made after the deadline has already
+              passed is not.
+            </div>
 
-        <div class="t-rule pol-section">
-          <h2 class="t-h2">Academic integrity</h2>
-        </div>
-        <p class="t-body">
-          Analysis, predictions, and design justifications should be your own
-          reasoning about the specific sample or target you were given.
-          Discussing concepts with classmates is expected and encouraged —
-          the weekly teaching sessions are built around exactly that.
-        </p>
-        <div class="pol-callout">
-          The written reasoning you submit should be traceable to your own
-          understanding of it.
-        </div>
+            <div class="t-rule pol-section" id="academic-integrity">
+              <h2 class="t-h2">Academic integrity</h2>
+            </div>
+            <p class="t-body">
+              Analysis, predictions, and design justifications should be your
+              own reasoning about the specific sample or target you were
+              given. Discussing concepts with classmates is expected and
+              encouraged — the weekly teaching sessions are built around
+              exactly that.
+            </p>
+            <div class="pol-callout">
+              The written reasoning you submit should be traceable to your
+              own understanding of it.
+            </div>
 
-        <div class="t-rule pol-section">
-          <h2 class="t-h2">Getting help</h2>
+            <div class="t-rule pol-section" id="getting-help">
+              <h2 class="t-h2">Getting help</h2>
+            </div>
+            <p class="t-body">
+              For a question about a specific piece of work in progress,
+              bring it to your next teaching session rather than emailing it
+              — that's where a tutor can look at what you're seeing
+              alongside you. For anything about the course itself rather
+              than a specific piece of work, see{" "}
+              <a href={withBase("/people/")}>People</a> for who to contact
+              and how.
+            </p>
+          </div>
         </div>
-        <p class="t-body">
-          For a question about a specific piece of work in progress, bring it
-          to your next teaching session rather than emailing it — that's
-          where a tutor can look at what you're seeing alongside you. For
-          anything about the course itself rather than a specific piece of
-          work, see <a href={withBase("/people/")}>People</a> for who to
-          contact and how.
-        </p>
       </div>
     </section>
   </div>
@@ -129,7 +145,43 @@ import "../../styles/tone.css";
     padding-block-end: clamp(4rem, 8vw, 6rem);
   }
 
+  .pol-grid {
+    align-items: start;
+  }
+
+  .pol-index {
+    grid-column: 1 / 4;
+    position: sticky;
+    top: clamp(5rem, 10vw, 7rem);
+  }
+
+  .pol-index-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .pol-index-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    color: var(--t-dim);
+    border-block-end: none;
+  }
+
+  .pol-index-link:hover {
+    color: var(--t-signal);
+  }
+
+  .pol-index-num {
+    color: var(--t-mute);
+    font-size: 0.75rem;
+  }
+
   .pol-prose {
+    grid-column: 5 / 13;
     max-width: var(--t-measure);
   }
 
@@ -167,5 +219,27 @@ import "../../styles/tone.css";
 
   .pol-prose a {
     color: var(--t-signal);
+  }
+
+  @media (width < 60rem) {
+    .pol-index {
+      grid-column: 1 / -1;
+      position: static;
+      padding-block-end: 1.5rem;
+      border-block-end: 1px solid var(--t-line);
+      margin-block-end: 1.5rem;
+    }
+
+    .pol-index-list {
+      grid-auto-flow: column;
+      grid-auto-columns: max-content;
+      gap: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .pol-prose {
+      grid-column: 1 / -1;
+      max-width: none;
+    }
   }
 </style>

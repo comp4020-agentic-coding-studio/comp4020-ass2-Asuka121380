@@ -1,0 +1,81 @@
+---
+// Lectures overview, in the TONE visual system. The homepage's SignalChain
+// is the compressed twelve-cell rail; this is the same chain read out in
+// full — one row per week, each linking to its lecture.
+import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
+import { courseMeta } from "../../course-config";
+import { siteConfig } from "../../site-config";
+import LectureIndex from "../../components/tone/LectureIndex.astro";
+import "../../styles/tone.css";
+---
+
+<BaseLayout
+  title={`Lectures — ${courseMeta.code}`}
+  description="What is covered, week by week, and which topics each lecture draws on."
+  mainAttrs={{ "data-tone": true }}
+  {...siteConfig}
+  name={courseMeta.code}
+  logo={undefined}
+  logoDark={undefined}
+  logoCompact={undefined}
+  logoCompactDark={undefined}
+>
+  <style
+    slot="head"
+    is:inline
+    set:html={`body{--course-title:${JSON.stringify(courseMeta.title)}}`}
+  />
+
+  <div class="t-graticule" aria-hidden="true"></div>
+
+  <div class="t-layer">
+    <section class="lec-hero t-band">
+      <div class="t-shell">
+        <p class="t-label t-label--signal">The course</p>
+        <h1 class="t-h1 lec-hero-title">Twelve weeks, one signal chain</h1>
+        <p class="t-lede lec-hero-lede">
+          Every lecture is the next stage the signal passes through, taking as
+          its input whatever the week before it produced. Follow the chain
+          from string to speaker, or jump straight to a week.
+        </p>
+      </div>
+    </section>
+
+    <section class="lec-body" aria-labelledby="lec-list-heading">
+      <h2 class="visually-hidden" id="lec-list-heading">All twelve lectures</h2>
+      <div class="t-shell">
+        <LectureIndex />
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  const nav = document.querySelector<HTMLElement>(".at-nav");
+  if (nav) {
+    const sync = () => {
+      if (window.scrollY > 24) nav.dataset.scrolled = "";
+      else delete nav.dataset.scrolled;
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    document.addEventListener("astro:before-swap", () =>
+      window.removeEventListener("scroll", sync),
+    );
+  }
+</script>
+
+<style>
+  .lec-hero-title {
+    max-width: 20ch;
+    margin: 0.75rem 0 1.25rem;
+  }
+
+  .lec-hero-lede {
+    max-width: 56ch;
+  }
+
+  .lec-body {
+    padding-block-end: clamp(4rem, 8vw, 6rem);
+  }
+</style>

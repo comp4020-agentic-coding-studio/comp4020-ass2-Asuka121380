@@ -1,0 +1,229 @@
+---
+// The expanded counterpart to the homepage's SignalChain: same data source,
+// same copper/electrical colouring, but one full-width row per week instead
+// of a compressed rail cell — this page's job is to be read, not just
+// recognised. Rows, not cards: a `.t-rule` hairline between each one is the
+// only boundary, so twelve weeks read as one continuous list.
+import { getPublishedCollection } from "astro-course-university/content";
+import { withBase } from "astro-theme-university/url";
+import { waveformPath } from "../../lib/draw/svgTrace";
+import { stageCycle } from "../../lib/course/stageTrace";
+import { stageMeta } from "../../lib/course/stages";
+import { formatCourseDate } from "../../lib/dates";
+
+const lectures = (await getPublishedCollection("lectures")).sort((a, b) => a.data.week - b.data.week);
+
+const rows = lectures.map((lecture) => {
+  const meta = stageMeta(lecture.data.week);
+  return {
+    href: withBase(`/lectures/${lecture.id}/`),
+    week: String(lecture.data.week).padStart(2, "0"),
+    title: lecture.data.title,
+    description: lecture.data.description,
+    date: formatCourseDate(lecture.data.date),
+    trace: waveformPath(stageCycle(lecture.data.week), { width: 320, height: 64, padding: 4 }),
+    ...meta,
+  };
+});
+---
+
+<div class="lec-index" data-lecture-index>
+  <ol class="lec-list" role="list">
+    {
+      rows.map((row, i) => (
+        <li class:list={["lec-row", `lec-row--${row.domain}`]} style={`--i:${i}`}>
+          <a class="lec-row-link t-grid" href={row.href}>
+            <div class="lec-row-mark">
+              <span class="t-num lec-row-week">{row.week}</span>
+              <span class="t-label lec-row-tag">{row.tag}</span>
+            </div>
+
+            <div class="lec-row-copy">
+              <h3 class="t-h2 lec-row-title">{row.title}</h3>
+              {row.description && <p class="t-body lec-row-desc">{row.description}</p>}
+              <p class="lec-row-blurb">{row.blurb}</p>
+            </div>
+
+            <div class="lec-row-trace" aria-hidden="true">
+              <svg viewBox="0 0 320 64" preserveAspectRatio="none">
+                <path d={row.trace} fill="none" />
+              </svg>
+            </div>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<script>
+  const STAGGER = 60;
+
+  for (const list of document.querySelectorAll<HTMLElement>("[data-lecture-index]")) {
+    if (list.dataset.lecInit) continue;
+    list.dataset.lecInit = "true";
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) continue;
+
+    const rows = Array.from(list.querySelectorAll<HTMLElement>(".lec-row"));
+    for (const row of rows) row.dataset.pending = "";
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const row = entry.target as HTMLElement;
+          window.setTimeout(() => delete row.dataset.pending, rows.indexOf(row) % 4 * STAGGER);
+          observer.unobserve(row);
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -10% 0px" },
+    );
+
+    for (const row of rows) observer.observe(row);
+    document.addEventListener("astro:before-swap", () => observer.disconnect());
+  }
+</script>
+
+<style>
+  .lec-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lec-row {
+    border-block-start: 1px solid var(--t-line);
+  }
+
+  .lec-row:last-child {
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .lec-row-link {
+    padding-block: clamp(2rem, 4vw, 3rem);
+    text-decoration: none;
+    color: inherit;
+    column-gap: 2rem;
+    row-gap: 1.25rem;
+    align-items: center;
+  }
+
+  .lec-row-mark {
+    grid-column: 1 / 3;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .lec-row-week {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    color: var(--t-mute);
+    transition: color 0.3s ease;
+  }
+
+  .lec-row-tag {
+    color: var(--t-mute);
+    transition: color 0.3s ease;
+  }
+
+  .lec-row--physical .lec-row-tag {
+    color: var(--t-copper);
+  }
+
+  .lec-row--signal .lec-row-tag {
+    color: var(--t-signal);
+  }
+
+  .lec-row-copy {
+    grid-column: 3 / 9;
+  }
+
+  .lec-row-title {
+    margin: 0 0 0.6rem;
+    transition: color 0.3s ease;
+  }
+
+  .lec-row-desc {
+    max-width: 52ch;
+    margin: 0 0 0.5rem;
+  }
+
+  .lec-row-blurb {
+    margin: 0;
+    max-width: 52ch;
+    font-size: var(--t-small);
+    color: var(--t-mute);
+  }
+
+  .lec-row-trace {
+    grid-column: 9 / 13;
+  }
+
+  .lec-row-trace svg {
+    display: block;
+    width: 100%;
+    height: 3.5rem;
+    overflow: visible;
+  }
+
+  .lec-row-trace path {
+    stroke: var(--t-line-strong);
+    stroke-width: 1.25;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    transition: stroke 0.35s ease;
+  }
+
+  .lec-row-link:hover .lec-row-week,
+  .lec-row-link:focus-visible .lec-row-week {
+    color: var(--t-paper);
+  }
+
+  .lec-row-link:hover .lec-row-title,
+  .lec-row-link:focus-visible .lec-row-title {
+    color: var(--t-paper);
+  }
+
+  .lec-row--physical .lec-row-link:hover .lec-row-trace path,
+  .lec-row--physical .lec-row-link:focus-visible .lec-row-trace path {
+    stroke: var(--t-copper);
+  }
+
+  .lec-row--signal .lec-row-link:hover .lec-row-trace path,
+  .lec-row--signal .lec-row-link:focus-visible .lec-row-trace path {
+    stroke: var(--t-signal);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lec-row {
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .lec-row[data-pending] {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+  }
+
+  @media (width < 60rem) {
+    .lec-row-link {
+      grid-template-columns: 1fr;
+    }
+
+    .lec-row-mark {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+
+    .lec-row-copy,
+    .lec-row-trace {
+      grid-column: 1 / -1;
+    }
+
+    .lec-row-trace {
+      order: 3;
+    }
+  }
+</style>
