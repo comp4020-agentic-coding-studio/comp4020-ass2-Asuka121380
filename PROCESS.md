@@ -1697,6 +1697,20 @@ trimmed for the word count — that curation happens once, at submission time.
   client `<script>` block, left as-is), rendered page verified with no
   leftover `bench-*` classes.
 
+- **`a1befff`** — migrated week 8 ("Modulation: Phase, Pitch and Motion")
+  onto `WeekOpener`/`WeekBand`/`WeekChain`/`WeekTakeaways`/
+  `CausalChainStrip`, preserving the LFO-as-control-signal framing, tremolo
+  vs. vibrato, chorus/flanger delay ranges and comb-filter interference,
+  the phaser's phase-shifting cascade, and the modulation try-it lab.
+  Cleaned the bench chrome in `LfoWaveformDiagram`, `DryWetPairDiagram`,
+  `NotchResponseDiagram` and `ModulationLab` — the diagram/lab set this
+  week uses — remapping `--bench-input-trace`/`--bench-phosphor`/
+  `--at-warning`/`--bench-line`/etc. to `--t-*` and renaming
+  `ModulationLab`'s branded "SLOP2186 Modulation Bench" header to
+  "Modulation simulator". Checked: `pnpm check` green (0 errors, the same
+  2 pre-existing hints), rendered page verified with no leftover
+  `bench-*` classes.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
