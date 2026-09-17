@@ -282,10 +282,38 @@ body:has([data-tone]) .at-footer {
   color: var(--t-dim);
 }
 
-body:has([data-tone]) .at-footer :where(.at-footer-inner, .at-footer-ack, .at-footer-legal) {
+body:has([data-tone]) .at-footer :where(.at-footer-inner, .at-footer-ack, .at-footer-legal, .at-footer-band-inner) {
   max-width: var(--t-shell);
   margin-inline: auto;
   padding-inline: var(--t-gutter);
+}
+
+/* The institutional crest band: same dark surface as the rest of the page,
+   the mark kept small and muted so it reads as a footnote rather than a
+   second identity competing with the nav's course code. */
+body:has([data-tone]) .at-footer-band {
+  background: var(--t-void);
+  border-block-end: 1px solid var(--t-line);
+  padding-block: 1.5rem;
+}
+
+body:has([data-tone]) .at-footer-band-logo {
+  height: 1.75rem;
+  opacity: 0.7;
+  filter: grayscale(1);
+}
+
+body:has([data-tone]) .at-footer-acknowledgement h2 {
+  font-family: var(--t-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--t-mute);
+}
+
+body:has([data-tone]) .at-footer-acknowledgement p {
+  max-width: 60ch;
+  font-size: var(--t-small);
 }
 
 body:has([data-tone]) .at-footer :where(h2, h3, .at-footer-name) {

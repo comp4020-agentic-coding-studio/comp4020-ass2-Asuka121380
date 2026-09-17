@@ -2,14 +2,14 @@ import { defineSiteConfig } from "astro-theme-university/types";
 import { slopBranding } from "astro-theme-slop";
 import { courseMeta } from "./course-config";
 
-// The underlying collection and URL remain `sessions`; these labels are the
-// language students see. Change them to Studios, Tutorials, Expeditions, etc.
-export const sessionLabels = {
-  singular: "Session",
-  plural: "Sessions",
-} as const;
-
-export const graphCollections = ["sessions", "assessments", "lectures", "people"];
+// The `sessions` collection and content still exist (real studio-session
+// prep notes, tied to specific weeks) but no longer have a standalone route:
+// the twelve-week signal chain on the homepage already communicates the
+// week-by-week progression, and a second parallel index of the same weeks
+// added a page without adding information. Kept out of `graphCollections` so
+// no page tries to render a related-content link to a route that no longer
+// exists.
+export const graphCollections = ["assessments", "lectures", "people"];
 
 export const courseApiCollections = [
   ...graphCollections.map((key) => ({ key })),
@@ -22,7 +22,6 @@ export const siteConfig = defineSiteConfig({
 
   links: [
     { text: "Lectures", href: "/lectures/" },
-    { text: sessionLabels.plural, href: "/sessions/" },
     { text: "Assessment", href: "/assessments/" },
     { text: "People", href: "/people/" },
     { text: "Policies", href: "/policies/" },

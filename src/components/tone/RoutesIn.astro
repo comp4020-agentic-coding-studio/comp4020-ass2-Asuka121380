@@ -4,15 +4,15 @@
 // decision rather than trailing off into a list of equal links.
 import { Image } from "astro:assets";
 import { withBase } from "astro-theme-university/url";
-import { sessionLabels, siteConfig } from "../../site-config";
+import { siteConfig } from "../../site-config";
 import { courseMeta } from "../../course-config";
 import pickupPhoto from "../../assets/images/week3-hero-humbucker-sg.jpg";
 
 const practical = [
   {
-    href: withBase("/sessions/"),
-    label: sessionLabels.plural,
-    detail: "The weekly schedule, and what happens in each teaching session.",
+    href: withBase("/assessments/"),
+    label: "Assessment",
+    detail: "What's graded, what it's worth, and when it's due.",
   },
   {
     href: withBase("/people/"),
