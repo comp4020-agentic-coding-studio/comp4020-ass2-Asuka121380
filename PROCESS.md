@@ -1571,6 +1571,57 @@ trimmed for the word count — that curation happens once, at submission time.
   with the same pattern at 0.16 and 0.24. The curve drawn on screen is the
   filter on the signal, which is the one thing this lab previously got wrong.
 
+- **`1aa09c6`** — removed the standalone Sessions route. The dated Sessions
+  index (`src/pages/sessions/`) listed the same twelve weeks the homepage's
+  signal chain already walks through, so it was a second index of the same
+  material rather than new information; the `sessions` content collection
+  and its files stay, only the route and its links (`RoutesIn`, the
+  lectures index prose, `graphCollections`) are gone, so nothing tries to
+  render a related-content link to a now-missing page. Also landed two
+  pieces of work that had been sitting uncommitted since the redesign
+  session: a single subtle Slop University acknowledgement block (crest +
+  name) on the homepage, below the fold, so the course identity stays
+  primary in the nav; and a rebalance of the `ListeningBench` "Driven" and
+  "Full Chain" presets, whose gain/drive/depth were high enough that both
+  clipped into indistinguishable noise — pulled back so each is a
+  recognisable point on the chain rather than converging on the same wall.
+  Checked: `pnpm check` green (0 errors, 2 pre-existing hints in
+  `lab/FilterBench.astro`/`lab/Knob.astro`, build clean, 5/5 vitest) and
+  `pnpm check:evidence` clean.
+
+- **`9934ade`** — brought Assessment, People and Policies into the same
+  `[data-tone]` system as the homepage and Week 3, per the "Propagation"
+  section of `CLAUDE.md` this replaces. All three were `.mdx` pages routed
+  through the theme's `MdxPageLayout`, which has no frontmatter path to
+  `mainAttrs`/`data-tone` — so each index (`assessments/index.astro`,
+  `people/index.astro`, `policies/index.astro`) was rewritten as a plain
+  `.astro` file calling `BaseLayout` directly, following the exact
+  `index.astro`/`week-03.astro` skeleton, and the existing per-item detail
+  pages (`assessments/[slug].astro`, `people/[slug].astro`, both already
+  `.astro`) were restyled the same way. Content is unchanged — assessment
+  briefs, `SpecList`/`MarkingModel`/`RelatedContent` output, people's
+  role/contact/bio fields, and all four Policies sections (including both
+  callouts) are carried over verbatim, only the surrounding type/colour/
+  spacing changes. People gets a bespoke roster list rather than the
+  theme's Card/CardGrid, matching `CLAUDE.md`'s "cards/panels are not
+  defaults" rule. `AssessmentProgression.astro` and `PeopleGrid.astro`
+  (the old-system components these replace) were confirmed orphaned by
+  grep across `src/` before deletion.
+  This commit also fixes a real, pre-existing bug the previous Sessions-route
+  removal had left behind, only surfaced once a full `pnpm build` finally ran:
+  the theme's llms.txt generation scans every `.md`/`.mdx` file under
+  `src/content` regardless of which collections are actually routed, so the
+  two sessions content files (still present, now routeless) were flagged as
+  "no built page in dist" and failed the build. Fixed with `published: false`
+  on both — `courseNodeSchema`'s documented mechanism for keeping a node out
+  of the graph API and the llms.txt crawl without deleting its content.
+  Checked: `pnpm check` green (typecheck 0 errors/2 pre-existing hints, build
+  25 pages/0 a11y violations/0 broken links, llms.txt+course-graph API
+  regenerated, vitest 5/5) and `pnpm check:evidence` clean. No browser is
+  available in this environment, so this is static verification only — actual
+  in-browser rendering of these three sections has not been visually checked,
+  and is flagged as an open item rather than claimed as done.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
