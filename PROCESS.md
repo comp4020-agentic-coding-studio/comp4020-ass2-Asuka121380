@@ -1622,43 +1622,6 @@ trimmed for the word count — that curation happens once, at submission time.
   in-browser rendering of these three sections has not been visually checked,
   and is flagged as an open item rather than claimed as done.
 
-- **`d9b31b8`** — propagated the TONE system to Weeks 1, 2 and 4-12, the
-  last group of pages still on the pre-redesign register per `CLAUDE.md`'s
-  "Propagation" section. Weeks 1-2/4-12 all share one dynamic route,
-  `src/pages/lectures/[slug].astro`, so converting that single file's layout
-  from the theme's `ContentLayout` to `BaseLayout` + `data-tone` (following
-  the `index.astro`/`week-03.astro` skeleton exactly — same
-  `--course-title` injection, `.t-graticule`/`.t-layer` wrapper, nav-scroll
-  script) brought all eleven pages into the TONE shell in one change, rather
-  than needing eleven bespoke files. The date/slides/teaching-team/related-
-  content footer matches week-03's own route so both read as one page shape;
-  week-03 keeps its dedicated route untouched.
-  Rather than rewriting each week's content, this reskins the two existing
-  design registers those weeks already use onto TONE's own tokens, per an
-  explicit choice offered and made between three options (reskin vs. full
-  rebuild vs. hybrid chrome-only): `BenchFrame.astro`'s ~15 `--bench-*` root
-  tokens and `EditorialFrame.astro`'s ~11 `--editorial-*` tokens now point at
-  `--t-*` equivalents — the "analysis desk" register maps to `--t-deep`
-  (TONE has no light surface, so this is the calmer end of its dark scale
-  rather than a literal light page), "bench"/instrument-panel to
-  `--t-surface`, phosphor/accent to the `--t-signal` family, and text to
-  `--t-paper`/`--t-dim`/`--t-mute`. `BenchBand`, `EditorialBand`,
-  `LectureIntro`, and every Canvas-drawing lab/diagram component across all
-  eleven weeks (`ClippingLab`, `GainClippingBench`, `StringBench`,
-  `WaveformFamilyLab`, `Spectrum`, and the rest) read only these custom
-  properties — confirmed by grep across `src/components`, never a raw
-  colour — so none of them needed a direct edit to re-theme; the whole
-  register turns over from two small token blocks.
-  Checked: `pnpm check` green (typecheck 0 errors/2 pre-existing hints,
-  build 25 pages/0 a11y violations/0 broken links, vitest 5/5), and spot-
-  checked the built HTML for week-01 and week-06 to confirm
-  `data-tone="true"` lands on `<main>` and the reskinned `--t-signal` token
-  compiles through into the CSS. No browser is available in this
-  environment, so in-browser rendering of the reskinned register (contrast
-  in practice, the theory/bench band transitions, canvas-drawn colours) is
-  not visually verified and is flagged as an open item rather than claimed
-  as done.
-
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
