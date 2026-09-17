@@ -10,7 +10,7 @@
 ---
 
 <div class="cabinet-diagrams">
-  <figure class="cabinet-card bench-module">
+  <figure class="cabinet-card">
     <svg viewBox="0 0 300 100" role="img" aria-label="Open-back cabinet, with a gap in the rear panel so sound radiates from both the front and the back of the speaker, compared with a closed-back cabinet, fully enclosed so sound radiates only from the front.">
       <g>
         <path d="M 10 20 L 10 80 M 10 20 L 70 20 M 10 80 L 70 80" class="panel" fill="none" />
@@ -30,12 +30,12 @@
       </g>
     </svg>
     <figcaption>
-      <span class="cabinet-label">Open-back vs closed-back</span>
+      <span class="t-label cabinet-label">Open-back vs closed-back</span>
       <span class="cabinet-description">An open-back cabinet lets sound radiate from the rear of the cone as well as the front; a closed-back cabinet seals the rear, so only the front radiates. That difference in enclosure, along with the cabinet's internal volume and how many speakers share it, shapes what reaches the listener.</span>
     </figcaption>
   </figure>
 
-  <figure class="cabinet-card bench-module">
+  <figure class="cabinet-card">
     <svg viewBox="0 0 200 100" role="img" aria-label="Front view of a speaker cone with two possible microphone positions: one directly in front, on-axis with the center of the cone, and one off to the side, off-axis near the cone's edge.">
       <circle cx="100" cy="50" r="34" class="speaker" />
       <circle cx="100" cy="50" r="24" class="speaker-ring" fill="none" />
@@ -52,7 +52,7 @@
       <text x="150" y="12" class="cabinet-tick" text-anchor="middle">off-axis (edge)</text>
     </svg>
     <figcaption>
-      <span class="cabinet-label">Microphone position</span>
+      <span class="t-label cabinet-label">Microphone position</span>
       <span class="cabinet-description">A microphone placed on-axis, near the cone's center, and one placed off-axis, nearer the cone's edge, don't pick up quite the same thing — position, angle, and distance are all part of what a recording captures, alongside the speaker and cabinet themselves.</span>
     </figcaption>
   </figure>
@@ -79,67 +79,59 @@
   }
 
   .panel {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1.5;
   }
 
   .speaker {
-    fill: var(--at-bg-alt);
-    stroke: var(--at-accent);
+    fill: var(--t-surface);
+    stroke: var(--t-copper);
     stroke-width: 1.5;
   }
 
   .speaker-ring {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
     opacity: 0.6;
   }
 
   .speaker-cap {
-    fill: var(--bench-phosphor, var(--at-accent));
+    fill: var(--t-signal);
     opacity: 0.7;
   }
 
   .wave {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
     opacity: 0.6;
   }
 
   .mic {
-    fill: var(--at-bg);
-    stroke: var(--bench-phosphor, var(--at-accent));
+    fill: var(--t-surface);
+    stroke: var(--t-signal);
     stroke-width: 1.5;
   }
 
   .mic-stand {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
   }
 
   .cabinet-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 7px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   figcaption {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-  }
-
-  .cabinet-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--at-text);
+    gap: 0.35rem;
   }
 
   .cabinet-description {
-    font-size: var(--at-font-size-xs);
-    color: var(--at-text-secondary);
-    line-height: 1.35;
+    font-size: var(--t-small);
+    color: var(--t-dim);
+    line-height: 1.4;
   }
 </style>

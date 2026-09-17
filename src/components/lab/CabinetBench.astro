@@ -69,9 +69,9 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
 }));
 ---
 
-<div class="cabinet-bench bench-module" id="cabinet-bench">
+<div class="cabinet-bench" id="cabinet-bench">
   <div class="lab-header">
-    <span class="lab-name">SLOP2186 Virtual Cabinet Bench</span>
+    <span class="t-label lab-name">Virtual cabinet simulator</span>
     <FootswitchGroup name="cabinet-profile" legend="Cabinet response" options={profileOptions} selected={DEFAULT_PROFILE} />
   </div>
 
@@ -87,7 +87,7 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
     <AudioDemo id="cabinet-audio" label="Play through virtual cabinet" />
   </div>
 
-  <p id="cabinet-readout" class="bench-scope-note cabinet-readout">
+  <p id="cabinet-readout" class="lab-note cabinet-readout">
     Bright small speaker, mic on-axis (center), 15 cm away.
   </p>
 
@@ -113,7 +113,7 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
     </svg>
   </div>
 
-  <p class="bench-scope-note">A conceptual model, not a physical simulation: the cabinet profile is a resonant high-pass cascaded with a resonant low-pass, and microphone position/distance apply one further low-pass on top. Real speakers, cabinets, and microphones each have far more particular behaviour than this — the point here is only that all three reshape frequency content before a signal is heard.</p>
+  <p class="lab-note">A conceptual model, not a physical simulation: the cabinet profile is a resonant high-pass cascaded with a resonant low-pass, and microphone position/distance apply one further low-pass on top. Real speakers, cabinets, and microphones each have far more particular behaviour than this — the point here is only that all three reshape frequency content before a signal is heard.</p>
 </div>
 
 <script>
@@ -288,11 +288,7 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
   }
 
   .lab-name {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--at-text-secondary);
+    color: var(--t-mute);
   }
 
   .lab-controls {
@@ -305,7 +301,7 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
 
   .cabinet-readout {
     text-align: center;
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
   }
 
   .response-plot svg {
@@ -315,34 +311,37 @@ const profileOptions = CABINET_PROFILE_ORDER.map((profile) => ({
   }
 
   .axis-line {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
   }
 
   .tick-line {
-    stroke: var(--bench-line, var(--at-border));
+    stroke: var(--t-grid);
     stroke-width: 1;
     stroke-dasharray: 2 2;
   }
 
   .unity-line {
-    stroke: var(--at-warning, var(--at-border));
+    stroke: var(--t-line-strong);
     stroke-width: 1;
     stroke-dasharray: 1 3;
   }
 
   .freq-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .response-trace {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-signal);
     stroke-width: 1.75;
   }
 
-  .bench-scope-note {
+  .lab-note {
     margin: 0;
+    font-size: 0.9rem;
+    color: var(--t-dim);
+    max-width: var(--t-measure);
   }
 </style>

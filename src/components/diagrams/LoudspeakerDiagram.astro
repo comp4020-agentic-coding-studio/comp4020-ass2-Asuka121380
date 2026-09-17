@@ -1,40 +1,51 @@
 ---
-// Week 11 "See It": a guitar loudspeaker's structure (magnet, voice coil,
-// cone, basket), and a simple two-frame sketch of why current direction
-// sets motion direction — the coil sits in the magnet's field, so current
-// through it creates a force that pushes the cone forward or pulls it
-// back, depending on which way the current flows. Conceptual line
-// sketches, not an accurate motor-structure or magnetic-field simulation.
+// Week 11 "See It": a guitar loudspeaker's physical construction, and a
+// simple two-frame sketch of why current direction sets motion direction.
+//
+// The construction itself is a real physical object, so it is a sourced
+// cutaway diagram (see PHOTO-SOURCES.md) rather than a hand-drawn
+// approximation of what a speaker looks like. The current-direction sketch
+// is the opposite case: it shows a functional relationship (current sense
+// in, force direction out), not any real object's appearance, so it stays a
+// small conceptual line diagram.
+import { Image } from "astro:assets";
+import loudspeakerCutaway from "../../assets/images/week11-loudspeaker-cutaway.svg";
+
+const PARTS = [
+  { n: 1, name: "Surround", note: "the flexible rim that lets the cone move" },
+  { n: 2, name: "Cone", note: "the surface that pushes the surrounding air" },
+  { n: 3, name: "Dust cap", note: "covers the coil/pole gap at the centre" },
+  { n: 4, name: "Spider", note: "a rear suspension that keeps the coil centred" },
+  { n: 5, name: "Magnet", note: "supplies the fixed magnetic field" },
+  { n: 6, name: "Voice coil", note: "carries the amplifier's current, sitting in the magnet's gap" },
+  { n: 7, name: "Basket", note: "the rigid frame everything else is mounted to" },
+];
 ---
 
 <div class="speaker-diagrams">
-  <figure class="speaker-card bench-module">
-    <svg viewBox="0 0 200 110" role="img" aria-label="Cross section of a guitar loudspeaker: a magnet assembly with a gap holding the voice coil, the coil attached to a cone that widens toward the front, and sound radiating outward from the cone.">
-      <rect x="14" y="34" width="22" height="42" class="magnet" />
-      <rect x="36" y="42" width="10" height="26" class="pole-piece" />
-      <rect x="48" y="46" width="10" height="18" class="coil" />
-      <path d="M 46 46 L 46 64 M 50 46 L 50 64 M 54 46 L 54 64" class="coil-hatch" />
-      <path d="M 58 55 L 84 55" class="former" />
-      <path d="M 84 30 L 170 8 M 84 80 L 170 102" class="cone" />
-      <path d="M 170 8 L 182 6 M 170 102 L 182 104" class="surround" />
-      <path d="M 36 40 L 168 12 M 36 70 L 168 100" class="basket" stroke-dasharray="2 3" />
-      <path d="M 190 40 Q 198 55 190 70" class="wave" fill="none" />
-      <path d="M 198 34 Q 208 55 198 76" class="wave" fill="none" />
-      <line x1="52" y1="88" x2="80" y2="88" class="motion-line" />
-      <path d="M 68 84 L 80 88 L 68 92 M 64 84 L 52 88 L 64 92" class="motion-arrow" fill="none" />
-      <text x="25" y="30" class="part-label" text-anchor="middle">magnet</text>
-      <text x="53" y="40" class="part-label" text-anchor="middle">voice coil</text>
-      <text x="125" y="6" class="part-label" text-anchor="middle">cone</text>
-      <text x="66" y="100" class="part-label" text-anchor="middle">motion</text>
-      <text x="200" y="20" class="part-label" text-anchor="middle">radiated sound</text>
-    </svg>
-    <figcaption>
-      <span class="speaker-label">Loudspeaker structure</span>
-      <span class="speaker-description">A voice coil sits in a magnet's fixed field and is attached to a cone. Current through the coil creates a force that moves the coil and cone together, and that mechanical motion is what pushes on the surrounding air.</span>
+  <figure class="speaker-photo">
+    <div class="speaker-photo-frame">
+      <Image
+        src={loudspeakerCutaway}
+        alt="Labelled cutaway diagram of a dynamic loudspeaker, numbered 1 to 7 from the outer rim to the frame: surround, cone, dust cap, spider, magnet, voice coil, basket."
+        class="speaker-photo-image"
+      />
+    </div>
+    <figcaption class="speaker-caption">
+      <span class="t-label speaker-label">Loudspeaker structure</span>
+      <ol class="speaker-legend">
+        {PARTS.map((part) => (
+          <li>
+            <span class="legend-num" aria-hidden="true">{part.n}</span>
+            <span class="legend-name">{part.name}</span> — {part.note}
+          </li>
+        ))}
+      </ol>
+      <p class="t-label speaker-credit">Diagram: Maksim (original), Harkonnen2 (SVG) · CC BY-SA 3.0 / GFDL, via Wikimedia Commons</p>
     </figcaption>
   </figure>
 
-  <figure class="speaker-card bench-module">
+  <figure class="speaker-card">
     <svg viewBox="0 0 200 100" role="img" aria-label="Two frames showing that reversing the direction of current through the voice coil reverses the direction the cone moves: current one way pushes the cone forward, current the other way pulls it back.">
       <g>
         <rect x="10" y="38" width="16" height="24" class="coil" />
@@ -56,7 +67,7 @@
       </g>
     </svg>
     <figcaption>
-      <span class="speaker-label">Current direction sets motion direction</span>
+      <span class="t-label speaker-label">Current direction sets motion direction</span>
       <span class="speaker-description">Reversing the current through the voice coil reverses the force on it, so the cone moves the other way — this back-and-forth motion, driven directly by the amplifier's electrical signal, is what produces sound.</span>
     </figcaption>
   </figure>
@@ -65,15 +76,29 @@
 <style>
   .speaker-diagrams {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: start;
   }
 
+  .speaker-photo,
   .speaker-card {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
+  }
+
+  .speaker-photo-frame {
+    background: #fff;
+    border-radius: 4px;
+    padding: 0.75rem;
+  }
+
+  .speaker-photo-image {
+    display: block;
+    width: 100%;
+    height: auto;
   }
 
   .speaker-card svg {
@@ -82,101 +107,72 @@
     display: block;
   }
 
-  .magnet {
-    fill: var(--at-bg-alt);
-    stroke: var(--at-text-secondary);
-    stroke-width: 1.5;
+  .speaker-legend {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--t-small);
+    color: var(--t-dim);
+    line-height: 1.4;
   }
 
-  .pole-piece {
-    fill: var(--at-bg);
-    stroke: var(--at-text-secondary);
-    stroke-width: 1.5;
+  .legend-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1em;
+    height: 1.1em;
+    margin-inline-end: 0.35em;
+    border-radius: 50%;
+    background: var(--t-raised);
+    color: var(--t-mute);
+    font-family: var(--t-mono);
+    font-size: 0.75em;
+  }
+
+  .legend-name {
+    color: var(--t-paper);
+  }
+
+  .speaker-credit {
+    margin-top: 0.2rem;
   }
 
   .coil {
     fill: none;
-    stroke: var(--at-accent);
+    stroke: var(--t-signal);
     stroke-width: 1.5;
-  }
-
-  .coil-hatch {
-    stroke: var(--at-accent);
-    stroke-width: 1;
-    opacity: 0.6;
-  }
-
-  .former {
-    stroke: var(--at-text-secondary);
-    stroke-width: 1.5;
-    fill: none;
   }
 
   .cone {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-copper);
     stroke-width: 1.5;
     fill: none;
-  }
-
-  .surround {
-    stroke: var(--at-text-secondary);
-    stroke-width: 1.5;
-    fill: none;
-  }
-
-  .basket {
-    stroke: var(--at-text-secondary);
-    stroke-width: 1;
-    fill: none;
-    opacity: 0.6;
-  }
-
-  .wave {
-    stroke: var(--at-text-secondary);
-    stroke-width: 1;
-    opacity: 0.6;
-  }
-
-  .motion-line {
-    stroke: var(--at-text-secondary);
-    stroke-width: 1;
-    stroke-dasharray: 2 2;
-  }
-
-  .motion-arrow {
-    stroke: var(--at-text-secondary);
-    stroke-width: 1.2;
   }
 
   .wire {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-signal);
     stroke-width: 1.5;
     fill: none;
   }
 
   .part-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   figcaption {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-  }
-
-  .speaker-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--at-text);
+    gap: 0.35rem;
   }
 
   .speaker-description {
-    font-size: var(--at-font-size-xs);
-    color: var(--at-text-secondary);
-    line-height: 1.35;
+    font-size: var(--t-small);
+    color: var(--t-dim);
+    line-height: 1.4;
   }
 </style>

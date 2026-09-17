@@ -64,6 +64,33 @@ choice rather than a modification of the source file.
   photograph can show it.
 - **Used in**: `CoilComparison` on Week 3.
 
+## `week11-loudspeaker-cutaway.svg` — 566 × 425
+
+- **Shows**: a labelled cutaway diagram of a dynamic loudspeaker, numbered 1–7
+  from the outer rim inward: surround, cone, dust cap, spider, magnet, voice
+  coil, basket.
+- **Source**: [Wikimedia Commons — "Loud Speaker Schemata.svg"](https://commons.wikimedia.org/wiki/File:Loud_Speaker_Schemata.svg)
+- **Author / attribution**: original raster diagram by User:Maksim
+  ("Loudspeakerconstruction.png"); vector redrawing by User:Harkonnen2.
+- **Licence**: dual [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)
+  / GFDL 1.2+ — credit required, link to licence, indicate changes, share
+  derivatives alike.
+- **What was kept/modified**: used unmodified, including its own white
+  background (not recoloured to match the page, to avoid altering the
+  licensed file); displayed in a plain white card so it reads as a reproduced
+  diagram rather than a native page element. The diagram's own labels are
+  bare numerals with no embedded legend, so the numbered part names above are
+  our own added HTML caption, not part of the source file.
+- **Why this one**: `LoudspeakerDiagram` previously drew its own cross-section
+  of a loudspeaker from scratch — exactly the "crude SVG of a real object"
+  CLAUDE.md's media policy asks to avoid, since a speaker is a real,
+  photographable/diagrammable physical object, not an abstract quantity.
+  This is a sourced, properly attributed technical diagram of the same
+  subject instead. The component's second figure (current direction versus
+  cone motion) stays a small custom diagram, because that one shows a
+  functional relationship, not what a speaker looks like.
+- **Used in**: `LoudspeakerDiagram` on Week 11.
+
 ## `hero-home.avif`
 
 - An abstract vector graphic retained only as the 404 page's illustration
@@ -81,3 +108,17 @@ could carry them:
 - `PickupLab` and the Homepage's `StringField` / analyser displays —
   waveforms, spectra and frequency responses, generated from the same
   functions the audio uses.
+- `LoudspeakerDiagram`'s second figure — current direction versus cone motion.
+  A functional relationship (which way the force points), not a real object's
+  appearance; the loudspeaker's actual construction, in the same component,
+  is the sourced diagram above instead.
+- `CabinetDiagram`'s two figures — open-back versus closed-back radiation and
+  microphone position. Both are inherently cutaway/plan views (what happens
+  behind a sealed panel, or where a microphone sits relative to a cone) that
+  a photograph of a cabinet's exterior cannot show at all; no equivalently
+  clear, well-licensed diagram of this specific comparison was found on
+  Wikimedia Commons, so these stay small conceptual line diagrams rather than
+  photographs of one particular amplifier.
+- `CabinetResponseDiagram` and `CabinetBench` — frequency-response curves,
+  generated from `cabinet.ts`, the same rule as the other response plots
+  above.
