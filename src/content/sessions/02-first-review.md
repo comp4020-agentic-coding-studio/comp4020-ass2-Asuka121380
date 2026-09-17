@@ -8,7 +8,7 @@ description:
 week: 2
 date: 2027-03-01
 teachers:
-  - idris-fenn
+  - eric-clapton
 spec:
   - you can point to a specific feature of a waveform or spectrum plot and state what it shows
   - you can name one claim you are not confident enough to call an observation

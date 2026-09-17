@@ -1,0 +1,34 @@
+---
+// The persistent fiction-context label every teaching-team portrait renders
+// under, on both the People overview and each profile page. These are real,
+// licensed photographs of real musicians standing in for invented teaching
+// personas — the label says so every time the photo appears, not once in a
+// buried disclaimer. Doubles as the on-page attribution line CC-licensed
+// portraits require (see PHOTO-SOURCES.md); public-domain portraits pass no
+// `credit` and render the fiction line alone.
+interface Props {
+  credit?: string;
+}
+
+const { credit } = Astro.props;
+---
+
+<figcaption class="portrait-caption">
+  <span class="t-label portrait-caption-fiction">
+    Slop University · SLOP2186 teaching team — fictional teaching identities
+  </span>
+  {credit && <span class="t-label portrait-caption-credit">{credit}</span>}
+</figcaption>
+
+<style>
+  .portrait-caption {
+    display: grid;
+    gap: 0.3rem;
+    margin-block-start: 0.65rem;
+  }
+
+  .portrait-caption-fiction,
+  .portrait-caption-credit {
+    color: var(--t-mute);
+  }
+</style>

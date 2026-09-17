@@ -1,17 +1,20 @@
 ---
-// People, in the TONE visual system. A roster rather than a card grid — the
-// theme's Card/CardGrid are exactly the "identical box per item" pattern the
-// system exists to avoid; a plain row per person, photo aligned left, reads
-// as one list rather than a shelf of tiles.
+// People, in the TONE visual system. Four large editorial rows rather than a
+// card grid or a compressed roster — the theme's Card/CardGrid are exactly
+// the "identical box per item" pattern the system exists to avoid, and with
+// only four people a roster row under-uses the space a real portrait earns.
+// Rows alternate photo-left/text-right and text-left/photo-right so the page
+// reads as a sequence of introductions, not a repeated template.
 import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
 import { getPublishedCollection } from "astro-course-university/content";
 import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
 import { withBase } from "astro-theme-university/url";
+import PortraitCaption from "../../components/tone/PortraitCaption.astro";
 import { courseMeta } from "../../course-config";
 import { siteConfig } from "../../site-config";
 import "../../styles/tone.css";
 
-const roleOrder: Record<string, number> = { convenor: 0, tutor: 1, guest: 2, other: 3 };
 const roleLabels: Record<string, string> = {
   convenor: "Convenor",
   tutor: "Tutor",
@@ -19,17 +22,44 @@ const roleLabels: Record<string, string> = {
   other: "",
 };
 
+// Not week order, not alphabetical — the sequence the plan asked for, so the
+// photo-left/text-left alternation lands on a deliberate pair rather than
+// whatever a collection sort happens to produce.
+const ORDER = ["jimi-hendrix", "john-mayer", "eric-clapton", "stevie-ray-vaughan"];
+
+const PORTRAIT_CREDIT: Record<string, string> = {
+  "jimi-hendrix": "Photo: e24.se / Scanpix · Public domain",
+  "john-mayer": "Photo: Thatcommonkid · CC BY-SA 4.0",
+  "eric-clapton": "Photo: Stoned59 · CC BY 2.0",
+  "stevie-ray-vaughan": "Photo: Don Hunstein · Public domain",
+};
+
+// Each photo is a real, differently-framed photograph, not a uniform
+// illustrated avatar. Astro's image service resizes/crops to the target box
+// at build time (sharp `cover`, centred by default) *before* any CSS ever
+// sees the file, so the crop has to be steered with the `<Image>` `position`
+// prop (passed straight through to sharp's `resize` `position`, which only
+// understands its own keyword set — not arbitrary CSS percentages) rather
+// than a CSS `object-position` style, which has nothing left to reposition
+// once the file is already cropped to the box's aspect ratio. Hendrix and
+// Vaughan are tall, tightly-cropped originals where a centred crop loses the
+// face entirely, so both pin to "top"; Mayer and Clapton's crops stay
+// centred (the sharp default) without needing an override.
+const PORTRAIT_POSITION: Record<string, string> = {
+  "jimi-hendrix": "top",
+  "stevie-ray-vaughan": "top",
+};
+
 function photoAlt(data: unknown): string | undefined {
   const alt = (data as { photoAlt?: unknown }).photoAlt;
   return typeof alt === "string" ? alt : undefined;
 }
 
-const people = (await getPublishedCollection("people")).sort((a, b) => {
-  const ra = roleOrder[a.data.role ?? "other"] ?? 99;
-  const rb = roleOrder[b.data.role ?? "other"] ?? 99;
-  if (ra !== rb) return ra - rb;
-  return a.data.title.localeCompare(b.data.title);
-});
+const allPeople = await getPublishedCollection("people");
+const byId = new Map(allPeople.map((person) => [person.id, person]));
+const people = ORDER.map((id) => byId.get(id)).filter(
+  (person): person is CollectionEntry<"people"> => Boolean(person),
+);
 ---
 
 <BaseLayout
@@ -60,37 +90,70 @@ const people = (await getPublishedCollection("people")).sort((a, b) => {
       </div>
     </section>
 
-    <section class="p-roster" aria-labelledby="p-roster-heading">
-      <h2 class="visually-hidden" id="p-roster-heading">Teaching team roster</h2>
+    <section class="p-rows" aria-labelledby="p-rows-heading">
+      <h2 class="visually-hidden" id="p-rows-heading">Teaching team</h2>
       <div class="t-shell">
-        <ul class="p-list" role="list">
+        <ul class="p-row-list" role="list">
           {
-            people.map((person) => (
-              <li class="p-item t-rule">
-                <a class="p-link" href={withBase(`/people/${person.id}/`)}>
-                  {person.data.photo && (
-                    <Image
-                      src={person.data.photo}
-                      alt={photoAlt(person.data) ?? ""}
-                      width={128}
-                      height={128}
-                      format="avif"
-                      class="p-photo"
-                    />
-                  )}
-                  <span class="p-copy">
-                    {person.data.role && roleLabels[person.data.role] && (
-                      <span class="t-label p-role">{roleLabels[person.data.role]}</span>
-                    )}
-                    <span class="t-h2 p-name">{person.data.title}</span>
-                    <span class="t-body p-desc">{person.data.description}</span>
-                  </span>
-                  <span class="p-arrow t-arrow" aria-hidden="true">
-                    &rarr;
-                  </span>
-                </a>
-              </li>
-            ))
+            people.map((person, index) => {
+              const photoLeft = index % 2 === 0;
+              const roleLabel = person.data.role ? roleLabels[person.data.role] : undefined;
+              const href = withBase(`/people/${person.id}/`);
+              return (
+                <li class="t-rule">
+                  <div
+                    class="t-grid p-row"
+                    class:list={{ "p-row--photo-left": photoLeft, "p-row--text-left": !photoLeft }}
+                  >
+                    <figure class="p-row-photo">
+                      {person.data.photo && (
+                        <Image
+                          src={person.data.photo}
+                          alt={photoAlt(person.data) ?? ""}
+                          width={640}
+                          height={800}
+                          format="avif"
+                          class="p-row-img"
+                          position={PORTRAIT_POSITION[person.id] ?? "center"}
+                        />
+                      )}
+                      <PortraitCaption credit={PORTRAIT_CREDIT[person.id]} />
+                    </figure>
+
+                    <div class="p-row-copy">
+                      {roleLabel && <p class="t-label p-row-role">{roleLabel}</p>}
+                      <h3 class="t-h2 p-row-name">
+                        <a class="p-row-link" href={href}>
+                          {person.data.title}
+                        </a>
+                      </h3>
+                      <p class="t-body p-row-desc">{person.data.description}</p>
+                      <dl class="p-row-facts">
+                        {person.data.affiliation && (
+                          <div>
+                            <dt class="t-label">Affiliation</dt>
+                            <dd>{person.data.affiliation}</dd>
+                          </div>
+                        )}
+                        {person.data.email && (
+                          <div>
+                            <dt class="t-label">Email</dt>
+                            <dd>
+                              <a class="p-row-mail" href={`mailto:${person.data.email}`}>
+                                {person.data.email}
+                              </a>
+                            </dd>
+                          </div>
+                        )}
+                      </dl>
+                      <a class="t-link p-row-more" href={href}>
+                        Full profile <span class="t-arrow" aria-hidden="true">&rarr;</span>
+                      </a>
+                    </div>
+                  </div>
+                </li>
+              );
+            })
           }
         </ul>
       </div>
@@ -118,90 +181,112 @@ const people = (await getPublishedCollection("people")).sort((a, b) => {
     margin: 0.75rem 0 1.25rem;
   }
 
-  .p-roster {
+  .p-rows {
     padding-block-end: clamp(4rem, 8vw, 6rem);
   }
 
-  .p-list {
+  .p-row-list {
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .p-item:last-child {
+  .p-row-list > li {
+    padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .p-row-list > li:last-child {
     border-block-end: 1px solid var(--t-line);
   }
 
-  .p-link {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+  .p-row {
     align-items: center;
-    gap: clamp(1.25rem, 3vw, 2.5rem);
-    padding-block: clamp(1.5rem, 3vw, 2.25rem);
-    text-decoration: none;
-    color: inherit;
+    row-gap: 2rem;
   }
 
-  .p-photo {
-    width: 4.5rem;
-    height: 4.5rem;
+  .p-row-photo {
+    margin: 0;
+  }
+
+  .p-row-img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
     object-fit: cover;
     filter: saturate(0.9);
   }
 
-  .p-copy {
+  .p-row-copy {
     display: grid;
-    gap: 0.4rem;
-    max-width: 52ch;
+    gap: 0.9rem;
+    align-content: center;
   }
 
-  .p-role {
+  .p-row-role {
     color: var(--t-copper);
   }
 
-  .p-name {
+  .p-row-name {
+    margin: 0;
+  }
+
+  .p-row-link {
+    color: inherit;
+    text-decoration: none;
     transition: color 0.2s ease;
   }
 
-  .p-link:hover .p-name,
-  .p-link:focus-visible .p-name {
+  .p-row-link:hover,
+  .p-row-link:focus-visible {
     color: var(--t-signal);
   }
 
-  .p-desc {
-    color: var(--t-dim);
-    font-size: var(--t-small);
+  .p-row-desc {
+    max-width: 46ch;
   }
 
-  .p-arrow {
-    color: var(--t-mute);
-    transition: transform 0.2s ease, color 0.2s ease;
+  .p-row-facts {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0.4rem 0 0;
   }
 
-  .p-link:hover .p-arrow,
-  .p-link:focus-visible .p-arrow {
+  .p-row-facts dd {
+    margin: 0.25rem 0 0;
+    color: var(--t-paper);
+  }
+
+  .p-row-mail {
     color: var(--t-signal);
+  }
+
+  .p-row-more {
+    margin-block-start: 0.4rem;
+  }
+
+  .p-row-more .t-arrow {
+    transition: transform 0.2s ease;
+  }
+
+  .p-row-more:hover .t-arrow,
+  .p-row-more:focus-visible .t-arrow {
     transform: translateX(0.3rem);
   }
 
-  @media (width < 40rem) {
-    .p-link {
-      grid-template-columns: auto 1fr;
-      grid-template-areas:
-        "photo copy"
-        "arrow copy";
+  @media (width >= 60rem) {
+    .p-row--photo-left .p-row-photo {
+      grid-column: 1 / span 5;
     }
 
-    .p-photo {
-      grid-area: photo;
+    .p-row--photo-left .p-row-copy {
+      grid-column: 7 / span 6;
     }
 
-    .p-copy {
-      grid-area: copy;
+    .p-row--text-left .p-row-copy {
+      grid-column: 1 / span 6;
     }
 
-    .p-arrow {
-      display: none;
+    .p-row--text-left .p-row-photo {
+      grid-column: 8 / span 5;
     }
   }
 </style>

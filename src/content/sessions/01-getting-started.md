@@ -11,7 +11,7 @@ description:
 week: 1
 date: 2027-02-22
 teachers:
-  - marisol-quaye
+  - jimi-hendrix
 spec:
   - you can build and preview the course site locally
   - you have working headphones or monitors and have checked levels before Week 1's lab bench plays anything

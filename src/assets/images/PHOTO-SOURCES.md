@@ -283,6 +283,75 @@ CLAUDE.md's "real physical subject → external image preferred" rule.
   system" despite requiring attribution where the CC0 image would not.
 - **Used in**: `WeekOpener` on Week 12.
 
+## People — teaching team portrait photographs
+
+The four fictional teaching-team profiles (`src/content/people/`) use real,
+licensed portrait photographs of the real musicians the invented personas are
+named after — see the on-page fiction-context caption for why that's not a
+factual claim about who teaches this course. These files live in
+`src/content/people/`, not `src/assets/images/`: the `people` collection's
+schema resolves its `photo` field relative to the content file's own
+directory, unlike the `lectures` collection above, which imports images
+explicitly from this directory.
+
+### `people-jimi-hendrix-portrait.jpg` — 1124 × 1600
+
+- **Shows**: a black-and-white half-body photograph, guitar in hand.
+- **Source**: [Wikimedia Commons — "Jimi Hendrix (1967) (cropped).jpg"](https://commons.wikimedia.org/wiki/File:Jimi_Hendrix_(1967)_(cropped).jpg)
+- **Author / attribution**: credited on Commons to e24.se, attributed to
+  Scanpix; original photographer unknown.
+- **Licence**: Public domain.
+- **What was kept/modified**: downscaled, re-encoded as JPEG quality 82; no
+  crop.
+- **Used in**: `people/jimi-hendrix.md` (`photo`), rendered on `/people/` and
+  `/people/jimi-hendrix/`.
+
+### `people-john-mayer-portrait.jpg` — 1067 × 1600
+
+- **Shows**: a colour photograph on stage, singing and playing guitar under
+  blue stage light.
+- **Source**: [Wikimedia Commons — "JohnMayerin2019.jpg"](https://commons.wikimedia.org/wiki/File:JohnMayerin2019.jpg)
+- **Author / attribution**: Wikimedia user Thatcommonkid (own work).
+- **Licence**: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)
+  — credit required, link to licence, indicate changes, share derivatives
+  alike. Credited on-page next to the photo, not just in this log.
+- **What was kept/modified**: downscaled, re-encoded as JPEG quality 82; no
+  crop.
+- **Used in**: `people/john-mayer.md` (`photo`), rendered on `/people/` and
+  `/people/john-mayer/`.
+
+### `people-eric-clapton-portrait.jpg` — 1600 × 1285
+
+- **Shows**: a black-and-white photograph on a dim stage, playing guitar in
+  front of a microphone stand.
+- **Source**: [Wikimedia Commons — "Eric "slowhand" Clapton.jpg"](<https://commons.wikimedia.org/wiki/File:Eric_%22slowhand%22_Clapton.jpg>)
+- **Author / attribution**: Flickr user Stoned59 ("Eric \"slowhand\"
+  Clapton").
+- **Licence**: [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) —
+  credit required, link to licence, indicate changes. Credited on-page next
+  to the photo, not just in this log.
+- **What was kept/modified**: downscaled, re-encoded as JPEG quality 82; no
+  crop.
+- **Used in**: `people/eric-clapton.md` (`photo`), rendered on `/people/` and
+  `/people/eric-clapton/`.
+
+### `people-stevie-ray-vaughan-portrait.jpg` — 648 × 1600
+
+- **Shows**: a black-and-white studio photograph, wearing a wide-brimmed hat,
+  shown from the chest up.
+- **Source**: [Wikimedia Commons — "Stevie Ray Vaughan and Double Trouble (1983 publicity photo by Don Hunstein).jpg"](<https://commons.wikimedia.org/wiki/File:Stevie_Ray_Vaughan_and_Double_Trouble_(1983_publicity_photo_by_Don_Hunstein).jpg>)
+- **Author / attribution**: Don Hunstein (1928–2017).
+- **Licence**: Public domain (published without a copyright notice, under the
+  copyright law in force at the time).
+- **What was kept/modified**: **cropped** from the original three-person band
+  publicity photo to isolate Vaughan alone (the other two band members are
+  not part of this course's fictional teaching-team framing), then
+  downscaled and re-encoded as JPEG quality 82 — the one portrait in this
+  section that deviates from the "no crop" norm stated at the top of this
+  file.
+- **Used in**: `people/stevie-ray-vaughan.md` (`photo`), rendered on
+  `/people/` and `/people/stevie-ray-vaughan/`.
+
 ## `hero-home.avif`
 
 - An abstract vector graphic retained only as the 404 page's illustration
