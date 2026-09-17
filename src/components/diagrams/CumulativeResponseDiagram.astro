@@ -55,7 +55,7 @@ const unityY = yForMagnitude(1);
 ---
 
 <div
-  class="cumulative-response bench-module"
+  class="cumulative-response"
   role="img"
   aria-label="Frequency response building up stage by stage from pickup tilt, through Tone/EQ, through the amplifier's tone stack, to the cabinet."
 >
@@ -91,30 +91,30 @@ const unityY = yForMagnitude(1);
   }
 
   .axis-line {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
   }
 
   .tick-line {
-    stroke: var(--bench-line, var(--at-border));
+    stroke: var(--t-grid);
     stroke-width: 1;
     stroke-dasharray: 2 2;
   }
 
   .unity-line {
-    stroke: var(--at-warning, var(--at-border));
+    stroke: var(--t-line-strong);
     stroke-width: 1;
     stroke-dasharray: 1 3;
   }
 
   .freq-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .response-trace {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-signal);
     stroke-width: 1.75;
   }
 
@@ -142,14 +142,14 @@ const unityY = yForMagnitude(1);
     margin: 0.6rem 0 0;
     padding: 0;
     list-style: none;
-    font-size: var(--at-font-size-xs);
-    color: var(--at-text-secondary);
+    font-size: var(--t-label);
+    color: var(--t-mute);
   }
 
   .snapshot-legend li::before {
     content: "—";
     margin-inline-end: 0.35rem;
-    color: var(--bench-phosphor, var(--at-accent));
+    color: var(--t-signal);
   }
 
   .snapshot-legend-0::before {

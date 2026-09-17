@@ -94,10 +94,10 @@ const cabinetOptions = CABINET_PROFILE_ORDER.map((profile) => ({
 }));
 ---
 
-<div class="chain-bench bench-module" id="chain-bench">
+<div class="chain-bench" id="chain-bench">
   <div class="lab-header">
-    <span class="lab-name">SLOP2186 Complete Chain Bench</span>
-    <span class="bench-eyebrow">Player → pickup → EQ → gain → modulation → delay/reverb → amplifier → cabinet</span>
+    <span class="t-label lab-name">Complete chain simulator</span>
+    <span class="t-label lab-eyebrow">Player → pickup → EQ → gain → modulation → delay/reverb → amplifier → cabinet</span>
   </div>
 
   <div class="lab-stage">
@@ -141,7 +141,7 @@ const cabinetOptions = CABINET_PROFILE_ORDER.map((profile) => ({
     <AudioDemo id="chain-audio" label="Play the complete chain" />
   </div>
 
-  <p id="chain-readout" class="bench-scope-note chain-readout">
+  <p id="chain-readout" class="lab-note chain-readout">
     Bridge pickup, EQ at 4000 Hz pre-gain, asymmetric-soft clipping at 3.0×, modulation off, delay/reverb off,
     amplifier driving 3.0× with tone at 3000 Hz, flat cabinet.
   </p>
@@ -168,7 +168,7 @@ const cabinetOptions = CABINET_PROFILE_ORDER.map((profile) => ({
     </svg>
   </div>
 
-  <p class="bench-scope-note">
+  <p class="lab-note">
     This plot shows only the chain's linear (filter) stages layered together — it can't show what distortion,
     modulation, or delay/reverb do, since none of those are a single fixed "frequency response". Listen to hear
     those stages; watch this plot to see how pickup, EQ, amplifier tone, and cabinet combine.
@@ -340,11 +340,11 @@ const cabinetOptions = CABINET_PROFILE_ORDER.map((profile) => ({
   }
 
   .lab-name {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--at-text-secondary);
+    color: var(--t-mute);
+  }
+
+  .lab-eyebrow {
+    color: var(--t-dim);
   }
 
   .lab-stage {
@@ -353,22 +353,22 @@ const cabinetOptions = CABINET_PROFILE_ORDER.map((profile) => ({
     align-items: flex-end;
     gap: 1.25rem;
     padding: 0.75rem 0;
-    border-top: 1px solid var(--at-border);
+    border-top: 1px solid var(--t-line);
   }
 
   .stage-label {
     flex: 0 0 8rem;
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-xs);
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--at-text);
+    color: var(--t-paper);
     align-self: center;
   }
 
   .chain-readout {
     text-align: center;
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
   }
 
   .response-plot svg {
@@ -378,35 +378,38 @@ const cabinetOptions = CABINET_PROFILE_ORDER.map((profile) => ({
   }
 
   .axis-line {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
   }
 
   .tick-line {
-    stroke: var(--bench-line, var(--at-border));
+    stroke: var(--t-grid);
     stroke-width: 1;
     stroke-dasharray: 2 2;
   }
 
   .unity-line {
-    stroke: var(--at-warning, var(--at-border));
+    stroke: var(--t-line-strong);
     stroke-width: 1;
     stroke-dasharray: 1 3;
   }
 
   .freq-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .response-trace {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-signal);
     stroke-width: 1.75;
   }
 
-  .bench-scope-note {
+  .lab-note {
     margin: 0;
+    font-size: 0.9rem;
+    color: var(--t-dim);
+    max-width: var(--t-measure);
   }
 
   @media (max-width: 640px) {
