@@ -1,0 +1,207 @@
+---
+// People, in the TONE visual system. A roster rather than a card grid — the
+// theme's Card/CardGrid are exactly the "identical box per item" pattern the
+// system exists to avoid; a plain row per person, photo aligned left, reads
+// as one list rather than a shelf of tiles.
+import { Image } from "astro:assets";
+import { getPublishedCollection } from "astro-course-university/content";
+import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
+import { withBase } from "astro-theme-university/url";
+import { courseMeta } from "../../course-config";
+import { siteConfig } from "../../site-config";
+import "../../styles/tone.css";
+
+const roleOrder: Record<string, number> = { convenor: 0, tutor: 1, guest: 2, other: 3 };
+const roleLabels: Record<string, string> = {
+  convenor: "Convenor",
+  tutor: "Tutor",
+  guest: "Guest lecturer",
+  other: "",
+};
+
+function photoAlt(data: unknown): string | undefined {
+  const alt = (data as { photoAlt?: unknown }).photoAlt;
+  return typeof alt === "string" ? alt : undefined;
+}
+
+const people = (await getPublishedCollection("people")).sort((a, b) => {
+  const ra = roleOrder[a.data.role ?? "other"] ?? 99;
+  const rb = roleOrder[b.data.role ?? "other"] ?? 99;
+  if (ra !== rb) return ra - rb;
+  return a.data.title.localeCompare(b.data.title);
+});
+---
+
+<BaseLayout
+  title={`People — ${courseMeta.code}`}
+  description="Who teaches SLOP2186, and how to reach them."
+  mainAttrs={{ "data-tone": true }}
+  {...siteConfig}
+  name={courseMeta.code}
+  logo={undefined}
+  logoDark={undefined}
+  logoCompact={undefined}
+  logoCompactDark={undefined}
+>
+  <style
+    slot="head"
+    is:inline
+    set:html={`body{--course-title:${JSON.stringify(courseMeta.title)}}`}
+  />
+
+  <div class="t-graticule" aria-hidden="true"></div>
+
+  <div class="t-layer">
+    <section class="p-hero t-band">
+      <div class="t-shell">
+        <p class="t-label t-label--signal">Teaching team</p>
+        <h1 class="t-h1 p-hero-title">People</h1>
+        <p class="t-lede p-hero-lede">Who teaches {courseMeta.code}, and how to reach them.</p>
+      </div>
+    </section>
+
+    <section class="p-roster" aria-labelledby="p-roster-heading">
+      <h2 class="visually-hidden" id="p-roster-heading">Teaching team roster</h2>
+      <div class="t-shell">
+        <ul class="p-list" role="list">
+          {
+            people.map((person) => (
+              <li class="p-item t-rule">
+                <a class="p-link" href={withBase(`/people/${person.id}/`)}>
+                  {person.data.photo && (
+                    <Image
+                      src={person.data.photo}
+                      alt={photoAlt(person.data) ?? ""}
+                      width={128}
+                      height={128}
+                      format="avif"
+                      class="p-photo"
+                    />
+                  )}
+                  <span class="p-copy">
+                    {person.data.role && roleLabels[person.data.role] && (
+                      <span class="t-label p-role">{roleLabels[person.data.role]}</span>
+                    )}
+                    <span class="t-h2 p-name">{person.data.title}</span>
+                    <span class="t-body p-desc">{person.data.description}</span>
+                  </span>
+                  <span class="p-arrow t-arrow" aria-hidden="true">
+                    &rarr;
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  const nav = document.querySelector<HTMLElement>(".at-nav");
+  if (nav) {
+    const sync = () => {
+      if (window.scrollY > 24) nav.dataset.scrolled = "";
+      else delete nav.dataset.scrolled;
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    document.addEventListener("astro:before-swap", () =>
+      window.removeEventListener("scroll", sync),
+    );
+  }
+</script>
+
+<style>
+  .p-hero-title {
+    margin: 0.75rem 0 1.25rem;
+  }
+
+  .p-roster {
+    padding-block-end: clamp(4rem, 8vw, 6rem);
+  }
+
+  .p-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .p-item:last-child {
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .p-link {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: clamp(1.25rem, 3vw, 2.5rem);
+    padding-block: clamp(1.5rem, 3vw, 2.25rem);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .p-photo {
+    width: 4.5rem;
+    height: 4.5rem;
+    object-fit: cover;
+    filter: saturate(0.9);
+  }
+
+  .p-copy {
+    display: grid;
+    gap: 0.4rem;
+    max-width: 52ch;
+  }
+
+  .p-role {
+    color: var(--t-copper);
+  }
+
+  .p-name {
+    transition: color 0.2s ease;
+  }
+
+  .p-link:hover .p-name,
+  .p-link:focus-visible .p-name {
+    color: var(--t-signal);
+  }
+
+  .p-desc {
+    color: var(--t-dim);
+    font-size: var(--t-small);
+  }
+
+  .p-arrow {
+    color: var(--t-mute);
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+
+  .p-link:hover .p-arrow,
+  .p-link:focus-visible .p-arrow {
+    color: var(--t-signal);
+    transform: translateX(0.3rem);
+  }
+
+  @media (width < 40rem) {
+    .p-link {
+      grid-template-columns: auto 1fr;
+      grid-template-areas:
+        "photo copy"
+        "arrow copy";
+    }
+
+    .p-photo {
+      grid-area: photo;
+    }
+
+    .p-copy {
+      grid-area: copy;
+    }
+
+    .p-arrow {
+      display: none;
+    }
+  }
+</style>

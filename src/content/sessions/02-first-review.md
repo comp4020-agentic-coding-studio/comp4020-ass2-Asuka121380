@@ -1,5 +1,7 @@
 ---
 title: First review
+# See 01-getting-started.md: no route renders this collection any more.
+published: false
 description:
   A first look at spectral analysis on a real recorded sound, ahead of
   Tone Autopsy

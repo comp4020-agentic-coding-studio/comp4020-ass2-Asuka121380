@@ -1,5 +1,10 @@
 ---
 title: Getting started
+# No standalone route renders the sessions collection any more (see
+# src/site-config.ts); published: false keeps this node out of the graph API
+# and the llms.txt crawl, both of which otherwise expect every content file
+# to resolve to a real page.
+published: false
 description:
   Setting up a listening environment and the toolchain the rest of the
   course's demonstrations run on

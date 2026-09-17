@@ -1,0 +1,271 @@
+---
+// The Assessment overview, in the TONE visual system. The homepage's
+// AssessmentLadder is the portal — weight, verb, title, one line, a link;
+// this page is where that link lands: the full weighting, due dates and
+// marking model for all three, with each brief itself one click further on
+// (src/pages/assessments/[slug].astro). Nothing here restates a brief's
+// task description or spec — that stays on the brief so it is written once.
+import { getPublishedCollection } from "astro-course-university/content";
+import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
+import { withBase } from "astro-theme-university/url";
+import { formatCourseDate } from "../../lib/dates";
+import { courseMeta } from "../../course-config";
+import { siteConfig } from "../../site-config";
+import "../../styles/tone.css";
+
+const VERBS: Record<string, string> = {
+  "tone-autopsy": "Analyse",
+  "pedal-laboratory": "Manipulate",
+  "engineer-a-guitar-tone": "Design",
+};
+
+const assessments = (await getPublishedCollection("assessments")).sort(
+  (a, b) => Number(a.data.weight) - Number(b.data.weight),
+);
+const totalWeight = assessments.reduce((sum, a) => sum + Number(a.data.weight), 0);
+---
+
+<BaseLayout
+  title={`Assessment — ${courseMeta.code}`}
+  description="Every piece of graded work in the course: what it is worth, when it is due, and how it is marked."
+  mainAttrs={{ "data-tone": true }}
+  {...siteConfig}
+  name={courseMeta.code}
+  logo={undefined}
+  logoDark={undefined}
+  logoCompact={undefined}
+  logoCompactDark={undefined}
+>
+  <style
+    slot="head"
+    is:inline
+    set:html={`body{--course-title:${JSON.stringify(courseMeta.title)}}`}
+  />
+
+  <div class="t-graticule" aria-hidden="true"></div>
+
+  <div class="t-layer">
+    <section class="a-hero t-band">
+      <div class="t-shell">
+        <p class="t-label t-label--signal">Assessment</p>
+        <h1 class="t-h1 a-hero-title">Analyse, then manipulate, then design</h1>
+        <p class="t-lede a-hero-lede">
+          Three assessments, each building on the last — analyse a recorded
+          guitar tone, manipulate a signal chain with pedal-style processing,
+          then design a complete chain from a target sound. Every assessment
+          may only assume material the course has already covered by its due
+          date. Together they sum to {totalWeight}% of the final grade.
+        </p>
+      </div>
+    </section>
+
+    <section class="a-list" aria-labelledby="a-list-heading">
+      <h2 class="visually-hidden" id="a-list-heading">The three assessments</h2>
+      <div class="t-shell">
+        {
+          assessments.map((entry, i) => {
+            const weight = Number(entry.data.weight);
+            const marking = entry.data.marking as
+              | { mode: "weighted"; criteria: { name: string; weight: number }[] }
+              | { mode: "holistic"; description: string }
+              | undefined;
+            return (
+              <article class="a-row t-rule">
+                <div class="t-grid a-row-grid">
+                  <div class="a-row-main">
+                    <p class="t-label a-row-stage">
+                      Stage {i + 1} <span aria-hidden="true">·</span> {VERBS[entry.id] ?? "Assessment"}
+                    </p>
+                    <h3 class="t-h2 a-row-title">{entry.data.title}</h3>
+                    <p class="t-body a-row-desc">{entry.data.description}</p>
+                    <dl class="a-row-facts">
+                      <div>
+                        <dt class="t-label">Due</dt>
+                        <dd class="t-num">{formatCourseDate(entry.data.due)}</dd>
+                      </div>
+                      <div>
+                        <dt class="t-label">Week set</dt>
+                        <dd class="t-num">Week {entry.data.week}</dd>
+                      </div>
+                    </dl>
+                    <a class="t-link" href={withBase(`/assessments/${entry.id}/`)}>
+                      Read the full brief <span class="t-arrow" aria-hidden="true">&rarr;</span>
+                    </a>
+                  </div>
+
+                  <div class="a-row-side">
+                    <div class="a-row-weight">
+                      <span class="t-num a-row-weight-value">{weight}</span>
+                      <span class="a-row-weight-unit" aria-hidden="true">%</span>
+                    </div>
+
+                    {marking?.mode === "weighted" && (
+                      <ul class="a-row-marking" role="list">
+                        {marking.criteria.map((c) => (
+                          <li>
+                            <span class="a-row-marking-name">{c.name}</span>
+                            <span class="a-row-marking-bar" aria-hidden="true">
+                              <span style={`width:${c.weight}%`} />
+                            </span>
+                            <span class="t-num a-row-marking-value">{c.weight}%</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {marking?.mode === "holistic" && (
+                      <p class="a-row-holistic">{marking.description}</p>
+                    )}
+                  </div>
+                </div>
+              </article>
+            );
+          })
+        }
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  const nav = document.querySelector<HTMLElement>(".at-nav");
+  if (nav) {
+    const sync = () => {
+      if (window.scrollY > 24) nav.dataset.scrolled = "";
+      else delete nav.dataset.scrolled;
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    document.addEventListener("astro:before-swap", () =>
+      window.removeEventListener("scroll", sync),
+    );
+  }
+</script>
+
+<style>
+  .a-hero-title {
+    max-width: 20ch;
+    margin: 0.75rem 0 1.25rem;
+  }
+
+  .a-hero-lede {
+    max-width: 62ch;
+  }
+
+  .a-list {
+    padding-block-end: clamp(4rem, 8vw, 6rem);
+  }
+
+  .a-row {
+    padding-block-start: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  .a-row:last-child {
+    border-block-end: 1px solid var(--t-line);
+    padding-block-end: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  .a-row-grid {
+    row-gap: 2rem;
+  }
+
+  .a-row-main {
+    grid-column: 1 / 8;
+  }
+
+  .a-row-side {
+    grid-column: 9 / 13;
+  }
+
+  .a-row-title {
+    margin: 0.6rem 0 1rem;
+  }
+
+  .a-row-desc {
+    max-width: 52ch;
+    margin: 0 0 1.5rem;
+  }
+
+  .a-row-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin: 0 0 1.75rem;
+  }
+
+  .a-row-facts dd {
+    margin: 0.35rem 0 0;
+    color: var(--t-paper);
+  }
+
+  .a-row-weight {
+    display: flex;
+    align-items: baseline;
+    gap: 0.1em;
+    color: var(--t-paper);
+    line-height: 0.85;
+    margin-block-end: 1.5rem;
+  }
+
+  .a-row-weight-value {
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+  }
+
+  .a-row-weight-unit {
+    font-family: var(--t-mono);
+    font-size: 1rem;
+    color: var(--t-mute);
+  }
+
+  .a-row-marking {
+    display: grid;
+    gap: 0.85rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .a-row-marking li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.3rem 0.75rem;
+  }
+
+  .a-row-marking-name {
+    font-size: var(--t-small);
+    color: var(--t-dim);
+    grid-column: 1 / -1;
+  }
+
+  .a-row-marking-bar {
+    display: block;
+    height: 0.3rem;
+    background: var(--t-faint);
+  }
+
+  .a-row-marking-bar > span {
+    display: block;
+    height: 100%;
+    background: var(--t-copper);
+  }
+
+  .a-row-marking-value {
+    font-size: var(--t-small);
+    color: var(--t-mute);
+  }
+
+  .a-row-holistic {
+    font-size: var(--t-small);
+    color: var(--t-dim);
+    margin: 0;
+  }
+
+  @media (width < 60rem) {
+    .a-row-main,
+    .a-row-side {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

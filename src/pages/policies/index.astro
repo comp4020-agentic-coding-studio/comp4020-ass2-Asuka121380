@@ -1,0 +1,171 @@
+---
+// Policies and support, in the TONE visual system. Plain prose content —
+// no diagram or control earns its place here — so the page's job is just to
+// carry the system's type, rhythm and one callout style cleanly; a t-shell
+// column of body copy with t-rule section breaks, nothing invented.
+import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
+import { withBase } from "astro-theme-university/url";
+import { courseMeta } from "../../course-config";
+import { siteConfig } from "../../site-config";
+import "../../styles/tone.css";
+---
+
+<BaseLayout
+  title={`Policies and support — ${courseMeta.code}`}
+  description="The course-wide rules for late work, extensions, academic integrity and getting help."
+  mainAttrs={{ "data-tone": true }}
+  {...siteConfig}
+  name={courseMeta.code}
+  logo={undefined}
+  logoDark={undefined}
+  logoCompact={undefined}
+  logoCompactDark={undefined}
+>
+  <style
+    slot="head"
+    is:inline
+    set:html={`body{--course-title:${JSON.stringify(courseMeta.title)}}`}
+  />
+
+  <div class="t-graticule" aria-hidden="true"></div>
+
+  <div class="t-layer">
+    <section class="pol-hero t-band">
+      <div class="t-shell">
+        <p class="t-label t-label--signal">Course rules</p>
+        <h1 class="t-h1 pol-title">Policies and support</h1>
+        <p class="t-lede pol-lede">
+          The course-wide rules for late work, extensions, academic integrity
+          and getting help.
+        </p>
+      </div>
+    </section>
+
+    <section class="pol-body">
+      <div class="t-shell pol-prose">
+        <div class="t-rule pol-section">
+          <h2 class="t-h2">Assessment progression</h2>
+        </div>
+        <p class="t-body">
+          The three assessments follow the semester in order — Analyse, then
+          Manipulate, then Design — and each one only assumes material the
+          course has actually covered by its due date.
+        </p>
+        <p class="pol-note">
+          <a href={withBase("/assessments/tone-autopsy/")}>Tone Autopsy</a>
+          draws only on Weeks 1-4; you will not be expected to explain
+          distortion or amplifier behaviour there, because those come later.
+        </p>
+
+        <div class="t-rule pol-section">
+          <h2 class="t-h2">Late work and extensions</h2>
+        </div>
+        <p class="t-body">
+          If something outside your control is going to make a due date
+          genuinely unworkable, get in touch with the relevant assessment's
+          marker before the deadline, not after it.
+        </p>
+        <div class="pol-callout">
+          A short, specific extension request made early is easy to grant;
+          the same request made after the deadline has already passed is
+          not.
+        </div>
+
+        <div class="t-rule pol-section">
+          <h2 class="t-h2">Academic integrity</h2>
+        </div>
+        <p class="t-body">
+          Analysis, predictions, and design justifications should be your own
+          reasoning about the specific sample or target you were given.
+          Discussing concepts with classmates is expected and encouraged —
+          the weekly teaching sessions are built around exactly that.
+        </p>
+        <div class="pol-callout">
+          The written reasoning you submit should be traceable to your own
+          understanding of it.
+        </div>
+
+        <div class="t-rule pol-section">
+          <h2 class="t-h2">Getting help</h2>
+        </div>
+        <p class="t-body">
+          For a question about a specific piece of work in progress, bring it
+          to your next teaching session rather than emailing it — that's
+          where a tutor can look at what you're seeing alongside you. For
+          anything about the course itself rather than a specific piece of
+          work, see <a href={withBase("/people/")}>People</a> for who to
+          contact and how.
+        </p>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  const nav = document.querySelector<HTMLElement>(".at-nav");
+  if (nav) {
+    const sync = () => {
+      if (window.scrollY > 24) nav.dataset.scrolled = "";
+      else delete nav.dataset.scrolled;
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    document.addEventListener("astro:before-swap", () =>
+      window.removeEventListener("scroll", sync),
+    );
+  }
+</script>
+
+<style>
+  .pol-title {
+    margin: 0.75rem 0 1.25rem;
+  }
+
+  .pol-lede {
+    max-width: 56ch;
+  }
+
+  .pol-body {
+    padding-block-end: clamp(4rem, 8vw, 6rem);
+  }
+
+  .pol-prose {
+    max-width: var(--t-measure);
+  }
+
+  .pol-section {
+    margin-block-start: clamp(2.5rem, 5vw, 3.5rem);
+    padding-block-start: 1.25rem;
+  }
+
+  .pol-prose > .pol-section:first-child {
+    margin-block-start: 0;
+  }
+
+  .pol-prose .t-body {
+    margin: 1rem 0 0;
+  }
+
+  .pol-note {
+    margin: 1rem 0 0;
+    font-size: var(--t-small);
+    color: var(--t-mute);
+  }
+
+  .pol-note a {
+    color: var(--t-signal);
+  }
+
+  .pol-callout {
+    margin: 1.25rem 0 0;
+    padding: 1rem 1.25rem;
+    border-inline-start: 2px solid var(--t-copper);
+    background: var(--t-surface);
+    color: var(--t-dim);
+    font-size: var(--t-small);
+  }
+
+  .pol-prose a {
+    color: var(--t-signal);
+  }
+</style>
