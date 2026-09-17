@@ -1879,6 +1879,37 @@ trimmed for the word count — that curation happens once, at submission time.
   sound right" listening pass; flagging this gap rather than claiming it as
   fully resolved by ear.
 
+- **`16da1bf`** — Polishing pass, Phase B: real hero photographs for the
+  eleven teaching weeks that had been using the procedural-waveform
+  fallback (Week 3 already had one and stays untouched). For each week,
+  searched Wikimedia Commons for a photograph of that week's actual
+  physical subject (whole guitar, fretboard, control cavity, an overdrive
+  pedal's gain stage, a fuzz pedal's clipping circuit, a wah pedal, a
+  chorus pedal, a reverb pedal, amp power tubes, a cabinet's speakers and
+  magnets, a complete pedalboard), inspected a thumbnail before committing
+  to a candidate (rejected an empty, unpopulated Les Paul control cavity
+  for Week 4 and a cluttered, angled pedalboard for Week 12 on those
+  grounds), downloaded the original, downscaled it to a 1800px long edge at
+  JPEG quality 82, and wired it into that week's `WeekOpener` via the same
+  `image`/`imageAlt`/`credit` props Week 3 already used. All eleven are CC
+  BY or CC BY-SA (2.0/3.0/4.0); each is logged in `PHOTO-SOURCES.md` with
+  its Commons source, author and licence. Weeks 7 and 8 needed a wider
+  search (graphic/parametric EQ boards, phaser alternatives) before a
+  clear, well-licensed photo turned up — the waveform fallback was never
+  needed. Also fixed a genuine `WeekOpener.astro` bug this change exposed
+  at scale: `.opener-credit` was positioned absolute at a fixed offset from
+  the plate's bottom edge, independent of the title block above it, so a
+  title that wrapped to two or three lines on a narrow viewport ran directly
+  into the credit text (confirmed this pre-dated Phase B by re-checking
+  Week 3 at 390px, which had the same collision). Moved the credit into the
+  same flow as the title, after it, so it is always pushed below rather
+  than competing for the same fixed vertical band. Checked: `pnpm check`
+  green (build, axe, broken-links, 5/5 vitest tests) both before wiring and
+  again after the credit-positioning fix; Playwright screenshots of all 11
+  touched weeks at desktop (1400px) and mobile (390px) confirmed correct
+  image rendering, zero console/page errors, and (after the fix) no
+  title/credit overlap on any of them, including a re-check of Week 3.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
