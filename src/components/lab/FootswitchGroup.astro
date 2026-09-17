@@ -20,7 +20,7 @@ const { name, legend, options, selected } = Astro.props;
 ---
 
 <fieldset class="footswitches">
-  <legend class="bench-eyebrow">{legend}</legend>
+  <legend class="t-label">{legend}</legend>
   <div class="footswitch-row">
     {options.map((option) => (
       <label class="footswitch">
@@ -67,49 +67,50 @@ const { name, legend, options, selected } = Astro.props;
     cursor: pointer;
   }
 
+  /* Square face, no corner radius — a footswitch is a physical square
+     button, and TONE has no soft-panel chrome to round it into. */
   .footswitch-face {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.35rem;
     padding: 0.6rem 0.75rem;
-    border: 1px solid var(--at-border);
-    border-radius: calc(var(--at-border-radius) * 0.6);
-    background: var(--at-bg);
+    border: 1px solid var(--t-line-strong);
+    background: var(--t-surface);
     min-width: 4.5rem;
   }
 
   .footswitch-led {
-    width: 0.55rem;
-    height: 0.55rem;
+    width: 0.5rem;
+    height: 0.5rem;
     border-radius: 50%;
-    background: var(--at-border);
+    background: var(--t-edge);
   }
 
   .footswitch-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-xs);
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--at-text-secondary);
+    letter-spacing: 0.08em;
+    color: var(--t-mute);
   }
 
   .footswitch input:checked + .footswitch-face {
-    border-color: var(--at-accent);
-    background: var(--at-bg-alt);
+    border-color: var(--t-signal);
+    background: var(--t-raised);
   }
 
   .footswitch input:checked + .footswitch-face .footswitch-led {
-    background: var(--at-accent);
-    box-shadow: 0 0 6px var(--at-accent);
+    background: var(--t-signal);
+    box-shadow: 0 0 6px var(--t-signal-dim);
   }
 
   .footswitch input:checked + .footswitch-face .footswitch-label {
-    color: var(--at-text);
+    color: var(--t-paper);
   }
 
   .footswitch input:focus-visible + .footswitch-face {
-    outline: 2px solid var(--at-accent);
+    outline: 1px solid var(--t-signal);
     outline-offset: 2px;
   }
 </style>

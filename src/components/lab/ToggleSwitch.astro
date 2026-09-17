@@ -14,13 +14,13 @@ const { id, legend, offLabel, onLabel, checked = false } = Astro.props;
 ---
 
 <div class="toggle">
-  <span class="bench-eyebrow" id={`${id}-label`}>{legend}</span>
+  <span class="t-label" id={`${id}-label`}>{legend}</span>
   <label class="toggle-control">
     <span class="toggle-side" data-side="off">{offLabel}</span>
     <span class="toggle-switch">
       <input type="checkbox" id={id} checked={checked} aria-labelledby={`${id}-label`} />
       <span class="toggle-track" aria-hidden="true">
-        <span class="toggle-thumb"></span>
+        <span class="toggle-fill"></span>
       </span>
     </span>
     <span class="toggle-side" data-side="on">{onLabel}</span>
@@ -37,23 +37,27 @@ const { id, legend, offLabel, onLabel, checked = false } = Astro.props;
   .toggle-control {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     cursor: pointer;
   }
 
   .toggle-side {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-xs);
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--at-text-secondary);
+    letter-spacing: 0.08em;
+    color: var(--t-mute);
+    transition: color 0.15s ease;
   }
 
+  /* A flat two-cell rail, not a pill switch — the active half is filled
+     rather than a thumb sliding along a track. */
   .toggle-switch {
     position: relative;
     display: inline-flex;
-    width: 2.4rem;
-    height: 1.3rem;
+    width: 2.2rem;
+    height: 1rem;
+    border: 1px solid var(--t-line-strong);
   }
 
   .toggle-switch input {
@@ -70,39 +74,29 @@ const { id, legend, offLabel, onLabel, checked = false } = Astro.props;
     display: block;
     width: 100%;
     height: 100%;
-    border: 1px solid var(--at-border);
-    border-radius: 999px;
-    background: var(--at-bg);
     position: relative;
   }
 
-  .toggle-thumb {
+  .toggle-fill {
     position: absolute;
-    top: 2px;
-    left: 2px;
-    width: calc(1.3rem - 6px);
-    height: calc(1.3rem - 6px);
-    border-radius: 50%;
-    background: var(--at-text-secondary);
-    transition: transform 0.12s ease, background 0.12s ease;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 50%;
+    background: var(--t-signal-dim);
+    transition: transform 0.15s ease;
   }
 
-  .toggle-switch input:checked + .toggle-track .toggle-thumb {
-    transform: translateX(1.1rem);
-    background: var(--at-accent);
+  .toggle-switch input:checked ~ .toggle-track .toggle-fill {
+    transform: translateX(100%);
   }
 
-  .toggle-switch input:checked + .toggle-track {
-    border-color: var(--at-accent);
-  }
-
-  .toggle-switch input:focus-visible + .toggle-track {
-    outline: 2px solid var(--at-accent);
+  .toggle-switch input:focus-visible ~ .toggle-track {
+    outline: 1px solid var(--t-signal);
     outline-offset: 2px;
   }
 
   .toggle-control:has(input:checked) .toggle-side[data-side="on"],
   .toggle-control:not(:has(input:checked)) .toggle-side[data-side="off"] {
-    color: var(--at-text);
+    color: var(--t-paper);
   }
 </style>

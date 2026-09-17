@@ -27,19 +27,19 @@ const defaultSamples = cycles[DEFAULT_WAVEFORM];
 const defaultSpectrum = magnitudeSpectrum(defaultSamples);
 ---
 
-<div class="waveform-lab bench-module" id="waveform-lab">
+<div class="waveform-lab" id="waveform-lab">
   <div class="lab-header">
-    <span class="lab-name">SLOP2186 Waveform Bench</span>
+    <span class="t-label lab-name">Waveform family</span>
     <FootswitchGroup name="lab-waveform" legend="Waveform family" options={waveformOptions} selected={DEFAULT_WAVEFORM} />
   </div>
 
   <div class="lab-body">
     <div class="displays">
-      <Waveform id="lab-waveform-display" label="One cycle" samples={Array.from(defaultSamples)} strokeVar="--bench-phosphor" />
-      <Spectrum id="lab-spectrum-display" label="Harmonic spectrum" magnitudes={Array.from(defaultSpectrum)} fillVar="--bench-phosphor" />
+      <Waveform id="lab-waveform-display" label="One cycle" samples={Array.from(defaultSamples)} strokeVar="--t-signal" />
+      <Spectrum id="lab-spectrum-display" label="Harmonic spectrum" magnitudes={Array.from(defaultSpectrum)} fillVar="--t-signal" />
     </div>
     <AudioDemo id="lab-audio" label="Play at 220 Hz" />
-    <p class="bench-scope-note">All three waveforms play at exactly the same 220 Hz fundamental. Whatever difference you hear is timbre, not pitch — the harmonic content shown above.</p>
+    <p class="lab-note">All three waveforms play at exactly the same 220 Hz fundamental. Whatever difference you hear is timbre, not pitch — the harmonic content shown above.</p>
   </div>
 </div>
 
@@ -58,9 +58,9 @@ const defaultSpectrum = magnitudeSpectrum(defaultSamples);
     const toggle = document.getElementById("lab-audio-toggle") as HTMLButtonElement;
 
     const styles = getComputedStyle(root);
-    const trace = styles.getPropertyValue("--bench-phosphor").trim() || "#e2b13c";
-    const gridColor = styles.getPropertyValue("--bench-line").trim();
-    const labelColor = styles.getPropertyValue("--bench-panel-text-secondary").trim();
+    const trace = styles.getPropertyValue("--t-signal").trim() || "#e2b13c";
+    const gridColor = styles.getPropertyValue("--t-line").trim();
+    const labelColor = styles.getPropertyValue("--t-mute").trim();
 
     const FREQUENCY = 220;
     const OUTPUT_GAIN = 0.2;
@@ -153,11 +153,7 @@ const defaultSpectrum = magnitudeSpectrum(defaultSamples);
   }
 
   .lab-name {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--at-text-secondary);
+    color: var(--t-mute);
   }
 
   .lab-body {
@@ -172,8 +168,11 @@ const defaultSpectrum = magnitudeSpectrum(defaultSamples);
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .bench-scope-note {
+  .lab-note {
     margin: 0;
+    font-size: 0.9rem;
+    color: var(--t-dim);
+    max-width: var(--t-measure);
   }
 
   @media (max-width: 640px) {

@@ -77,4 +77,17 @@ const { id, label, samples, strokeVar = "--at-accent", grid = true } = Astro.pro
     font-size: var(--at-font-size-xs);
     color: var(--at-text-secondary);
   }
+
+  /* TONE pages have no soft-panel chrome to round a display into — flatten
+     the theme's default corner radius there without touching legacy pages. */
+  :global([data-tone]) canvas {
+    border-radius: 0;
+  }
+
+  :global([data-tone]) figcaption {
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
 </style>

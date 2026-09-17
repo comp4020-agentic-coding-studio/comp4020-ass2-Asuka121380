@@ -86,15 +86,36 @@ as physically exact.
 ### Visual material
 
 Use the medium that best serves the teaching purpose, not whichever is most
-convenient to generate. For real physical objects — pickup anatomy,
-speaker/amplifier construction, guitar hardware, pedal/circuit layout —
-prefer suitable real photography or a high-quality existing diagram
-(Wikimedia Commons, public domain, Creative Commons, or manufacturer
-material with clearly permitted reuse) where legally usable; record its
-source and licence next to it. For dynamic phenomena, use custom
-interactive graphics when useful. For waveform/spectrum/data visualisation,
-generate them dynamically. Do NOT generate crude SVG illustrations merely
-because SVG is convenient.
+convenient to generate. The decision rule:
+
+- **Real physical subject → external image or educational diagram
+  preferred.** Pickups and pickup anatomy, single-coil/humbucker
+  construction, speakers, amplifier hardware, pedals, guitar electronics,
+  pots, capacitors, switches, cabinets, bridge hardware, circuit boards, and
+  other physical components should prefer suitable real photography or a
+  high-quality existing diagram (Wikimedia Commons, public domain, Creative
+  Commons with manageable attribution, or manufacturer/educational material
+  with clearly permitted reuse) when such material exists and communicates
+  the concept better than a custom illustration. Record source, author and
+  licence next to it (see `src/assets/images/PHOTO-SOURCES.md`). Do NOT draw
+  a crude SVG representation of a real object merely because SVG is
+  convenient. Photography is not confined to any one page — use it anywhere
+  a physical subject benefits from it, but don't force a photo into a week
+  whose subject is genuinely abstract just for the sake of having one.
+- **Abstract/dynamic/parametric subject → custom visualisation preferred.**
+  Waveforms, spectra, frequency response, clipping behaviour, modulation,
+  delay, reverb, signal flow, string displacement, changing magnetic flux,
+  induced voltage, transfer functions, and other time-varying or
+  parametric behaviour are genuinely better served by custom SVG/Canvas/CSS,
+  especially where live parameter response or animation teaches something a
+  static photo or diagram can't. Generate waveform/spectrum/data
+  visualisations dynamically from the same function that drives the audio.
+- Teaching value comes first, implementation convenience second. Don't
+  default to a weak illustration just because it's fast to code, and don't
+  reach for a photo where a computed plot is plainly the better tool.
+- Any external media must have a clearly suitable, easy-to-maintain licence
+  (CC0/public domain preferred; a compatible CC licence with manageable
+  attribution is fine). Never use legally ambiguous material.
 
 ### Audio material — revised policy (supersedes the original synthetic-first rule)
 
@@ -266,11 +287,24 @@ sees the composition rather than a page of invisible blocks.
 
 ### Propagation
 
-The system currently covers the **Homepage** and **Week 3**. Weeks 1–2, 4–12,
-Sessions, Assessment, People and Policies are still on the previous register
-and are deliberately untouched — every rule in `tone.css` is scoped to
-`[data-tone]`. Propagating it is a separate, later piece of work; don't do it
-piecemeal as a side effect of another change.
+The system covers the **Homepage**, **Week 3**, **Assessments**, **People**
+and **Policies**. The standalone Sessions route has been removed (the
+collection stays as unpublished data only). Weeks 1–2 and 4–12 are still on
+the previous "Bench/Booth" register (`LectureIntro`, `BenchFrame`,
+`BenchBand`, `CausalChainStrip`, `SignalChainStrip`, `TakeawaysList`, and the
+`Knob`/`ToggleSwitch`/`FootswitchGroup` control widgets) and are being
+migrated now. Every rule in `tone.css` is scoped to `[data-tone]`.
+
+The migration preserves each week's teaching content, DSP/audio logic, and
+working interactions; it replaces the old chrome (bordered/dotted "bench
+module" panels, the notebook margin numbering, pill-chip chains, the
+`.bench-wide` full-bleed breakout hack, and the skeuomorphic control
+styling) with the TONE system, following Week 3's composition
+(`WeekOpener`/`WeekBand`/`WeekChain`/`WeekTakeaways`) as the template. It is
+not a token-only reskin: where old markup itself forces the old aesthetic,
+the markup is restructured, not just recoloured. Weeks may end up simpler
+than Week 3 in engineering complexity (fewer bespoke components, lighter
+interactions) without being lower in visual quality.
 
 Make page-structure and visual-design decisions on your own. Escalate only
 when a call would substantially change the course's identity, curriculum,

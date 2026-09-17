@@ -1,7 +1,11 @@
 ---
-// The page's conceptual spine, reused twice: once near the top as a map of
-// where the page is going, and again directly above the Pedal Laboratory as
-// the explicit bridge from theory into the interactive piece.
+// The course's causal spine, reused twice per week: once as a map of where
+// the page is going, once directly above the interactive lab as the bridge
+// from theory into practice. It always reduces to the same four-part shape —
+// physical mechanism → signal transformation → waveform/spectral consequence
+// → audible consequence — so the first link is coloured as a physical cause
+// and the last as what a listener hears, with the transformation between
+// them left neutral.
 interface Props {
   compact?: boolean;
   steps?: string[];
@@ -10,80 +14,90 @@ interface Props {
 const {
   compact = false,
   steps = [
-    "Clipping topology",
-    "Transfer curve",
-    "Waveform shape",
-    "Harmonic spectrum",
-    "Audible result",
+    "Physical mechanism",
+    "Signal transformation",
+    "Waveform / spectral consequence",
+    "Audible consequence",
   ],
 } = Astro.props;
 ---
 
-<div class:list={["bench-wide", "causal-chain", { "causal-chain--compact": compact }]} role="img" aria-label={`Causal chain: ${steps.join(" leads to ")}.`}>
-  {steps.map((step, index) => (
-    <>
-      <span class="causal-step">{step}</span>
-      {index < steps.length - 1 && (
-        <svg class="causal-arrow" viewBox="0 0 24 12" aria-hidden="true">
-          <line x1="1" y1="6" x2="19" y2="6" />
-          <path d="M 14 2 L 20 6 L 14 10" fill="none" />
-        </svg>
-      )}
-    </>
-  ))}
-</div>
+<ol
+  class:list={["causal-chain", { "causal-chain--compact": compact }]}
+  role="list"
+  aria-label={`Causal chain: ${steps.join(" leads to ")}.`}
+>
+  {
+    steps.map((step, index) => (
+      <li class="causal-step">
+        <span
+          class:list={[
+            "t-label",
+            "causal-step-label",
+            index === 0 && "t-label--copper",
+            index === steps.length - 1 && "t-label--signal",
+          ]}
+        >
+          {step}
+        </span>
+        {index < steps.length - 1 && (
+          <span class="causal-arrow" aria-hidden="true">
+            &rarr;
+          </span>
+        )}
+      </li>
+    ))
+  }
+</ol>
 
 <style>
   .causal-chain {
     display: flex;
     align-items: center;
-    justify-content: center;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    padding: 0.9rem 0.5rem;
+    row-gap: 0.6rem;
+    margin: 0;
+    padding-block: 0.85rem;
+    padding-inline: 0;
+    list-style: none;
+    border-block: 1px solid var(--t-line);
   }
 
   .causal-chain--compact {
-    padding: 0.5rem 0.5rem;
+    padding-block: 0.55rem;
   }
 
   .causal-step {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--at-text-secondary);
-    border: 1px solid var(--at-border);
-    border-radius: 999px;
-    padding: 0.3rem 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .causal-step-label {
     white-space: nowrap;
   }
 
   .causal-arrow {
-    width: 1.4rem;
-    height: 0.7rem;
-    flex: none;
-    stroke: var(--at-border);
-    stroke-width: 1.5;
+    font-family: var(--t-mono);
+    color: var(--t-edge);
+    margin-inline: 0.7rem;
   }
 
-  @media (max-width: 640px) {
+  @media (width < 40rem) {
     .causal-chain {
       flex-direction: column;
-      align-items: stretch;
+      align-items: flex-start;
+      gap: 0.5rem;
     }
 
     .causal-step {
-      text-align: center;
-      border-radius: var(--at-border-radius);
-      white-space: normal;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.3rem;
     }
 
     .causal-arrow {
-      width: 0.7rem;
-      height: 1.4rem;
-      align-self: center;
-      transform: rotate(90deg);
+      display: none;
     }
   }
 </style>

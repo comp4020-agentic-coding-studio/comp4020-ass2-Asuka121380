@@ -1,14 +1,23 @@
 ---
-// A week opens on the object it is about. The photograph runs the full width
-// and fades into the page's own ground rather than sitting in a frame, so the
-// page begins with the instrument and the identity sits inside that image
-// instead of above it in a separate header block.
+// A week opens on the thing it is about. Where that thing is a real physical
+// object (Week 3's pickups), a photograph runs the full width and fades into
+// the page's own ground — see week3/WeekOpener.astro, still used there
+// directly. Most weeks' subject is not a physical object at all: a filter's
+// response, a clipping curve, a delay's feedback. For those, `image` is
+// omitted and the plate instead carries the week's own idealised waveform
+// trace — the same stageCycle()/waveformPath() machinery the homepage chain
+// and WeekChain already draw from, so the opener reuses an established motif
+// rather than inventing a new one.
 //
-// The INPUT / PROCESS / OUTPUT strip underneath is the week's contract: every
-// stage of this course takes something and returns something else, and naming
-// both is what makes twelve weeks one chain rather than twelve articles.
+// Either way the identity overlay (eyebrow + title) and the INPUT / PROCESS /
+// OUTPUT contract strip beneath are the same: every stage of this course
+// takes something and returns something else, and naming both is what makes
+// twelve weeks one chain rather than twelve articles.
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
+import { waveformPath } from "../../lib/draw/svgTrace";
+import { stageCycle } from "../../lib/course/stageTrace";
+import { stageMeta } from "../../lib/course/stages";
 
 interface Props {
   week: number;
@@ -18,9 +27,9 @@ interface Props {
   input: string;
   process: string;
   output: string;
-  image: ImageMetadata;
-  imageAlt: string;
-  credit: string;
+  image?: ImageMetadata;
+  imageAlt?: string;
+  credit?: string;
 }
 
 const { week, tag, title, question, input, process, output, image, imageAlt, credit } =
@@ -31,19 +40,37 @@ const chain = [
   { role: "Process", value: process, channel: "neutral" },
   { role: "Output", value: output, channel: "signal" },
 ];
+
+const domain = stageMeta(week).domain;
+const trace = image
+  ? null
+  : waveformPath(stageCycle(week), { width: 400, height: 120, padding: 4 });
 ---
 
 <header class="opener">
-  <div class="opener-plate">
-    <Image
-      src={image}
-      alt={imageAlt}
-      widths={[720, 1200, 1800]}
-      sizes="100vw"
-      format="avif"
-      loading="eager"
-      class="opener-image"
-    />
+  <div class="opener-plate" class:list={{ "opener-plate--graphic": !image }}>
+    {
+      image ? (
+        <Image
+          src={image}
+          alt={imageAlt ?? ""}
+          widths={[720, 1200, 1800]}
+          sizes="100vw"
+          format="avif"
+          loading="eager"
+          class="opener-image"
+        />
+      ) : (
+        <svg
+          class={`opener-trace opener-trace--${domain}`}
+          viewBox="0 0 400 120"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path d={trace} />
+        </svg>
+      )
+    }
     <span class="opener-veil" aria-hidden="true"></span>
 
     <div class="opener-identity t-bleed">
@@ -53,7 +80,7 @@ const chain = [
       <h1 class="opener-title">{title}</h1>
     </div>
 
-    <p class="t-label opener-credit">{credit}</p>
+    {credit && <p class="t-label opener-credit">{credit}</p>}
   </div>
 
   <div class="t-shell">
@@ -89,13 +116,49 @@ const chain = [
     filter: saturate(0.85) contrast(1.05) brightness(0.92);
   }
 
-  /* The image is not cropped to a box; it dissolves into the page. */
+  /* No photograph: the plate is the page's own ground, carrying the week's
+     idealised waveform as a single wide, quiet trace rather than an empty
+     band above the title. */
+  .opener-plate--graphic {
+    height: clamp(17rem, 44vw, 32rem);
+    background: var(--t-void);
+  }
+
+  .opener-trace {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .opener-trace path {
+    fill: none;
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.55;
+  }
+
+  .opener-trace--physical path {
+    stroke: var(--t-copper);
+  }
+
+  .opener-trace--signal path {
+    stroke: var(--t-signal);
+  }
+
+  /* The image is not cropped to a box; it dissolves into the page. The
+     graphic plate uses the same veil so both variants meet the identity
+     overlay identically. */
   .opener-veil {
     position: absolute;
     inset: 0;
     background:
       linear-gradient(to top, var(--t-void) 2%, rgb(10 11 12 / 30%) 42%, transparent 72%),
       linear-gradient(to right, rgb(10 11 12 / 72%) 0%, transparent 52%);
+  }
+
+  .opener-plate--graphic .opener-veil {
+    background: linear-gradient(to top, var(--t-void) 0%, transparent 78%);
   }
 
   .opener-identity {
