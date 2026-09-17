@@ -33,10 +33,7 @@ const path = transferCurvePath(curve, viewport);
   .curve-card {
     margin: 0;
     padding-top: 0.75rem;
-    /* Mode-aware accent (bright phosphor on the dark bench, a darker
-       AA-safe "ink" reading of the same hue on paper) rather than the raw
-       phosphor value, which would wash out against a light background. */
-    border-top: 2px solid var(--at-accent);
+    border-top: 2px solid var(--t-signal);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -49,12 +46,12 @@ const path = transferCurvePath(curve, viewport);
   }
 
   .axis {
-    stroke: var(--bench-grid, var(--at-border));
+    stroke: var(--t-line);
     stroke-width: 1;
   }
 
   .curve {
-    stroke: var(--at-accent);
+    stroke: var(--t-signal);
     stroke-width: 2;
   }
 
@@ -65,16 +62,16 @@ const path = transferCurvePath(curve, viewport);
   }
 
   .curve-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: var(--at-text);
+    color: var(--t-paper);
   }
 
   .curve-description {
-    font-size: var(--at-font-size-xs);
-    color: var(--at-text-secondary);
+    font-size: var(--t-label);
+    color: var(--t-dim);
     line-height: 1.35;
   }
 </style>
