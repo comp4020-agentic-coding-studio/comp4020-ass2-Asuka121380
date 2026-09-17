@@ -1910,6 +1910,64 @@ trimmed for the word count — that curation happens once, at submission time.
   image rendering, zero console/page errors, and (after the fix) no
   title/credit overlap on any of them, including a re-check of Week 3.
 
+- **`35667b3`** — Polishing pass, Phase C: rebuilt People with four
+  fictional SLOP2186 teaching profiles, replacing the placeholder
+  two-person team (`idris-fenn`, `marisol-quaye`). Jimi Hendrix
+  (convenor) and John Mayer/Eric Clapton/Stevie Ray Vaughan (tutors) are
+  invented teaching personas only — course design, marking focus, bench
+  supervision, office-hours habits — never a real-world music career, per
+  the standing rule against biographical claims about real people. Every
+  `teachers:` reference across all 12 `week-*.mdx` files and both session
+  content files was remapped to one of the four new ids before the old
+  two people files were deleted, so the collection's reference schema
+  stayed valid throughout the change rather than breaking mid-commit;
+  `week-03.mdx` — the one file the user's corrections explicitly required
+  to stay untouched — got only its `teachers:` field remapped
+  (`marisol-quaye` → `jimi-hendrix`), confirmed via `git diff --cached`
+  showing zero other changes to that file. Rebuilt
+  `src/pages/people/index.astro` as four large alternating editorial rows
+  (`.t-grid`, photo-left/text-right and text-left/photo-right, `.t-rule`
+  hairlines) in place of the old roster list, and added a shared
+  `PortraitCaption.astro` component rendered under every portrait on both
+  the overview and each detail page — a persistent "fictional teaching
+  identities" label plus on-page credit for the two CC-licensed photos,
+  never a buried disclaimer. Sourced one real, licensed portrait per
+  person via Wikimedia Commons, logged in `PHOTO-SOURCES.md`. Framing hit
+  a real bug: an initial CSS `object-position` style had no effect on
+  Stevie Ray Vaughan's tightly-cropped source photo, because Astro's
+  `<Image>` component resizes *and crops* to the target box's aspect
+  ratio at build time via its sharp-based image service (`fit`/`position`
+  passed straight to `sharp.resize`, defaulting to a centred `"cover"`
+  crop) — the file is already permanently cropped before any browser CSS
+  is ever applied, so a later `object-position` style has nothing left to
+  reposition. Confirmed by reading `astro`'s and `sharp`'s own source
+  (`node_modules/astro/dist/assets/services/sharp.js`,
+  `node_modules/astro/dist/assets/types.d.ts`, sharp's own `index.d.ts`
+  listing its fixed keyword vocabulary — no arbitrary CSS percentages).
+  Fixed by using the `<Image>` component's own `position` prop instead
+  (passed straight through to sharp's `resize`), choosing a per-person
+  keyword (`"top"` for Hendrix and Vaughan, whose source photos are tall
+  and tightly framed; the sharp default `"center"` for Mayer and Clapton)
+  after visually inspecting each of the four source photographs against
+  both crop boxes (4:5 on the index page, 1:1 on the detail pages) —
+  applied in both `src/pages/people/index.astro` and
+  `src/pages/people/[slug].astro`. Checked: `pnpm check` green (27 pages
+  built, 0 axe violations, no broken links, course-graph generated,
+  5/5 vitest tests); Playwright close-up element screenshots of all 8
+  rendered portraits (4 index rows + 4 detail pages) confirmed correct
+  face/head framing after the `position`-prop fix, not just that a style
+  attribute was present; full desktop (1400px) and mobile (375px)
+  screenshots of the People overview and all four detail pages, using a
+  manual scroll-through before capture to avoid a Playwright
+  `fullPage: true` lazy-image compositing artifact (an image below the
+  fold can render blank in a stitched full-page screenshot even though
+  the DOM confirms it loaded correctly — confirmed this was a screenshot
+  artifact, not a real bug, via a close-up capture and a direct
+  `naturalWidth`/`naturalHeight`/`complete` check on the element before
+  fixing the screenshot methodology). Also confirmed the alternating-row
+  layout collapses correctly to a stacked photo-above-text column below
+  `60rem` for both row variants, at both breakpoints.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
