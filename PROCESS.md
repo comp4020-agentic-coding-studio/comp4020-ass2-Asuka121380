@@ -1828,6 +1828,57 @@ trimmed for the word count — that curation happens once, at submission time.
   full Bench→TONE migration: all lecture weeks are migrated and all
   superseded shared components are removed.
 
+- **`59389d9`** — Polishing pass, Phase A: homepage identity + audio retune,
+  and the three remaining pages composed properly on the TONE grid
+  (Lectures overview, Assessment detail, Policies). Homepage: added a small
+  Slop University crest (`slopBranding.logoCompact` via `astro:assets`,
+  ~20px, opacity 0.62, no grayscale — kept at its native gold/cream palette
+  per explicit instruction not to recolour the official crest) above the
+  eyebrow line, subordinated by scale/opacity/spacing/typography only, and
+  reworded the footer acknowledgement copy that previously (and now
+  incorrectly) claimed the crest appeared nowhere else on the page.
+  Audio: root-caused the "blown out" ListeningBench Driven/Full-chain
+  presets to `drive` being applied twice — once as a `GainNode` multiplier,
+  once again inside the fuzz waveshaper's own `tanh((x*drive+0.15)*3)*0.9`
+  curve — and retuned both presets' numeric params down (Full chain's
+  `drive` 3→1.2, plus supporting reductions to `ampDrive`/`modulationDepth`/
+  `delayAmount`) while deliberately keeping `topology:"fuzz"` on Full chain
+  so its "FUZZ" chip stays truthful to what's actually running; updated
+  every numeric chip in the hand-authored `path` arrays ("Gain ×N") to match
+  the real params, not just the fuzz label, since those chips are a second,
+  easy-to-miss place the displayed chain can drift from the real DSP.
+  Lectures: replaced the never-migrated `index.mdx`
+  (`CardGrid`/`Card`, no `data-tone`) with a TONE page and a new
+  `LectureIndex.astro` — one full-width row per week reusing
+  `SignalChain.astro`'s `stageMeta`/`waveformPath` data and copper/signal
+  colouring instead of a card catalogue — and deleted the now-orphaned
+  `LecturesGrid.astro` (confirmed its only importer was the file being
+  replaced). Assessment detail: split into a left prose column and a sticky
+  right rail (Due/Weight/Week facts relocated out of the hero, an
+  "expected evidence" list from the brief's own `spec` field, a
+  "relevant weeks" chip list from `related`, and an Analyse/Manipulate/
+  Design progression locator using the existing `VERBS` map), mirroring the
+  `.a-row-main`/`.a-row-side` split already proven on the assessment
+  overview page. Policies: root cause was `<div class="t-shell pol-prose">`
+  combining the 112rem shell width and the 54ch prose width on one element,
+  collapsing the whole page to a narrow centred column regardless of
+  viewport — split into a sticky left section index and a right prose
+  column, and removed the "Assessment progression" section, which
+  duplicated content now on `/assessments/`. Checked: `pnpm check` green (0
+  errors, 0 warnings, the same 2 pre-existing hints; 25 pages built; axe/
+  link checks clean; 5/5 vitest tests pass); desktop (1400px) and mobile
+  (390px) Playwright screenshots of `/`, `/lectures/`, `/assessments/
+  pedal-laboratory/`, and `/policies/` with zero console/page errors,
+  confirming the crest's colour and subordination, each preset's chip text,
+  the lecture row layout and its mobile stack, the assessment rail's
+  sticky behaviour and mobile collapse, and the policies index/prose split
+  at both breakpoints. Audio verification note: I cannot literally listen
+  to the retuned presets — verification here is curve math (confirming the
+  `drive`-squaring mechanism and its fix), a no-console-error functional
+  pass, and static spectrum/screenshot inspection, not a human "does this
+  sound right" listening pass; flagging this gap rather than claiming it as
+  fully resolved by ear.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
