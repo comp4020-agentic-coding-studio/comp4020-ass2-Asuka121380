@@ -1711,6 +1711,27 @@ trimmed for the word count — that curation happens once, at submission time.
   2 pre-existing hints), rendered page verified with no leftover
   `bench-*` classes.
 
+- **`dd904c8`** — migrated week 9 ("Delay, Reverb and Space") onto
+  `WeekOpener`/`WeekBand`/`WeekChain`/`WeekTakeaways`/`CausalChainStrip`,
+  preserving feedback delay and decaying echoes, comb filtering revisited
+  from week 8, natural reverb's direct-sound/early-reflections/dense-tail
+  structure with room-size and decay (both `ReflectionEnvelopeDiagram`
+  instances kept their exact `roomSize`/`decay`/`label`/`ariaLabel`
+  props), algorithmic vs. convolution reverb, and the delay/reverb try-it
+  lab. Cleaned the bench chrome in `FeedbackLoopDiagram`,
+  `FeedbackCombDiagram`, `ReflectionEnvelopeDiagram` and `DelayLab` — the
+  diagram/lab set this week uses — remapping `--bench-*`/`--at-*` custom
+  properties (including `--at-bg`/`--at-bg-alt`/`--at-heading`, the first
+  time those particular tokens needed resolving this session) to `--t-*`,
+  renaming `.bench-scope-note` to `.lab-note`, and de-branding `DelayLab`'s
+  header from "SLOP2186 Delay/Reverb Bench" to "Delay / reverb simulator".
+  `FeedbackLoopDiagram` (a block diagram of the feedback loop's signal
+  routing, not a depiction of any physical object) was kept as custom SVG
+  under the circuit-function-schematic exception to the media policy.
+  Checked: `pnpm check` green (0 errors, the same 2 pre-existing hints),
+  rendered page verified with `HTTP 200` and no leftover `bench-*`
+  classes.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
