@@ -6,7 +6,7 @@
 ---
 
 <div class="position-diagrams">
-  <figure class="position-card bench-module">
+  <figure class="position-card">
     <svg viewBox="0 0 140 90" role="img" aria-label="Clipping element wired to ground, shunting signal above a threshold to earth.">
       <line x1="10" y1="30" x2="130" y2="30" class="wire" />
       <circle cx="10" cy="30" r="2.5" class="node" />
@@ -21,7 +21,7 @@
     </figcaption>
   </figure>
 
-  <figure class="position-card bench-module">
+  <figure class="position-card">
     <svg viewBox="0 0 140 90" role="img" aria-label="Clipping element inside a feedback loop around an amplifying stage.">
       <line x1="10" y1="45" x2="45" y2="45" class="wire" />
       <rect x="45" y="30" width="30" height="30" class="element" />
@@ -59,7 +59,7 @@
   }
 
   .wire {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1.5;
     fill: none;
   }
@@ -69,17 +69,17 @@
   }
 
   .node {
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .element {
-    fill: var(--at-bg);
-    stroke: var(--at-accent);
+    fill: var(--t-surface);
+    stroke: var(--t-signal);
     stroke-width: 1.5;
   }
 
   .ground {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1.5;
     fill: none;
   }
@@ -91,16 +91,16 @@
   }
 
   .position-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: var(--at-text);
+    color: var(--t-paper);
   }
 
   .position-description {
-    font-size: var(--at-font-size-xs);
-    color: var(--at-text-secondary);
+    font-size: var(--t-label);
+    color: var(--t-dim);
     line-height: 1.35;
   }
 </style>
