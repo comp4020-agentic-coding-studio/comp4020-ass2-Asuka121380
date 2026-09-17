@@ -1968,6 +1968,91 @@ trimmed for the word count — that curation happens once, at submission time.
   layout collapses correctly to a stacked photo-above-text column below
   `60rem` for both row variants, at both breakpoints.
 
+- `c2d6e61` — Polishing pass D1: pair the subjective word with its measured
+  claim directly. Correction #5 on the approved polishing plan required the
+  warm/bright/aggressive transformation to read as SUBJECTIVE → MEASURED /
+  EXPLAINED, not as "subjective vocabulary is simply wrong." The
+  subjective-to-measured idea already existed in `VocabularyBand.astro`, but
+  the two halves were far apart: the struck-through word sat at the top,
+  and its measured description only reappeared as a `t-h3` heading *after*
+  the SVG spectrum chart — so the transformation the intro paragraph
+  promises wasn't visible until a reader had already scrolled past the
+  evidence for it. Fixed by adding a `.vocab-claim` line directly under the
+  struck-through word (`<span class="vocab-word-strike">{word}</span>` then
+  an arrow-prefixed `{conversion.measured}` on the next line) so the pairing
+  reads as one unit before the chart ever loads, and removing the
+  now-redundant later `.vocab-measured` heading. Tried reusing the site's
+  existing `t-label` class for this line first, then reconsidered: `t-label`
+  is 0.6875rem, sized for axis units and week numbers, and this line carries
+  the page's actual pedagogical claim — shrinking it to metadata scale would
+  undersell it. Gave `.vocab-claim` its own mono styling instead, sized close
+  to the word it follows (`clamp(1rem, 1.6vw, 1.25rem)`) and coloured per
+  channel (`--t-dim` default, `--t-copper`/`--t-signal`/`--t-hot` per
+  `.vocab-item--*` variant) so it reads as an instrument readout rather than
+  more prose, without disappearing into the label tier. Checked: `pnpm check`
+  green; Playwright screenshots of `section.vocab` at 1400px and 375px
+  confirmed the word/claim pair reads as one visual unit, correct per-channel
+  colouring, no mobile overlap.
+
+- Phase D2/D3 — full QA sweep and final grep sweep, closing the polishing
+  pass. D2: ran an automated pass (HTTP status, horizontal overflow,
+  console/page errors) across all 18 touched pages at both 1400px and 375px
+  — 36 combinations, zero problems — then did a full-page visual review of
+  ten representative pages (`/`, `/lectures/`, weeks 01/06/07/12,
+  `/assessments/tone-autopsy/`, `/assessments/pedal-laboratory/`,
+  `/assessments/engineer-a-guitar-tone/`, `/policies/`) at both widths. The
+  first visual pass used a fast, single-tick `page.evaluate` scroll helper
+  carried over from an earlier People-page QA session and produced a
+  screenshot of `/lectures/` showing only weeks 1-2 rendered, with a blank
+  gap where weeks 3-12 should be. Investigated directly rather than assuming
+  a real bug: a DOM/computed-style check (no scrolling) showed all 12 week
+  rows present with correct hrefs, and the "missing" rows were sitting at
+  `opacity: 0` — the documented *pending* state of `LectureIndex.astro`'s
+  `IntersectionObserver`-based staggered reveal, not absent content. Two
+  independent corrected-scroll tests confirmed this: a slow,
+  externally-paced `page.evaluate(() => window.scrollTo(0, yy))` loop
+  (300ms between 300px steps) and a `page.mouse.wheel`-driven scroll (20
+  steps, 80ms apart) both brought all 12 rows to `opacity: 1`. Root cause: a
+  tight internal `page.evaluate` async loop that calls `window.scrollTo` in
+  a JS `for` loop without yielding to the compositor between steps doesn't
+  reliably fire `IntersectionObserver` callbacks during capture — a
+  screenshot-methodology artifact, the same category as (but a different
+  root cause from) the earlier `fullPage` lazy-image artifact logged against
+  the People page, not a site defect. Re-ran the full representative-page
+  screenshot set with a `page.mouse.wheel`-based scroll helper and confirmed
+  all ten pages render correctly at both widths: no horizontal overflow, all
+  `.t-grid` layouts collapse to a single column below `60rem` as designed,
+  the Lectures index renders all 12 weeks with correct domain colouring, and
+  the Assessment detail right-column (Due/Weight/Week, expected evidence,
+  relevant weeks, ANALYSE→MANIPULATE→DESIGN progression) stacks correctly
+  under the prose on mobile. This also positively confirmed
+  `LectureIndex.astro`'s reveal script satisfies `CLAUDE.md`'s animation
+  rule: `data-pending` is only ever set by the script itself (never present
+  in server-rendered HTML), the CSS collapse rule is scoped to
+  `@media (prefers-reduced-motion: no-preference)`, and the script early-
+  returns before touching `data-pending` at all when
+  `prefers-reduced-motion: reduce` matches — so a no-JS or reduced-motion
+  visitor sees the finished composition, never a page of invisible rows.
+  D3: grepped the whole `src/` tree for `idris-fenn`/`marisol-quaye` (zero
+  hits, confirming Phase C's remap and deletion left no dangling reference);
+  confirmed every page under `src/pages` — including `lectures/index.astro`,
+  the one page that was never on TONE before this pass — imports
+  `tone.css` and sets `mainAttrs={{ "data-tone": true }}`; grepped for
+  "sessions" and confirmed every remaining hit either describes an activity
+  ("bring it to your next teaching session", "the weekly teaching sessions
+  are built around exactly that" on `/policies/`, similar phrasing in the
+  People bios) with no link to a removed route, or is the deliberately-kept
+  `published: false` content in `src/content/sessions/*` that `CLAUDE.md`
+  itself documents as intentional ("the collection stays as unpublished data
+  only") and that Phase C already remapped to the new teaching team; and
+  grepped `/policies/` for "analyse/manipulate/design" and found only an
+  incidental use of "design" inside the Academic Integrity paragraph, not
+  the removed ladder section. `pnpm check` green throughout (27 pages built,
+  0 axe violations, no broken links, course-graph 19 nodes/10 edges/20
+  files, 2 decks checked, 5/5 vitest tests). No code changes were required
+  by D2 or D3 — this closes the A→B→C→D polishing pass approved earlier in
+  this working session.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
