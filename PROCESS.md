@@ -1622,6 +1622,81 @@ trimmed for the word count — that curation happens once, at submission time.
   in-browser rendering of these three sections has not been visually checked,
   and is flagged as an open item rather than claimed as done.
 
+- **`a10045b`** — an earlier attempt to propagate the TONE system to every
+  week in one large commit (`d9b31b8`) was reverted (`816489a`, with its
+  own log entry reverted in `bd9661e`) in favour of migrating one week at a
+  time, each independently checked and committed, so a bad week doesn't
+  block or hide behind the others. This commit lays the shared groundwork
+  the per-week migrations build on: `WeekOpener`/`WeekBand`/`WeekChain`/
+  `WeekTakeaways` move out of `tone/week3/` into `tone/` so any week can use
+  them; `ToggleSwitch`/`FootswitchGroup` (the last shared control widgets)
+  are restyled to TONE tokens; `CausalChainStrip` is rebuilt in TONE-native
+  list markup (no pill-chip, no `bench-wide` breakout) with its existing
+  prop API kept so call sites are unaffected; and `[slug].astro` is unified
+  to serve all 12 weeks through the TONE/`BaseLayout` composition, retiring
+  the separate `week-03.astro` route. Week 1 is migrated as the first proof
+  this foundation works, including cleanup of the bench chrome in
+  `SignalChainDiagram`, `WaveformFamilyLab`, `Waveform`, `Spectrum` and
+  `AudioDemo` — the components week 1 actually touches.
+  Checked: `pnpm check` green (25 pages, 0 a11y violations, no broken
+  links, 5/5 tests) and by rendering `/lectures/week-01/` directly — no
+  `bench-*` classes remain.
+
+- **`318b699`** — migrated week 2 onto the shared component set, following
+  the pattern `a10045b` established. Cleaned the bench chrome (in whichever
+  diagram/lab components week 2 uses) to `--t-*` tokens the first time each
+  was touched, and confirmed all original teaching content and interactions
+  carried over unchanged. Checked: `pnpm check` green, rendered page
+  verified with no leftover `bench-*` classes.
+
+- **`d3e72d0`** — migrated week 4 the same way. `SignalChainDiagram` was
+  reused with a custom `stages` prop (`circuitStages`) with no further
+  edits needed, confirming the shared diagram component's prop API already
+  covers a per-week custom stage sequence. Checked: `pnpm check` green,
+  rendered page verified with no leftover `bench-*` classes.
+
+- **`9ca0d6a`** — migrated week 5 ("Gain, Headroom and Clipping") onto
+  `WeekOpener`/`WeekBand`/`WeekChain`/`WeekTakeaways`/`CausalChainStrip`,
+  preserving all teaching content (gain vs. volume, headroom, linear vs.
+  nonlinear transformation, soft/hard clipping transfer curves, the gain-
+  clipping lab). Cleaned the bench chrome in `GainStageDiagram`,
+  `TransferCurveCard`, `CurveGallery` and `GainClippingBench` — the
+  diagram/lab set this week uses — remapping `--bench-phosphor`/
+  `--bench-readout`/`--at-warning`/etc. to the `--t-*` equivalents and
+  renaming `.bench-scope-note` to `.lab-note`. Checked: `pnpm check` green
+  (0 errors, the same 2 pre-existing hints), rendered page verified with no
+  leftover `bench-*` classes.
+
+- **`e776073`** — migrated week 6 ("Inside overdrive, distortion and
+  fuzz") the same way, preserving the gain-stage/clipping-stage pedal
+  anatomy, symmetric vs. asymmetric clipping, clipping-position circuit
+  context, fuzz-as-a-family reasoning, and the Nonlinearity Bench lab.
+  Preserved week 6's unique frontmatter (`teacherOverrides`, `slides`)
+  verbatim — the `slides` field is consumed entirely by the `[slug].astro`
+  route layout, not referenced in the mdx body, so no markup change was
+  needed to keep the deck link working. `SignalChainDiagram` and
+  `GainStageDiagram` (already cleaned by weeks 4 and 5 respectively)
+  needed zero further edits when reused here. Cleaned the bench chrome in
+  `ClippingPositionDiagram` and `ClippingLab`. Checked: `pnpm check` green,
+  rendered page verified with no leftover `bench-*` classes and the deck
+  link (`/decks/week-06/`) still rendering.
+
+- **`dd5a4e3`** — migrated week 7 ("Filters, EQ and Tone Stacks") the same
+  way, preserving frequency response/cutoff/filter-family explanation,
+  resonance and Q, passive vs. active filters and tone stacks, EQ-before-
+  vs-after-distortion (with its two custom `SignalChainDiagram` stage
+  arrays), and the filter-bench try-it lab. `SignalChainDiagram` needed no
+  further edits. Cleaned the bench chrome in `FilterBench.astro` (the
+  header label renamed from the branded "SLOP2186 Filter Bench" to "Filter
+  simulator", `.bench-scope-note` renamed to `.lab-note`, and
+  `--bench-readout`/`--at-text-secondary`/`--bench-line`/`--at-warning`/
+  `--bench-phosphor` remapped to their `--t-*` equivalents). Checked:
+  `pnpm check` green (0 errors, the same 2 pre-existing hints — including
+  `FilterBench.astro`'s unused-import hint on
+  `highpassResonantMagnitudeResponse`, a false-flag since it's used in the
+  client `<script>` block, left as-is), rendered page verified with no
+  leftover `bench-*` classes.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
