@@ -180,6 +180,19 @@ const headingId = id ?? (heading ? heading.toLowerCase().replace(/[^a-z0-9]+/g, 
       grid-column: 1 / -1;
     }
 
+    /* Only a section that opens on prose has anything to put beside the
+       heading. Where the first thing in the body is a figure or a chain, the
+       heading takes the whole row instead, rather than sitting in a 4-column
+       well with seven columns of nothing next to it. */
+    .band--wide .band-head {
+      grid-column: 1 / -1;
+    }
+
+    .band--wide .band-inner:has(.band-body > p:first-child) .band-head {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
     .band--wide .band-body > :global(p:first-child) {
       grid-column: 2;
       grid-row: 1;

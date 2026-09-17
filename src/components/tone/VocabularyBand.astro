@@ -283,7 +283,11 @@ const conversions: Conversion[] = [
     fill: var(--t-faint);
   }
 
-  .vocab-key {
+  /* `p.` rather than `.`: `[data-tone] .t-label` also sets a display, at the
+     same specificity as a plain scoped class, so which one wins comes down to
+     the order Astro happens to emit the two stylesheets in — which differs
+     between pages. The element selector settles it. */
+  p.vocab-key {
     display: flex;
     gap: 1rem;
     margin: -0.25rem 0 0;

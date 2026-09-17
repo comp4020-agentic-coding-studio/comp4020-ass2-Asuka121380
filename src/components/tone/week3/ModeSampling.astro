@@ -12,130 +12,149 @@
 // It shows that every pickup on a normal guitar lives in the first quarter of
 // the string, which is why the differences between positions are differences
 // of degree rather than of kind.
+//
+// Only the curves are SVG. Every label, node and reading is HTML placed at
+// the percentage its geometry sits at, because a `viewBox` scales its own
+// text with the figure: type sized to read at 1400px came out near four
+// pixels on a phone. The lanes are drawn with `preserveAspectRatio="none"`
+// so a lane's height is set in CSS and a mode's amplitude is a fixed number
+// of pixels at every width, instead of collapsing towards a flat line as the
+// figure gets wider.
+//
+// Colour follows the two channels: the string and its nodes are mechanical,
+// so they are copper; the cut lines and the readings taken off them are what
+// a pickup senses, so they are the signal channel — the same division the
+// lab's own display makes.
 interface Sample {
   position: number;
   label: string;
-  channel: "signal" | "copper";
+  key: "bridge" | "neck";
 }
 
 const MODES = 4;
-const WIDTH = 1000;
-const LANE = 104;
-const PAD_TOP = 26;
-const HEIGHT = PAD_TOP + MODES * LANE + 34;
-const AMPLITUDE = 30;
+// Lane-local units. The curve fills the lane vertically, so AMPLITUDE is a
+// fraction of the lane's CSS height rather than a share of the figure's
+// width, and the HTML readings use the same number to place themselves.
+const LANE_H = 100;
+const MID = LANE_H / 2;
+const AMPLITUDE = 40;
 
 const samples: Sample[] = [
-  { position: 0.07, label: "Bridge-like", channel: "signal" },
-  { position: 0.24, label: "Neck-like", channel: "copper" },
+  { position: 0.07, label: "Bridge-like", key: "bridge" },
+  { position: 0.24, label: "Neck-like", key: "neck" },
 ];
 
-function modePath(mode: number, midY: number): string {
+function modePath(mode: number): string {
   const points: string[] = [];
-  for (let i = 0; i <= 200; i++) {
-    const x = i / 200;
-    const y = midY - Math.sin(mode * Math.PI * x) * AMPLITUDE;
-    points.push(`${i === 0 ? "M" : "L"} ${(x * WIDTH).toFixed(1)} ${y.toFixed(1)}`);
+  for (let i = 0; i <= 240; i++) {
+    const x = i / 240;
+    const y = MID - Math.sin(mode * Math.PI * x) * AMPLITUDE;
+    points.push(`${i === 0 ? "M" : "L"} ${(x * 1000).toFixed(1)} ${y.toFixed(2)}`);
   }
   return points.join(" ");
 }
 
 const lanes = Array.from({ length: MODES }, (_, i) => {
   const mode = i + 1;
-  const midY = PAD_TOP + i * LANE + LANE / 2;
   return {
     mode,
-    midY,
-    path: modePath(mode, midY),
+    label: `Mode ${mode} · ${mode === 1 ? "f₀" : `${mode}f₀`}`,
+    path: modePath(mode),
     // Interior nodes only — the two ends are fixed on every mode, so marking
-    // them adds nothing.
-    nodes: Array.from({ length: mode - 1 }, (_, k) => ((k + 1) / mode) * WIDTH),
+    // them adds nothing. Every node sits on the axis, at k/n along it.
+    nodes: Array.from({ length: mode - 1 }, (_, k) => ((k + 1) / mode) * 100),
     readings: samples.map((sample) => {
-      const sensitivity = Math.abs(Math.sin(mode * Math.PI * sample.position));
+      const displacement = Math.sin(mode * Math.PI * sample.position);
       return {
-        ...sample,
-        x: sample.position * WIDTH,
-        y: midY - Math.sin(mode * Math.PI * sample.position) * AMPLITUDE,
-        sensitivity,
-        // The disc is the reading, so the label clears the disc rather than
-        // sitting a fixed distance out — otherwise the largest discs swallow
-        // their own number and the smallest float away from theirs.
-        radius: 4 + sensitivity * 8,
+        key: sample.key,
+        label: sample.label,
+        left: sample.position * 100,
+        // The same expression the curve is drawn from, expressed against the
+        // lane's height so the disc lands on the line rather than near it.
+        top: MID - displacement * AMPLITUDE,
+        percent: Math.round(Math.abs(displacement) * 100),
       };
     }),
   };
 });
+
+const description =
+  "The first four vibration modes of a string, drawn from the bridge on the " +
+  "left to the nut on the right. Two vertical lines mark a bridge-like pickup " +
+  "position at seven per cent of the string's length and a neck-like position " +
+  "at twenty-four per cent. At each crossing a disc shows how much of that " +
+  "mode a pickup there senses: near the bridge the first mode reaches only " +
+  "twenty-two per cent, while at the neck-like position it reaches sixty-eight " +
+  "per cent — but the fourth mode there falls to thirteen per cent, because " +
+  "one of its nodes sits at a quarter of the string, almost exactly where the " +
+  "pickup is.";
 ---
 
 <figure class="modes">
-  <svg
-    class="modes-svg"
-    viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-    role="img"
-    aria-label="The first four vibration modes of a string, drawn from the bridge on the left to the nut on the right. Two vertical lines mark a bridge-like pickup position at seven per cent of the string's length and a neck-like position at twenty-four per cent. At each crossing a disc shows how much of that mode a pickup there senses: near the bridge the first mode reaches only twenty-two per cent, while at the neck-like position it reaches sixty-eight per cent — but the fourth mode there falls to thirteen per cent, because one of its nodes sits at a quarter of the string, almost exactly where the pickup is."
-  >
-    {
-      samples.map((sample) => (
-        <line
-          class={`modes-cut modes-cut--${sample.channel}`}
-          x1={sample.position * WIDTH}
-          y1={PAD_TOP - 14}
-          x2={sample.position * WIDTH}
-          y2={PAD_TOP + MODES * LANE}
-        />
-      ))
-    }
+  <div class="modes-plot" role="img" aria-label={description}>
+    <div class="modes-cutlabels" aria-hidden="true">
+      {
+        samples.map((sample) => (
+          <p class={`t-label modes-cutlabel modes-cutlabel--${sample.key}`} style={`left:${sample.position * 100}%`}>
+            {sample.label}
+          </p>
+        ))
+      }
+    </div>
 
-    {
-      lanes.map((lane) => (
-        <g>
-          <line class="modes-axis" x1="0" y1={lane.midY} x2={WIDTH} y2={lane.midY} />
-          <path class="modes-shape" d={lane.path} fill="none" />
+    <div class="modes-lanes">
+      {
+        samples.map((sample) => (
+          <span
+            class={`modes-cut modes-cut--${sample.key}`}
+            style={`left:${sample.position * 100}%`}
+            aria-hidden="true"
+          />
+        ))
+      }
 
-          {lane.nodes.map((x) => (
-            <circle class="modes-node" cx={x} cy={lane.midY} r="3.5" />
-          ))}
+      {
+        lanes.map((lane) => (
+          <div class="modes-lane">
+            <p class="t-label modes-lane-label">{lane.label}</p>
 
-          <text class="modes-lane-label" x="0" y={lane.midY - AMPLITUDE - 12}>
-            {`Mode ${lane.mode} · ${lane.mode === 1 ? "f₀" : `${lane.mode}f₀`}`}
-          </text>
+            <div class="modes-lane-plot">
+              <svg class="modes-curve" viewBox={`0 0 1000 ${LANE_H}`} preserveAspectRatio="none" aria-hidden="true">
+                <line class="modes-axis" x1="0" y1={MID} x2="1000" y2={MID} />
+                <path class="modes-shape" d={lane.path} fill="none" />
+              </svg>
 
-          {lane.readings.map((reading) => (
-            <g>
-              <circle
-                class={`modes-reading modes-reading--${reading.channel}`}
-                cx={reading.x}
-                cy={reading.y}
-                r={reading.radius}
-              />
-              <text
-                class={`modes-reading-value modes-reading-value--${reading.channel}`}
-                x={reading.x + (reading.channel === "signal" ? -1 : 1) * (reading.radius + 9)}
-                y={reading.y + 4}
-                text-anchor={reading.channel === "signal" ? "end" : "start"}
-              >
-                {`${Math.round(reading.sensitivity * 100)}%`}
-              </text>
-            </g>
-          ))}
-        </g>
-      ))
-    }
+              {lane.nodes.map((left) => (
+                <span class="modes-node" style={`left:${left}%`} aria-hidden="true" />
+              ))}
 
-    <text class="modes-end" x="0" y={HEIGHT - 10}>Bridge</text>
-    <text class="modes-end modes-end--right" x={WIDTH} y={HEIGHT - 10}>Nut</text>
-    {
-      samples.map((sample) => (
-        <text
-          class={`modes-cut-label modes-cut-label--${sample.channel}`}
-          x={sample.position * WIDTH}
-          y={PAD_TOP - 20}
-        >
-          {sample.label}
-        </text>
-      ))
-    }
-  </svg>
+              {lane.readings.map((reading) => (
+                <Fragment>
+                  <span
+                    class={`modes-disc modes-disc--${reading.key}`}
+                    style={`left:${reading.left}%;top:${reading.top}%`}
+                    aria-hidden="true"
+                  />
+                  <span
+                    class={`t-num modes-reading modes-reading--${reading.key}`}
+                    style={`left:${reading.left}%;top:${reading.top}%`}
+                    aria-hidden="true"
+                  >
+                    {`${reading.percent}%`}
+                  </span>
+                </Fragment>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="modes-ends" aria-hidden="true">
+      <span class="t-label">Bridge</span>
+      <span class="t-label">Nut</span>
+    </p>
+  </div>
 
   <figcaption class="modes-caption">
     <p class="t-body">
@@ -161,100 +180,151 @@ const lanes = Array.from({ length: MODES }, (_, i) => {
     gap: clamp(1.5rem, 3vw, 2.5rem);
   }
 
-  .modes-svg {
+  /* --- the two cut positions, named above the stack -------------------- */
+
+  .modes-cutlabels {
+    position: relative;
+    /* Two rows, one label each, so the two names can never collide however
+       narrow the figure gets — at 360px the two cuts are 60px apart. */
+    height: 2.8rem;
+    margin: 0;
+  }
+
+  .modes-cutlabel {
+    position: absolute;
+    /* Anchored by its leading edge rather than centred: the bridge-like cut
+       sits at 7%, and a centred label there hangs off the left of the
+       figure on a phone. */
+    margin: 0;
+    padding-inline-start: 0.4rem;
+    white-space: nowrap;
+    color: var(--t-signal);
+  }
+
+  .modes-cutlabel--bridge {
+    top: 0;
+  }
+
+  .modes-cutlabel--neck {
+    top: 1.4rem;
+  }
+
+  /* --- the lanes ------------------------------------------------------- */
+
+  .modes-lanes {
+    position: relative;
+  }
+
+  .modes-cut {
+    position: absolute;
+    inset-block: -2.8rem 0;
+    width: 0;
+    border-inline-start: 1px dashed var(--t-signal);
+    opacity: 0.5;
+  }
+
+  .modes-cut--bridge {
+    /* The upper label belongs to this cut, so its line starts at the top of
+       the label block; the lower one starts a row down. */
+    inset-block-start: -2.8rem;
+  }
+
+  .modes-cut--neck {
+    inset-block-start: -1.4rem;
+  }
+
+  /* The mode's name gets its own row rather than floating over the plot. A
+     reading can land anywhere on the curve, including the top-left corner —
+     at the bridge-like position mode 4 is sensed at 77%, which put its
+     number directly underneath the name. */
+  .modes-lane + .modes-lane {
+    margin-block-start: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .modes-lane-label {
+    position: relative;
+    z-index: 2;
+    width: max-content;
+    margin: 0 0 0.35rem;
+    /* Knocks the cut lines out from behind the name instead of letting a
+       dashed rule run through it. */
+    background: var(--t-void);
+    padding-inline-end: 0.5rem;
+  }
+
+  .modes-lane-plot {
+    position: relative;
+    height: clamp(5rem, 8vw, 7rem);
+  }
+
+  .modes-curve {
+    display: block;
     width: 100%;
-    height: auto;
-    overflow: visible;
+    height: 100%;
   }
 
   .modes-axis {
     stroke: var(--t-line);
     stroke-width: 1;
+    vector-effect: non-scaling-stroke;
   }
 
   .modes-shape {
-    stroke: var(--t-paper);
-    stroke-width: 1.6;
-    opacity: 0.55;
+    stroke: var(--t-copper);
+    stroke-width: 1.5;
+    opacity: 0.75;
     vector-effect: non-scaling-stroke;
   }
 
   .modes-node {
-    fill: var(--t-void);
-    stroke: var(--t-mute);
-    stroke-width: 1.2;
-    vector-effect: non-scaling-stroke;
+    position: absolute;
+    inset-block-start: 50%;
+    width: 7px;
+    height: 7px;
+    translate: -50% -50%;
+    border: 1px solid var(--t-copper-dim);
+    border-radius: 50%;
+    background: var(--t-void);
   }
 
-  .modes-cut {
-    stroke-width: 1;
-    stroke-dasharray: 3 5;
-    vector-effect: non-scaling-stroke;
+  .modes-disc {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    border: 1.5px solid var(--t-signal);
   }
 
-  .modes-cut--signal {
-    stroke: var(--t-signal);
-    opacity: 0.55;
+  /* Filled versus hollow, not two different hues: both readings are the same
+     kind of quantity, so colouring them differently would make the channel
+     mean position rather than domain. */
+  .modes-disc--neck {
+    background: var(--t-signal);
   }
 
-  .modes-cut--copper {
-    stroke: var(--t-copper);
-    opacity: 0.55;
+  .modes-disc--bridge {
+    background: var(--t-void);
   }
 
-  .modes-reading--signal {
-    fill: var(--t-signal);
+  .modes-reading {
+    position: absolute;
+    translate: 0 -50%;
+    margin-inline-start: 0.65rem;
+    padding-inline: 0.25rem;
+    /* Every reading sits to the right of its disc, so none of them can run
+       off the left edge at the bridge-like position, and the knockout keeps
+       the digits legible where a reading lands on a node. */
+    background: var(--t-void);
+    font-size: var(--t-label);
+    letter-spacing: 0.06em;
+    color: var(--t-signal);
   }
 
-  .modes-reading--copper {
-    fill: var(--t-copper);
-  }
-
-  .modes-lane-label,
-  .modes-end,
-  .modes-cut-label,
-  .modes-reading-value {
-    font-family: var(--t-mono);
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    fill: var(--t-mute);
-  }
-
-  /* The readings sit on the curve they are measuring, so the mode line ran
-     straight through the digits and read as a strike-through. Knocking the
-     ground out around the glyphs is what a plot does; moving the labels off
-     the curve would break the link between the number and the point. */
-  .modes-reading-value {
-    font-size: 12px;
-    paint-order: stroke;
-    stroke: var(--t-void);
-    stroke-width: 3.5px;
-    stroke-linejoin: round;
-  }
-
-  .modes-reading-value--signal {
-    fill: var(--t-signal);
-  }
-
-  .modes-reading-value--copper {
-    fill: var(--t-copper);
-  }
-
-  .modes-cut-label {
-    text-anchor: middle;
-  }
-
-  .modes-cut-label--signal {
-    fill: var(--t-signal);
-  }
-
-  .modes-cut-label--copper {
-    fill: var(--t-copper);
-  }
-
-  .modes-end--right {
-    text-anchor: end;
+  .modes-ends {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.75rem 0 0;
   }
 
   .modes-caption {
@@ -265,6 +335,6 @@ const lanes = Array.from({ length: MODES }, (_, i) => {
     margin: 0;
     font-size: inherit;
     color: inherit;
-    max-width: 68ch;
+    max-width: var(--t-measure);
   }
 </style>
