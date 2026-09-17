@@ -33,7 +33,7 @@ function barHeight(level: number): number {
 const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
 ---
 
-<figure class="gain-staging bench-module">
+<figure class="gain-staging">
   <svg viewBox={`0 0 300 132`} role="img" aria-label={ariaLabel}>
     <line x1={PLOT_LEFT} y1={PLOT_BOTTOM} x2={PLOT_RIGHT} y2={PLOT_BOTTOM} class="axis-line" />
     <line x1={PLOT_LEFT} y1={ceilingY} x2={PLOT_RIGHT} y2={ceilingY} class="ceiling-line" />
@@ -63,40 +63,40 @@ const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
   }
 
   .axis-line {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
   }
 
   .ceiling-line {
-    stroke: var(--at-warning, var(--at-border));
+    stroke: var(--t-hot);
     stroke-width: 1;
     stroke-dasharray: 3 3;
   }
 
   .ceiling-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .stage-bar {
-    fill: var(--bench-input-trace, var(--at-accent));
+    fill: var(--t-signal);
   }
 
   .stage-bar-saturated {
-    fill: var(--at-warning, var(--bench-phosphor));
+    fill: var(--t-hot);
   }
 
   .stage-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 7px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   figcaption {
     margin-top: 0.6rem;
-    font-size: var(--at-font-size-xs);
-    color: var(--at-text-secondary);
+    font-size: var(--t-label);
+    color: var(--t-mute);
     line-height: 1.4;
     text-align: center;
   }

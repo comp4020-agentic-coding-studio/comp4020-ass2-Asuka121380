@@ -27,9 +27,9 @@ const slotWidth = (PLOT_RIGHT - PLOT_LEFT) / initialStages.length;
 const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
 ---
 
-<div class="amplifier-bench bench-module" id="amplifier-bench">
+<div class="amplifier-bench" id="amplifier-bench">
   <div class="lab-header">
-    <span class="lab-name">SLOP2186 Amplifier Bench</span>
+    <span class="t-label lab-name">Gain-staging simulator</span>
   </div>
 
   <div class="lab-controls">
@@ -40,7 +40,7 @@ const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
     <AudioDemo id="amp-audio" label="Play through amplifier" />
   </div>
 
-  <p id="amp-readout" class="bench-scope-note amp-readout">
+  <p id="amp-readout" class="lab-note amp-readout">
     Preamp driving 3.0×, tone stack rolled off above 2500 Hz, power stage driving 1.5×, master at 70%.
   </p>
 
@@ -68,7 +68,7 @@ const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
     </svg>
   </div>
 
-  <p class="bench-scope-note">Preamp Gain and Power-Stage Saturation each drive their own stage into its own nonlinearity — that's why a signal can be "preamp-distorted", "power-amp-distorted", both, or neither. Master Level only turns the already-decided result up or down; it never adds distortion of its own in this model.</p>
+  <p class="lab-note">Preamp Gain and Power-Stage Saturation each drive their own stage into its own nonlinearity — that's why a signal can be "preamp-distorted", "power-amp-distorted", both, or neither. Master Level only turns the already-decided result up or down; it never adds distortion of its own in this model.</p>
 </div>
 
 <script>
@@ -193,11 +193,7 @@ const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
   }
 
   .lab-name {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--at-text-secondary);
+    color: var(--t-mute);
   }
 
   .lab-controls {
@@ -209,7 +205,7 @@ const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
 
   .amp-readout {
     text-align: center;
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
   }
 
   .levels-plot svg {
@@ -219,37 +215,40 @@ const ceilingY = PLOT_BOTTOM - SATURATION_LEVEL * (PLOT_BOTTOM - PLOT_TOP);
   }
 
   .axis-line {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
   }
 
   .ceiling-line {
-    stroke: var(--at-warning, var(--at-border));
+    stroke: var(--t-hot);
     stroke-width: 1;
     stroke-dasharray: 3 3;
   }
 
   .ceiling-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   :global(.stage-bar) {
-    fill: var(--bench-input-trace, var(--at-accent));
+    fill: var(--t-signal);
   }
 
   :global(.stage-bar-saturated) {
-    fill: var(--at-warning, var(--bench-phosphor));
+    fill: var(--t-hot);
   }
 
   .stage-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 7px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
-  .bench-scope-note {
+  .lab-note {
     margin: 0;
+    font-size: 0.9rem;
+    color: var(--t-dim);
+    max-width: var(--t-measure);
   }
 </style>

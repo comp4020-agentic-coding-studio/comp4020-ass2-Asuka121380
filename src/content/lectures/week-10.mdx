@@ -9,17 +9,16 @@ teachers:
   - idris-fenn
 ---
 
-import LectureIntro from "../../components/LectureIntro.astro";
-import BenchFrame from "../../components/lab/BenchFrame.astro";
-import BenchBand from "../../components/lab/BenchBand.astro";
+import WeekOpener from "../../components/tone/WeekOpener.astro";
+import WeekBand from "../../components/tone/WeekBand.astro";
+import WeekChain from "../../components/tone/WeekChain.astro";
+import WeekTakeaways from "../../components/tone/WeekTakeaways.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
 import CurveGallery from "../../components/diagrams/CurveGallery.astro";
 import GainStagingDiagram from "../../components/diagrams/GainStagingDiagram.astro";
 import SignalChainDiagram from "../../components/diagrams/SignalChainDiagram.astro";
 import TransferCurveCard from "../../components/diagrams/TransferCurveCard.astro";
 import AmplifierBench from "../../components/lab/AmplifierBench.astro";
-import SignalChainStrip from "../../components/SignalChainStrip.astro";
-import TakeawaysList from "../../components/TakeawaysList.astro";
 import { buildClippingCurve } from "../../lib/audio/waveshaping";
 
 export const preampCurve = Array.from(buildClippingCurve("asymmetric-soft", 4));
@@ -33,97 +32,66 @@ export const amplifierStages = [
   { label: "Speaker →", caption: "Week 11" },
 ];
 
-<LectureIntro week={10} topic="THE AMPLIFIER">
+<WeekOpener
+  week={10}
+  tag="The Amplifier"
+  title="Inside the Guitar Amplifier"
+  question="Why is a guitar amplifier more than a device that simply makes a signal louder?"
+  input="A signal that has already been shaped by every earlier stage"
+  process="A small signal chain of its own: repeated gain, filtering, and nonlinearity"
+  output="A louder, further-shaped signal, still electrical rather than acoustic"
+/>
 
-## Why is a guitar amplifier more than a device that simply makes a signal louder?
+<WeekBand index={1} label="Where we left off" heading="The amplifier as a further signal chain">
 
-<p class="lecture-connection">
 Weeks 5 through 9 covered every transformation this course teaches that
-happens before amplification: gain, clipping, filtering, modulation, delay
-and reverb. This week shows that the amplifier itself isn't a separate kind
-of thing — it's a further, small signal chain repeating several of those
-same processes in its own arrangement. But an amplifier's electrical output
-still isn't sound in the air. Week 11 follows the signal through its last
-physical stage: the loudspeaker and cabinet.
-</p>
-
-</LectureIntro>
-
-<BenchFrame week={10} topic="THE AMPLIFIER">
-
-<BenchBand mode="theory" label="ANALYSIS DESK">
-
-## Why is a guitar amplifier more than a device that simply makes a signal louder?
-
-<p class="bench-prose">
-Weeks 5–9 covered gain, clipping, filtering, modulation, and delay/reverb as
-things that happen to a signal *before* it reaches an amplifier. The
-amplifier itself is not one simple multiplier — it is a small signal chain
-of its own, and it can repeat several of those same processes: it applies
-gain (more than once), it can filter, and it can distort. Understanding an
-amplifier means recognising which of its stages is doing which of those
-familiar jobs.
-</p>
-
-<div class="bench-callout bench-prose">
-
-By the end of this week you should be able to: identify the major stages of
-a simplified amplifier (preamp, tone stack, power amp); explain the
-difference between a preamp stage and a power-amp stage; explain gain
-staging — why distributing the same total amplification across multiple
-stages changes the result; describe, conceptually, how tube and
+happens *before* amplification: gain, clipping, filtering, modulation, and
+delay/reverb. This week shows that the amplifier itself is not one simple
+multiplier — it is a small signal chain of its own, and it can repeat
+several of those same processes: it applies gain (more than once), it can
+filter, and it can distort. By the end of this week you should be able to
+identify the major stages of a simplified amplifier (preamp, tone stack,
+power amp); explain the difference between a preamp stage and a power-amp
+stage; explain gain staging; describe, conceptually, how tube and
 solid-state amplifying elements differ without claiming one sounds
-inherently better; explain negative feedback as a general technique, not a
-guitar-specific trick; and explain why preamp gain and master level don't
-do the same thing.
-
-</div>
+inherently better; explain negative feedback as a general technique; and
+explain why preamp gain and master level don't do the same thing.
 
 <CausalChainStrip
   steps={["Preamp: gain + clipping", "Tone stack: filtering", "Power amp: gain + saturation", "Master level: output only"]}
 />
 
-</BenchBand>
+</WeekBand>
 
-<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+<WeekBand index={2} label="A chain within the chain" heading="Input, preamp, tone stack, power amp, speaker" layout="wide">
 
-## The amplifier as another signal chain
+<SignalChainDiagram stages={amplifierStages} ariaLabel="Amplifier block diagram: Input, then Preamp (gain and asymmetric clipping), then Tone stack (reshapes frequency content), then Power amp (gain and softer saturation), then onward to the speaker, covered next week." />
 
-<p class="bench-prose">
 A simplified amplifier can be drawn the same way any other stage in this
-course has been: input in, a sequence of blocks, output out. **Input → Preamp
-→ Tone stack → Power amplifier → Speaker.** Some real amplifiers add further
-stages (extra gain stages, phase-splitter or driver stages between preamp and
-power amp) — this course doesn't require knowing every topology, only that
-the amplifier is a chain with more than one place something can happen to
-the signal.
-</p>
+course has been: input in, a sequence of blocks, output out. Some real
+amplifiers add further stages — extra gain stages, phase-splitter or driver
+stages between preamp and power amp — but this course doesn't require
+knowing every topology, only that the amplifier is a chain with more than
+one place something can happen to the signal. The **preamp** provides
+voltage gain, can filter, and can introduce nonlinear distortion — it's
+usually where a guitar amplifier's distortion character mostly comes from.
+The **power amplifier**'s main job is providing enough power to actually
+drive a speaker; it may also add its own, often gentler, nonlinear
+behaviour. The **tone stack** sits between them, reshaping which
+frequencies pass through, not how loud the signal is.
 
-<div class="bench-annotated">
-  <SignalChainDiagram stages={amplifierStages} ariaLabel="Amplifier block diagram: Input, then Preamp (gain and asymmetric clipping), then Tone stack (reshapes frequency content), then Power amp (gain and softer saturation), then onward to the speaker, covered next week." />
-  <p class="bench-prose">
-  The **preamp** provides voltage gain, can filter, and can introduce
-  nonlinear distortion — it's usually where a guitar amplifier's
-  distortion character mostly comes from. The **power amplifier**'s main
-  job is providing enough power to actually drive a speaker; it may also
-  add its own, often gentler, nonlinear behaviour. The **tone stack** sits
-  between them, reshaping which frequencies pass through, not how loud the
-  signal is.
-  </p>
-</div>
+</WeekBand>
 
-## Gain staging: the same total gain, distributed differently
+<WeekBand index={3} label="Gain staging" heading="The same total gain, distributed differently">
 
-<p class="bench-prose">
 Week 5 introduced gain staging as one stage's headroom. An amplifier with
 more than one gain stage extends that idea: the same overall amount of
 amplification can be placed mostly in the preamp, mostly in the power amp,
 or split between them — and where it's placed changes which stage actually
 reaches its own saturation point. This is a genuinely different-sounding
 choice, not just a louder-or-quieter one.
-</p>
 
-<div class="bench-annotated">
+<div style="display: grid; gap: clamp(1.5rem, 3vw, 2.5rem);">
   <GainStagingDiagram
     preampGain={8}
     powerGain={0.6}
@@ -140,55 +108,37 @@ choice, not just a louder-or-quieter one.
   />
 </div>
 
-<p class="bench-prose">
 Both examples end at the same master-level setting, and both put a stage at
-its saturation ceiling somewhere in the chain — but a different stage. That's
-also why **master level** and **preamp gain** don't behave the same way:
-master level sits after both nonlinear stages and only turns the already-
-decided result up or down, while preamp gain decides whether, and how hard,
-the preamp itself distorts.
-</p>
+its saturation ceiling somewhere in the chain — but a different stage.
+That's also why **master level** and **preamp gain** don't behave the same
+way: master level sits after both nonlinear stages and only turns the
+already-decided result up or down, while preamp gain decides whether, and
+how hard, the preamp itself distorts.
 
-</BenchBand>
+</WeekBand>
 
-<BenchBand mode="theory" label="→ BACK TO THE DESK">
+<WeekBand index={4} label="Two amplifying elements, two kinds of distortion" heading="Tubes vs. transistors, negative feedback, preamp vs. power-amp clipping">
 
-## Two ways to build the amplifying element
-
-<p class="bench-prose">
 Historically, guitar amplifiers have been built around two different kinds
 of amplifying component: **tubes** (valves), which amplify by controlling a
 current through a vacuum using a charged grid, and **transistors**
 (solid-state devices), which amplify by controlling current through a
 semiconductor. Both are, at the level this course cares about, doing the
 same job — turning a small input signal into a larger output signal — using
-different physical mechanisms to do it.
-</p>
+different physical mechanisms to do it. It's tempting to reach for "tubes
+sound warm, transistors sound harsh" as a settled fact. Treat that with
+caution: how any particular amplifying element actually behaves depends
+heavily on the rest of its circuit (biasing, feedback, gain staging, the
+tone stack, the power-amp design) and not on the component type alone. This
+course doesn't take a side.
 
-<div class="bench-callout bench-prose">
-It's tempting to reach for "tubes sound warm, transistors sound harsh" as a
-settled fact. Treat that with caution: how any particular amplifying
-element actually behaves depends heavily on the rest of its circuit (biasing,
-feedback, gain staging, the tone stack, the power-amp design) and not on the
-component type alone. This course doesn't take a side — it introduces both
-conceptually and leaves sweeping "type X always sounds like Y" claims out.
-</div>
-
-## Negative feedback
-
-<p class="bench-prose">
 Many amplifier stages route a portion of their output back to their input
 in a way that opposes the original signal — **negative feedback**. As a
 general technique (not specific to guitar amplifiers, or even to audio), it
 can trade away some raw gain in exchange for more predictable, more linear
 behaviour, and it can change how a stage responds over time as well as in
-level. Introduced here conceptually: this course doesn't work through the
-feedback-network mathematics of any specific real circuit.
-</p>
+level.
 
-## Preamp distortion versus power-amp distortion
-
-<p class="bench-prose">
 Because the preamp and power amp are separate stages, each with its own
 gain and its own nonlinearity, a signal can be distorted at one, the other,
 both, or neither. A preamp typically clips a relatively small, low-power
@@ -197,7 +147,6 @@ often asymmetric. A power amplifier is driving a much higher-power signal
 into a speaker's load, and its own saturation, when it happens, is often
 comparatively softer. These are two different nonlinear elements in the
 same chain, not two names for one thing.
-</p>
 
 <CurveGallery>
   <TransferCurveCard
@@ -212,34 +161,28 @@ same chain, not two names for one thing.
   />
 </CurveGallery>
 
-<p class="bench-scope-note">These are simplified teaching curves illustrating where each kind of nonlinearity tends to sit, not measured transfer functions of any specific real amplifier circuit.</p>
+*These are simplified teaching curves illustrating where each kind of nonlinearity tends to sit, not measured transfer functions of any specific real amplifier circuit.*
 
-</BenchBand>
+</WeekBand>
 
-<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+<WeekBand index={5} label="Try it" heading="Preamp, tone, power stage, and master level" layout="wide" bleed>
 
 <CausalChainStrip compact />
 
-## Try it: a simplified gain-staging simulator
-
-<p class="bench-prose">
 Preamp Gain and Power-Stage Saturation each drive a separate stage into its
 own nonlinearity — try pushing one hard while keeping the other low, then
 the reverse, and watch which bar in the level plot below hits the
 saturation line. Tone reshapes frequency content without changing level.
 Master Level always comes last, after both stages have already decided how
 distorted the signal is.
-</p>
 
 <AmplifierBench />
 
-</BenchBand>
+</WeekBand>
 
-<BenchBand mode="theory" label="→ BACK TO THE DESK">
+<WeekBand index={6} label="Takeaways" heading="What this week establishes">
 
-## Key takeaways
-
-<TakeawaysList
+<WeekTakeaways
   items={[
     "A simplified amplifier is Input → Preamp → Tone stack → Power amplifier → Speaker — a small signal chain, not a single multiplier.",
     "The preamp mainly provides voltage gain, filtering, and (often asymmetric) nonlinear distortion; the power amp mainly provides enough power to drive the speaker, and may add its own, often softer, nonlinearity.",
@@ -250,13 +193,12 @@ distorted the signal is.
   ]}
 />
 
-## Where this sits in the signal chain
+</WeekBand>
 
-<SignalChainStrip current="Amplifier" />
+<WeekBand index={7} label="The chain" heading="Where this sits, and what comes next" layout="wide">
 
-## Connection to Week 9, and where this goes next
+<WeekChain week={10} />
 
-<p class="bench-prose">
 Weeks 5 through 9 covered every transformation this course teaches that
 happens *before* amplification: gain, clipping, filtering, modulation,
 delay and reverb. This week showed that the amplifier itself isn't a
@@ -266,10 +208,7 @@ nonlinear distortion) in its own arrangement. But an amplifier's electrical
 output still isn't sound in the air. Week 11 follows the signal through
 its last physical stage: the loudspeaker and cabinet that turn this
 electrical signal back into acoustic sound.
-</p>
 
 <CausalChainStrip compact />
 
-</BenchBand>
-
-</BenchFrame>
+</WeekBand>
