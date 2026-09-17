@@ -1750,6 +1750,37 @@ trimmed for the word count — that curation happens once, at submission time.
   rendered page verified with `HTTP 200` and no leftover `bench-*`
   classes.
 
+- **`330dd28`** — migrated week 11 ("Speaker, Cabinet and Air") onto
+  `WeekOpener`/`WeekBand`/`WeekChain`/`WeekTakeaways`/`CausalChainStrip`,
+  preserving voice-coil-in-magnetic-field transduction, why guitar
+  speakers aren't flat, resonance conceptually, open-back vs.
+  closed-back cabinets, radiation directionality, microphone type/
+  position/angle/distance, the cabinet-impulse-response link back to
+  week 9, and the virtual-cabinet try-it lab. Applied the media policy
+  to `LoudspeakerDiagram`: replaced its hand-drawn cross-section with a
+  real, sourced Wikimedia Commons loudspeaker cutaway diagram
+  (`week11-loudspeaker-cutaway.svg`, dual CC BY-SA 3.0/GFDL, credited
+  in `PHOTO-SOURCES.md`), shown via `astro:assets`' `Image` component
+  with a custom HTML legend since the source SVG's own labels are bare
+  numerals; kept only the component's current-direction sketch as a
+  cleaned-up custom diagram, since it shows a functional relationship
+  rather than a real object's appearance. `CabinetDiagram`'s two
+  figures (open-back/closed-back, microphone position) stay custom
+  diagrams too, as a documented judgment call — both are inherently
+  cutaway/plan views a photograph can't show, and no equivalently
+  clear licensed diagram of that specific comparison was found after a
+  genuine Commons search (a Fender-amp-teardown photo was tried and
+  rejected as too visually cluttered for the specific point). Cleaned
+  the remaining bench chrome in `CabinetDiagram`, `CabinetResponseDiagram`
+  and `CabinetBench`, remapping `--bench-*`/`--at-*` custom properties
+  to `--t-*`, renaming `.bench-scope-note` to `.lab-note`, and
+  de-branding `CabinetBench`'s header from "SLOP2186 Virtual Cabinet
+  Bench" to "Virtual cabinet simulator". Checked: `pnpm check` green (0
+  errors, the same 2 pre-existing hints, SVG asset passed through the
+  image pipeline as a clean passthrough), rendered page verified with
+  `HTTP 200`, the sourced diagram and its legend present, and no
+  leftover `bench-*`/branded classes.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
