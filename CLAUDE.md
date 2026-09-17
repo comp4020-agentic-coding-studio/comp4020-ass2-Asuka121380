@@ -266,11 +266,14 @@ sees the composition rather than a page of invisible blocks.
 
 ### Propagation
 
-The system currently covers the **Homepage** and **Week 3**. Weeks 1–2, 4–12,
-Sessions, Assessment, People and Policies are still on the previous register
-and are deliberately untouched — every rule in `tone.css` is scoped to
-`[data-tone]`. Propagating it is a separate, later piece of work; don't do it
-piecemeal as a side effect of another change.
+The system now covers every page: **Homepage**, **Week 3**, **Weeks 1–2 and
+4–12** (via the shared `src/pages/lectures/[slug].astro` route, reskinned
+onto TONE's tokens rather than rewritten — see `PROCESS.md`), **Assessment**,
+**People**, and **Policies**. The Sessions route was removed rather than
+propagated (see `PROCESS.md`); the content collection remains for reference
+but nothing routes to it. Every rule in `tone.css` is still scoped to
+`[data-tone]`, so a future page that doesn't opt in falls back to the
+theme's own styling — that should not happen for any page students see.
 
 Make page-structure and visual-design decisions on your own. Escalate only
 when a call would substantially change the course's identity, curriculum,
