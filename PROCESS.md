@@ -1492,6 +1492,85 @@ trimmed for the word count — that curation happens once, at submission time.
   text, and toggling `#pickup-compare` still reflects in the DOM — all via
   the same ids the `<script>` block already queried, none of which moved.
 
+- **`fa0b8f0`** — a checkpoint commit made by hand, not by me: the previous
+  session ran out of budget mid-work and the changes were committed so
+  nothing would be lost. It carries the bulk of the Homepage and Week 3
+  redesign and had no log entry, so it is recorded here after the fact. What
+  it contains: the `src/styles/tone.css` visual system (colour tokens, type
+  scale, the gutter/shell/`.t-grid` primitives, the nav and footer treatment,
+  motion defaults — all scoped to `[data-tone]` so no other page is touched);
+  six new Homepage components under `src/components/tone/` (`ToneHero`,
+  `VocabularyBand`, `SignalChain`, `ListeningBench`, `AssessmentLadder`,
+  `RoutesIn`) replacing the `rig/` and `home/` components it deletes; eight
+  new Week 3 components under `src/components/tone/week3/` (`WeekOpener`,
+  `WeekBand`, `WeekChain`, `WeekTakeaways`, `InductionFigure`,
+  `ModeSampling`, `CoilComparison`, `PickupLab`) replacing `lab/PickupBench`
+  and the two `diagrams/` pickup files; `src/lib/audio/pickup.ts`, which is
+  the one model the lab's picture and sound are both derived from; and three
+  replacement photographs with their licences recorded in
+  `src/assets/images/PHOTO-SOURCES.md`. It also revises `CLAUDE.md`'s audio
+  policy — the original "start synthetic" rule under-served any demo claiming
+  to represent actual guitar tone, so a demo of that kind now has to process
+  the course's one canonical DI recording. Verified on resuming rather than
+  when it was made: `pnpm check` is green on it as committed (0 errors, 0
+  warnings, axe and link checks clean across 28 pages, 5/5 vitest), so the
+  interrupted session did not leave a red state behind, and no TODO, stub or
+  half-written component is left anywhere in the two pages' component trees.
+
+- **`eb6694b`** — finished the interrupted work by reading both rendered
+  pages at desktop and phone widths and fixing what that turned up, rather
+  than redesigning anything already working. Three defects, none visible from
+  the source. (1) `ModeSampling` was unreadable on a phone: its labels were
+  `<text>` inside a `viewBox`, so type sized to read at 1400px scaled down
+  with the figure and arrived at roughly four pixels at 390px, with the mode
+  names running through the readings; its curves also flattened as the figure
+  widened, because the amplitude was a share of the viewBox width rather than
+  of the lane's height. Rebuilt so the SVG draws only the axis and the curve,
+  with `preserveAspectRatio="none"` so a lane's height — and therefore a
+  mode's amplitude — is a CSS value that holds at every width, and every
+  label, node and reading is HTML placed at the percentage its geometry sits
+  at, which is the positioning rule the rest of the system already uses. The
+  mode name moved to its own row: at the bridge-like position mode 4 is
+  sensed at 77%, which put its number exactly where the name was. Colour in
+  that figure also now follows the two channels rather than marking which
+  position a reading came from — string and nodes copper, cut lines and
+  readings signal, the same division the lab's display makes — with the two
+  positions told apart by a filled versus a hollow disc. (2) `[data-tone]
+  .t-label` sets a `display`, at the same specificity as a plain scoped
+  class, so `.vocab-key`'s `display: flex` won on pages where Astro happened
+  to emit the component stylesheet last and lost on the homepage, collapsing
+  the String/After legend to a zero gap; measured at 0px, now 18px. (3) A
+  `wide` band whose body opens on a figure instead of prose left its heading
+  in a 4-column well with seven columns of nothing beside it — the heading now
+  spans the row unless there is a paragraph to sit next to it (measured: four
+  wide heads at 450px where prose follows, one at 1310px where the chain
+  does). Also confirmed as *not* bugs before touching them: the twelve
+  `SignalChain` stage numbers looked like they drifted downwards across the
+  row, which was the scroll-in stagger caught mid-flight — settled, all
+  twelve read a top of 528px exactly; and the lab's slider handle sitting at
+  47% while the readout says 0.240 is correct, because the strip and the
+  slider are both drawn over bridge-to-½-string and labelled as such.
+  Checked: `pnpm check` green (0 errors, 0 warnings, axe clean on 28 pages,
+  5/5 vitest; the two remaining warnings are in `lab/FilterBench.astro` and
+  `lab/Knob.astro`, untouched here). Twelve viewport widths from 320 to
+  1920px on both pages report `scrollWidth - clientWidth` of 0, and an iPhone
+  14 full-page render of each does too. Tabbing 60 stops through each page
+  found no focusable element without an outline or box-shadow. Under
+  `reducedMotion: 'reduce'` no `.chain-stage`, `.band` or `.vocab-item` is
+  left at opacity below 1. The lab was driven by keyboard only: arrowing
+  `#pickup-position` moves the readout (0.240 → 0.250) and arrowing the preset
+  radios re-snaps position and rewrites the prose readout. The audio was
+  verified against the lab's own graph two ways — monkey-patching
+  `AudioParam.prototype.linearRampToValueAtTime` while dragging the slider
+  during playback yields twelve distinct `delayTime` ramps that track the
+  displayed comb delay to five decimal places (0.00218 s against a displayed
+  2.18 ms, and the displayed 458 Hz first null against 1/D = 459 Hz), and
+  re-rendering the same dry/delay/invert graph in an `OfflineAudioContext`
+  over white noise and measuring it with Goertzel gives 0.025 / 0.016 at the
+  predicted nulls for position 0.07 and 1.03 / 1.01 at the predicted peaks,
+  with the same pattern at 0.16 and 0.24. The curve drawn on screen is the
+  filter on the signal, which is the one thing this lab previously got wrong.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
