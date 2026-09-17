@@ -23,10 +23,10 @@ const defaultWeights = pluckHarmonicWeights(DEFAULT_POSITION);
 const defaultCycle = harmonicSeriesCycle(defaultWeights);
 ---
 
-<div class="string-bench bench-module" id="string-bench">
+<div class="string-bench" id="string-bench">
   <div class="lab-header">
-    <span class="lab-name">SLOP2186 String Bench</span>
-    <span class="bench-eyebrow">Illustrative parameters for a typical steel string — not a measured instrument</span>
+    <span class="t-label lab-name">Virtual string</span>
+    <span class="t-label lab-name">Illustrative parameters for a typical steel string — not a measured instrument</span>
   </div>
 
   <div class="lab-controls">
@@ -38,12 +38,12 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
   <p class="frequency-readout">Fundamental: <output id="string-frequency">112.9</output> Hz</p>
 
   <div class="displays">
-    <Waveform id="string-waveform" label="Resulting waveform shape" samples={Array.from(defaultCycle)} strokeVar="--bench-phosphor" />
-    <Spectrum id="string-spectrum" label="Relative harmonic content" magnitudes={Array.from(defaultWeights)} fillVar="--bench-phosphor" />
+    <Waveform id="string-waveform" label="Resulting waveform shape" samples={Array.from(defaultCycle)} strokeVar="--t-signal" />
+    <Spectrum id="string-spectrum" label="Relative harmonic content" magnitudes={Array.from(defaultWeights)} fillVar="--t-signal" />
   </div>
 
   <AudioDemo id="string-audio" label="Play pluck" />
-  <p class="bench-scope-note">Length and tension change the pitch you hear. Picking position changes only the diagrams above — the live pluck doesn't model its effect on timbre.</p>
+  <p class="lab-note">Length and tension change the pitch you hear. Picking position changes only the diagrams above — the live pluck doesn't model its effect on timbre.</p>
 </div>
 
 <script>
@@ -63,9 +63,9 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     const toggle = document.getElementById("string-audio-toggle") as HTMLButtonElement;
 
     const styles = getComputedStyle(root);
-    const trace = styles.getPropertyValue("--bench-phosphor").trim() || "#e2b13c";
-    const gridColor = styles.getPropertyValue("--bench-line").trim();
-    const labelColor = styles.getPropertyValue("--bench-panel-text-secondary").trim();
+    const trace = styles.getPropertyValue("--t-signal").trim() || "#e2b13c";
+    const gridColor = styles.getPropertyValue("--t-line").trim();
+    const labelColor = styles.getPropertyValue("--t-mute").trim();
 
     // A representative linear density for a wound steel guitar string —
     // illustrative, not a measured product spec.
@@ -173,11 +173,14 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
   }
 
   .lab-name {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--at-text-secondary);
+    color: var(--t-mute);
+  }
+
+  .lab-name:last-child {
+    color: var(--t-faint);
+    text-transform: none;
+    letter-spacing: normal;
+    font-family: var(--t-sans);
   }
 
   .lab-controls {
@@ -189,9 +192,9 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
 
   .frequency-readout {
     text-align: center;
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-lg, 1.1rem);
-    color: var(--at-heading);
+    font-family: var(--t-mono);
+    font-size: var(--t-h3);
+    color: var(--t-paper);
     margin: 0;
   }
 
@@ -201,8 +204,11 @@ const defaultCycle = harmonicSeriesCycle(defaultWeights);
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .bench-scope-note {
+  .lab-note {
     margin: 0;
+    font-size: 0.9rem;
+    color: var(--t-dim);
+    max-width: var(--t-measure);
   }
 
   @media (max-width: 640px) {

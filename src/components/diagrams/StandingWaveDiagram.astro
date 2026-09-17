@@ -39,7 +39,7 @@ function nodeXs(n: number): number[] {
 }
 ---
 
-<div class="standing-wave bench-module">
+<div class="standing-wave">
   <div class="modes" role="img" aria-label="The first four vibration modes of a string fixed at both ends: the fundamental and its next three harmonics, each shown as a snapshot of its mode shape with nodes marked where the string doesn't move.">
     {modes.map((mode) => (
       <div class="mode-row">
@@ -54,7 +54,7 @@ function nodeXs(n: number): number[] {
       </div>
     ))}
   </div>
-  <p class="bench-scope-note">Dots mark nodes — points that stay still in that mode. Every mode is pinned to zero at both ends (the bridge and the fret or nut), same as Week 2's boundary condition; only the pattern in between differs.</p>
+  <p class="mode-note">Dots mark nodes — points that stay still in that mode. Every mode is pinned to zero at both ends (the bridge and the fret or nut), same as Week 2's boundary condition; only the pattern in between differs.</p>
 
   <div class="length-compare" role="img" aria-label="Fretting the string at the twelfth fret roughly halves its vibrating length, which roughly doubles its fundamental frequency — one octave higher.">
     <div class="length-row">
@@ -99,11 +99,11 @@ function nodeXs(n: number): number[] {
   }
 
   .mode-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-xs);
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: var(--at-text-secondary);
+    color: var(--t-mute);
   }
 
   .mode-row svg,
@@ -113,19 +113,25 @@ function nodeXs(n: number): number[] {
     display: block;
   }
 
+  .mode-note {
+    font-size: 0.9rem;
+    color: var(--t-dim);
+    max-width: var(--t-measure);
+  }
+
   .rest-line {
-    stroke: var(--bench-grid, var(--at-border));
+    stroke: var(--t-grid);
     stroke-width: 1;
     stroke-dasharray: 2 3;
   }
 
   .mode-trace {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-signal);
     stroke-width: 2;
   }
 
   .node-dot {
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .length-compare {
@@ -133,27 +139,27 @@ function nodeXs(n: number): number[] {
     flex-direction: column;
     gap: 0.6rem;
     padding-top: 0.75rem;
-    border-top: 1px dashed var(--at-border);
+    border-top: 1px dashed var(--t-line);
   }
 
   .string-line {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-signal);
     stroke-width: 2;
   }
 
   .string-line--damped {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-dasharray: 3 3;
     opacity: 0.6;
   }
 
   .end-mark {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1.5;
   }
 
   .end-mark--fret {
-    stroke: var(--at-accent);
+    stroke: var(--t-copper);
     stroke-width: 2;
   }
 
