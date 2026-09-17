@@ -28,9 +28,9 @@ const PLOT_BOTTOM = 88;
 const TICKS = [0, 0.5, 1, 1.5];
 ---
 
-<div class="delay-lab bench-module" id="delay-lab">
+<div class="delay-lab" id="delay-lab">
   <div class="lab-header">
-    <span class="lab-name">SLOP2186 Delay/Reverb Bench</span>
+    <span class="t-label lab-name">Delay / reverb simulator</span>
     <FootswitchGroup name="delay-mode" legend="Mode" options={modeOptions} selected={DEFAULT_MODE} />
   </div>
 
@@ -41,7 +41,7 @@ const TICKS = [0, 0.5, 1, 1.5];
     <AudioDemo id="delay-audio" label="Play through effect" />
   </div>
 
-  <p id="delay-readout" class="bench-scope-note delay-readout">Echo — 300 ms delay, 45% feedback, 40% mix.</p>
+  <p id="delay-readout" class="lab-note delay-readout">Echo — 300 ms delay, 45% feedback, 40% mix.</p>
 
   <div class="envelope-plot" role="img" aria-label="The current mode's amplitude-over-time envelope: a direct arrival followed by either a regularly-spaced echo train or an irregular, decaying scatter of reflections.">
     <svg viewBox="0 0 300 100">
@@ -53,7 +53,7 @@ const TICKS = [0, 0.5, 1, 1.5];
     </svg>
   </div>
 
-  <p class="bench-scope-note">Time/Feedback/Mix always control the same thing — how long the loop is, how much comes back round it, and how much of the wet signal is mixed in — but which physical picture they describe changes with the mode.</p>
+  <p class="lab-note">Time/Feedback/Mix always control the same thing — how long the loop is, how much comes back round it, and how much of the wet signal is mixed in — but which physical picture they describe changes with the mode.</p>
 </div>
 
 <script>
@@ -203,11 +203,7 @@ const TICKS = [0, 0.5, 1, 1.5];
   }
 
   .lab-name {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--at-text-secondary);
+    color: var(--t-mute);
   }
 
   .lab-controls {
@@ -219,7 +215,7 @@ const TICKS = [0, 0.5, 1, 1.5];
 
   .delay-readout {
     text-align: center;
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
   }
 
   .envelope-plot svg {
@@ -229,28 +225,31 @@ const TICKS = [0, 0.5, 1, 1.5];
   }
 
   .axis-line {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
   }
 
   .time-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   :global(.direct-stem) {
-    stroke: var(--bench-input-trace, var(--at-accent));
+    stroke: var(--t-signal-dim);
     stroke-width: 2;
   }
 
   :global(.reflection-stem) {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-signal);
     stroke-width: 1.25;
     opacity: 0.85;
   }
 
-  .bench-scope-note {
+  .lab-note {
     margin: 0;
+    font-size: 0.9rem;
+    color: var(--t-dim);
+    max-width: var(--t-measure);
   }
 </style>
