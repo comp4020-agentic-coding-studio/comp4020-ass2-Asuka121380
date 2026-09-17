@@ -49,9 +49,9 @@ const defaultPath = responsePath(defaultFreqs, defaultResponse);
 const ticks = [100, 1000, 10000];
 ---
 
-<div class="tone-bench bench-module" id="tone-control-bench">
+<div class="tone-bench" id="tone-control-bench">
   <div class="lab-header">
-    <span class="lab-name">SLOP2186 Tone Bench</span>
+    <span class="t-label lab-name">Tone control simulator</span>
     <p class="cutoff-readout">Cutoff: <output id="tone-cutoff">{defaultCutoff.toFixed(0)}</output> Hz</p>
   </div>
 
@@ -78,7 +78,7 @@ const ticks = [100, 1000, 10000];
   </div>
 
   <AudioDemo id="tone-audio" label="Play through filter" />
-  <p class="bench-scope-note">One combined RC low-pass stands in for the tone capacitor and cable capacitance together — a simplification of two effects that interact slightly differently in a real passive circuit.</p>
+  <p class="lab-note">One combined RC low-pass stands in for the tone capacitor and cable capacitance together — a simplification of two effects that interact slightly differently in a real passive circuit.</p>
 </div>
 
 <script>
@@ -211,17 +211,13 @@ const ticks = [100, 1000, 10000];
   }
 
   .lab-name {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--at-text-secondary);
+    color: var(--t-mute);
   }
 
   .cutoff-readout {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    color: var(--at-heading);
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
+    color: var(--t-paper);
     margin: 0;
   }
 
@@ -239,28 +235,31 @@ const ticks = [100, 1000, 10000];
   }
 
   .axis-line {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1;
   }
 
   .tick-line {
-    stroke: var(--bench-line, var(--at-border));
+    stroke: var(--t-line);
     stroke-width: 1;
     stroke-dasharray: 2 2;
   }
 
   .freq-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .response-trace {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-signal);
     stroke-width: 1.75;
   }
 
-  .bench-scope-note {
+  .lab-note {
     margin: 0;
+    font-size: 0.9rem;
+    color: var(--t-dim);
+    max-width: var(--t-measure);
   }
 </style>

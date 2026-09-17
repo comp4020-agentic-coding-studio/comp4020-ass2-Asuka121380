@@ -8,7 +8,7 @@
 ---
 
 <div class="pot-diagrams">
-  <figure class="pot-card bench-module">
+  <figure class="pot-card">
     <svg viewBox="0 0 160 90" role="img" aria-label="Volume control: a potentiometer wired as a voltage divider, with the wiper tapping off a fraction of the signal to send onward and the rest sent to ground.">
       <line x1="10" y1="20" x2="60" y2="20" class="wire" />
       <rect x="60" y="12" width="40" height="16" class="pot-track" />
@@ -30,7 +30,7 @@
     </figcaption>
   </figure>
 
-  <figure class="pot-card bench-module">
+  <figure class="pot-card">
     <svg viewBox="0 0 160 90" role="img" aria-label="Tone control: a potentiometer used as a variable resistor in series with a fixed capacitor to ground, forming a low-pass filter whose cutoff frequency the wiper adjusts.">
       <line x1="10" y1="20" x2="55" y2="20" class="wire" />
       <rect x="55" y="12" width="40" height="16" class="pot-track" />
@@ -77,46 +77,46 @@
   }
 
   .wire {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1.5;
     fill: none;
   }
 
   .pot-track {
-    fill: var(--at-bg);
-    stroke: var(--at-accent);
+    fill: var(--t-surface);
+    stroke: var(--t-copper);
     stroke-width: 1.5;
   }
 
   .wiper {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-copper);
     stroke-width: 1.5;
   }
 
   .wiper-arrow {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-copper);
     stroke-width: 1.5;
   }
 
   .ground {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1.5;
     fill: none;
   }
 
   .cap-plate {
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 2;
   }
 
   .node {
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .part-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   figcaption {
@@ -126,16 +126,16 @@
   }
 
   .pot-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
+    font-family: var(--t-mono);
+    font-size: var(--t-label);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: var(--at-text);
+    color: var(--t-paper);
   }
 
   .pot-description {
-    font-size: var(--at-font-size-xs);
-    color: var(--at-text-secondary);
+    font-size: var(--t-label);
+    color: var(--t-dim);
     line-height: 1.35;
   }
 </style>
