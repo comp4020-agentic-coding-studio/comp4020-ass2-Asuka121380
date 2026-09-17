@@ -1781,6 +1781,28 @@ trimmed for the word count — that curation happens once, at submission time.
   `HTTP 200`, the sourced diagram and its legend present, and no
   leftover `bench-*`/branded classes.
 
+- **`55ad7d5`** — migrated week 12 ("Engineering the Complete Tone") onto
+  `WeekOpener`/`WeekBand`/`WeekChain`/`WeekTakeaways`/`CausalChainStrip`,
+  preserving the thirteen-link complete causal chain, reasoning backwards
+  from a target sound description, effect ordering and nonlinearity
+  (EQ-before-vs-after-clipping), stage trade-offs, convergent chains (two
+  chains with opposite individual choices converging on a similar overall
+  shape), and the fully integrated complete-chain try-it lab. This is the
+  twelfth and last week to move off the old Bench/Booth register, so all
+  twelve lecture weeks are now on the TONE system. `EffectOrderDiagram`,
+  `CumulativeResponseDiagram` and `ConvergentChainsDiagram` are all
+  abstract harmonic-spectrum/frequency-response plots generated from
+  `chain.ts`, so the media policy required no change there — only the
+  usual `--bench-*`/`--at-*` to `--t-*` remap. Cleaned the bench chrome in
+  those three diagrams and in `CompleteChainBench`, renamed
+  `.bench-scope-note` to `.lab-note`, and de-branded the lab header from
+  "SLOP2186 Complete Chain Bench" to "Complete chain simulator" (adding a
+  local `.lab-eyebrow` style, since the old subtitle line's styling
+  previously came from `BenchFrame`'s now-unused `.bench-eyebrow` rule).
+  Checked: `pnpm check` green (0 errors, the same 2 pre-existing hints),
+  rendered page verified with `HTTP 200` and no leftover `bench-*` or
+  `SLOP2186`-branded classes.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
