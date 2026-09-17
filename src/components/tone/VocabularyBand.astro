@@ -144,6 +144,9 @@ const conversions: Conversion[] = [
             <p class="vocab-word">
               <span class="vocab-word-strike">{conversion.word}</span>
             </p>
+            <p class="vocab-claim">
+              <span aria-hidden="true">&rarr;</span> {conversion.measured}
+            </p>
 
             <svg
               class="vocab-spectrum"
@@ -181,7 +184,6 @@ const conversions: Conversion[] = [
               <span class="vocab-key-item vocab-key-item--output">After</span>
             </p>
 
-            <p class="t-h3 vocab-measured">{conversion.measured}</p>
             <p class="t-body vocab-detail">{conversion.detail}</p>
             <p class="t-label vocab-week">{conversion.week}</p>
           </li>
@@ -260,6 +262,34 @@ const conversions: Conversion[] = [
 
   .vocab-word::after {
     content: " ";
+  }
+
+  /* The pairing that makes the transformation legible before the spectrum
+     ever loads: SUBJECTIVE (struck through above) -> MEASURED, read as one
+     unit rather than as a caption on the chart that follows. Mono, like an
+     instrument readout, to read as measured rather than as more prose — but
+     sized close to the word it follows, not shrunk to axis-label scale, since
+     this line carries the page's actual claim. The arrow names a
+     transformation, not a correction: the intro text already says the
+     subjective word isn't wrong, just not an explanation. */
+  .vocab-claim {
+    margin: 0;
+    font-family: var(--t-mono);
+    font-size: clamp(1rem, 1.6vw, 1.25rem);
+    font-weight: 500;
+    color: var(--t-dim);
+  }
+
+  .vocab-item--copper .vocab-claim {
+    color: var(--t-copper);
+  }
+
+  .vocab-item--signal .vocab-claim {
+    color: var(--t-signal);
+  }
+
+  .vocab-item--hot .vocab-claim {
+    color: var(--t-hot);
   }
 
   .vocab-spectrum {
@@ -343,10 +373,6 @@ const conversions: Conversion[] = [
 
   .vocab-item--hot .vocab-word {
     color: var(--t-hot);
-  }
-
-  .vocab-measured {
-    margin: 0;
   }
 
   .vocab-detail {
