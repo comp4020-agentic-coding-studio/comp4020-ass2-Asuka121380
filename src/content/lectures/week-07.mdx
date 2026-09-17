@@ -9,14 +9,13 @@ teachers:
   - marisol-quaye
 ---
 
-import LectureIntro from "../../components/LectureIntro.astro";
-import BenchFrame from "../../components/lab/BenchFrame.astro";
-import BenchBand from "../../components/lab/BenchBand.astro";
+import WeekOpener from "../../components/tone/WeekOpener.astro";
+import WeekBand from "../../components/tone/WeekBand.astro";
+import WeekChain from "../../components/tone/WeekChain.astro";
+import WeekTakeaways from "../../components/tone/WeekTakeaways.astro";
 import CausalChainStrip from "../../components/diagrams/CausalChainStrip.astro";
 import SignalChainDiagram from "../../components/diagrams/SignalChainDiagram.astro";
 import FilterBench from "../../components/lab/FilterBench.astro";
-import SignalChainStrip from "../../components/SignalChainStrip.astro";
-import TakeawaysList from "../../components/TakeawaysList.astro";
 
 export const eqBeforeStages = [
   { label: "EQ", caption: "shapes tone first" },
@@ -28,57 +27,45 @@ export const eqAfterStages = [
   { label: "EQ", caption: "shapes a spectrum that already includes those new harmonics" },
 ];
 
-<LectureIntro week={7} topic="FILTERS & EQ">
+<WeekOpener
+  week={7}
+  tag="Filtering"
+  title="Filters, EQ and Tone Stacks"
+  question="Once a signal contains many frequencies, how can a circuit reshape its tonal balance?"
+  input="A signal already containing many frequencies"
+  process="Frequency-dependent gain: cutoff and resonance"
+  output="A reshaped spectrum, a changed tonal balance"
+/>
 
-## Once a signal contains many frequencies, how can a circuit reshape its tonal balance?
+<WeekBand index={1} label="Where we left off" heading="From adding frequencies to reshaping them">
 
-<p class="lecture-connection">
-Week 6 generated new frequencies through nonlinear clipping. This week
-studies the tool for deliberately reshaping frequency content — filters,
-EQ, and tone stacks — and where a filter sits relative to a distortion
-stage changes what it actually does. Every transformation covered so far
-has been relatively static: set a cutoff, a gain, a clipping shape, and it
-stays put. Week 8 introduces parameters that change continuously over time.
-</p>
-
-</LectureIntro>
-
-<BenchFrame week={7} topic="FILTERS & EQ">
-
-<BenchBand mode="theory" label="ANALYSIS DESK">
-
-## Once a signal contains many frequencies, how can a circuit reshape its tonal balance?
-
-<p class="bench-prose">
-Weeks 1-4 showed several stages that already filter a guitar's signal —
-a passive tone control, cable capacitance. Week 5 and 6 showed a gain stage
+Weeks 1-4 already showed several stages that filter a guitar's signal — a
+passive tone control, cable capacitance. Weeks 5 and 6 showed a gain stage
 that adds new frequencies through clipping. This week studies the general
 tool for deliberately reshaping which frequencies come through afterward:
-the **filter**, and the EQ and tone-stack circuits built from it.
-</p>
-
-<div class="bench-callout bench-prose">
-
-By the end of this week you should be able to: recognise low-pass,
-high-pass, and band-pass/band-reject behaviour; interpret a frequency-response
-graph; explain cutoff frequency; explain resonance and Q conceptually;
-distinguish passive from active filtering at a broad level; and explain why
-EQ placed before a distortion stage behaves differently from EQ placed
-after it.
-
-</div>
+the **filter**, and the EQ and tone-stack circuits built from it. By the end
+of this week you should be able to recognise low-pass, high-pass, and
+band-pass/band-reject behaviour; interpret a frequency-response graph;
+explain cutoff frequency; explain resonance and Q conceptually; distinguish
+passive from active filtering at a broad level; and explain why EQ placed
+before a distortion stage behaves differently from EQ placed after it.
 
 <CausalChainStrip
   steps={["Frequency-dependent gain", "Cutoff & resonance (Q)", "Reshaped spectrum", "Changed tonal balance"]}
 />
 
-</BenchBand>
+</WeekBand>
 
-<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+<WeekBand index={2} label="Frequency response" heading="Cutoff, and the filter family" layout="wide">
 
-## Frequency response, cutoff, and the filter family
+<SignalChainDiagram
+  stages={[
+    { label: "Input", caption: "many frequencies present" },
+    { label: "Filter", caption: "frequency-dependent gain" },
+    { label: "Output", caption: "some frequencies emphasised, others reduced" },
+  ]}
+/>
 
-<p class="bench-prose">
 A filter's **frequency response** is simply its gain plotted as a function
 of frequency: how much of each frequency component survives. A **low-pass**
 filter passes frequencies below some **cutoff frequency** and reduces those
@@ -88,28 +75,11 @@ reducing what's below. A **band-pass** filter passes a range in between and
 reduces frequencies on both sides of it; a **band-reject** filter does the
 opposite, reducing a range in the middle while passing what's above and
 below. Introduced at this level, band-pass and band-reject are exactly a
-low-pass and a high-pass response combined, rather than a separate
-mechanism to learn from scratch.
-</p>
+low-pass and a high-pass response combined, rather than a separate mechanism
+to learn from scratch. Whatever the filter's shape, the underlying operation
+is the same: a gain that depends on frequency, applied to every frequency
+component of the input at once.
 
-<div class="bench-annotated">
-  <SignalChainDiagram
-    stages={[
-      { label: "Input", caption: "many frequencies present" },
-      { label: "Filter", caption: "frequency-dependent gain" },
-      { label: "Output", caption: "some frequencies emphasised, others reduced" },
-    ]}
-  />
-  <p class="bench-prose">
-  Whatever the filter's shape, the underlying operation is the same: a
-  gain that depends on frequency, applied to every frequency component of
-  the input at once.
-  </p>
-</div>
-
-### Resonance and Q
-
-<p class="bench-prose">
 Some filters don't just roll off past cutoff — they briefly boost
 frequencies right around it before rolling off, a **resonant peak**. **Q**
 controls how narrow and tall that peak is: a low Q gives a broad, gentle
@@ -117,15 +87,11 @@ emphasis (or none at all), while a high Q gives a sharp, narrow spike right
 at the cutoff frequency. A plain low-pass or high-pass filter can be built
 with no resonance at all — Q only becomes an audible, adjustable parameter
 once a filter is deliberately designed to have one.
-</p>
 
-</BenchBand>
+</WeekBand>
 
-<BenchBand mode="theory" label="→ BACK TO THE DESK">
+<WeekBand index={3} label="Passive vs. active" heading="And where a tone stack fits">
 
-## Passive versus active filters, and tone stacks
-
-<p class="bench-prose">
 Week 4's tone control was a **passive** filter: built only from resistors
 and capacitors, with no power supply and no amplification, at the cost of
 inevitably reducing the signal somewhat even at frequencies it's meant to
@@ -134,9 +100,7 @@ an operational amplifier) to the same resistor-capacitor idea, which can
 compensate for that loss or even boost a chosen range instead of only
 reducing others — the broad distinction that matters here, without going
 into the amplifier circuitry itself.
-</p>
 
-<p class="bench-prose">
 A **tone stack** — the bass/middle/treble network found in many guitar
 amplifiers — is several of these frequency-shaping ideas wired together so
 they interact. That interaction is the important, easily-missed point: the
@@ -147,62 +111,49 @@ Reproducing any specific tone stack's exact interacting response accurately
 would need specific circuit values this course doesn't have grounds to
 assert — the qualitative lesson (shared components mean interacting
 controls) is what this week is scoped to.
-</p>
 
-## EQ before distortion versus EQ after it
+</WeekBand>
 
-<p class="bench-prose">
+<WeekBand index={4} label="EQ and distortion order" heading="Before the nonlinear stage, or after it" layout="wide">
+
 Week 5 and 6 showed that a nonlinear gain stage generates new harmonic
 content from whatever reaches it. That makes EQ placement around a
 distortion stage a genuinely different decision each way, not just a matter
 of taste — a guitar-specific application of everything above.
-</p>
 
-<div class="bench-annotated">
-  <SignalChainDiagram stages={eqBeforeStages} ariaLabel="EQ placed before the gain and clipping stage." />
-  <p class="bench-prose">
-  **EQ before distortion** changes which frequencies drive the nonlinear
-  stage in the first place — cutting bass before clipping, for instance,
-  changes what gets clipped and so changes which harmonics the clipping
-  stage generates.
-  </p>
-</div>
+<SignalChainDiagram stages={eqBeforeStages} ariaLabel="EQ placed before the gain and clipping stage." />
 
-<div class="bench-annotated">
-  <SignalChainDiagram stages={eqAfterStages} ariaLabel="EQ placed after the gain and clipping stage." />
-  <p class="bench-prose">
-  **EQ after distortion** instead shapes a spectrum that already contains
-  whatever harmonics clipping just created — it can remove or emphasise
-  those new frequencies, but it can no longer change which ones were
-  generated to begin with.
-  </p>
-</div>
+**EQ before distortion** changes which frequencies drive the nonlinear
+stage in the first place — cutting bass before clipping, for instance,
+changes what gets clipped and so changes which harmonics the clipping
+stage generates.
 
-</BenchBand>
+<SignalChainDiagram stages={eqAfterStages} ariaLabel="EQ placed after the gain and clipping stage." />
 
-<BenchBand mode="bench" label="→ ENTERING THE BENCH">
+**EQ after distortion** instead shapes a spectrum that already contains
+whatever harmonics clipping just created — it can remove or emphasise
+those new frequencies, but it can no longer change which ones were
+generated to begin with.
+
+</WeekBand>
+
+<WeekBand index={5} label="Try it" heading="Cutoff, type, and resonance" layout="wide" bleed>
 
 <CausalChainStrip compact />
 
-## Try it: cutoff, type, and resonance
-
-<p class="bench-prose">
 Switch between Low-pass, High-pass, and Resonant, and adjust Cutoff and
 Resonance (Q). Notice the Resonance knob does nothing visible in Low-pass or
 High-pass mode — only Resonant mode uses it — and that a higher Q there
 produces a taller, narrower peak right at the cutoff frequency, exactly as
 described above. Play the tone to hear the same shift.
-</p>
 
 <FilterBench />
 
-</BenchBand>
+</WeekBand>
 
-<BenchBand mode="theory" label="→ BACK TO THE DESK">
+<WeekBand index={6} label="Takeaways" heading="What this week establishes">
 
-## Key takeaways
-
-<TakeawaysList
+<WeekTakeaways
   items={[
     "A filter's frequency response is its gain as a function of frequency; cutoff frequency marks where a low-pass or high-pass response transitions.",
     "Band-pass and band-reject responses are a low-pass and a high-pass combined, not a separate mechanism.",
@@ -213,13 +164,12 @@ described above. Play the tone to hear the same shift.
   ]}
 />
 
-## Where this sits in the signal chain
+</WeekBand>
 
-<SignalChainStrip current="Filter" />
+<WeekBand index={7} label="The chain" heading="Where this sits, and what comes next" layout="wide">
 
-## Connection to Week 6, and where this goes next
+<WeekChain week={7} />
 
-<p class="bench-prose">
 Week 6 generated new frequencies through nonlinear clipping. This week
 studied the tool for deliberately reshaping frequency content — filters, EQ,
 and tone stacks — and showed that where a filter sits relative to a
@@ -227,10 +177,7 @@ distortion stage changes what it actually does. Until now, every
 transformation covered has been relatively static: set a cutoff, a gain, a
 clipping shape, and it stays put. Week 8 introduces parameters that change
 continuously over time.
-</p>
 
 <CausalChainStrip compact />
 
-</BenchBand>
-
-</BenchFrame>
+</WeekBand>
