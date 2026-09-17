@@ -25,40 +25,44 @@ const weekCode = `WK${String(week).padStart(2, "0")}`;
 
 <style is:global>
   :root {
-    /* One new hue (a teal-green "scope phosphor") used everywhere a signal
-       is *active/processed*, plus a fixed cool neutral for *clean/input*
-       signal — the same two identities in every diagram and in the lab,
-       light band or dark. Everything else here is dark-panel chrome for
-       the "bench" bands, not new brand colour. */
-    --bench-phosphor: oklch(78% 0.135 174);
-    --bench-input-trace: oklch(80% 0.018 240 / 85%);
-    --bench-panel-bg: oklch(15% 0.014 200);
-    --bench-panel-bg-raised: oklch(21% 0.018 200);
-    --bench-line: oklch(60% 0.03 200 / 40%);
-    --bench-panel-text: oklch(93% 0.008 200);
-    --bench-panel-text-secondary: oklch(93% 0.008 200 / 72%);
-    --bench-scan: oklch(60% 0.03 200 / 16%);
-    --bench-dot: color-mix(in srgb, var(--at-border) 45%, transparent);
+    /* Bench & Booth's whole theory/bench duality runs on these ~15 custom
+       properties (BenchBand and every lab/diagram component reads only
+       these, never a raw colour) — so pointing them at the TONE system's
+       own tokens re-themes the entire register everywhere it's used,
+       without touching BenchBand.astro or any week's content. TONE has no
+       light surface, so the "analysis desk" register that used to be a
+       warm paper background is now the *calmer* end of TONE's dark scale
+       (--t-deep) rather than a literal light page; "bench" sits one step
+       up (--t-surface) as the more active instrument-panel register.
+       --t-signal (the electrical/measured channel) is the natural read for
+       "scope phosphor" — both were already a bright cyan/teal accent. */
+    --bench-phosphor: var(--t-signal);
+    --bench-input-trace: var(--t-mute);
+    --bench-panel-bg: var(--t-surface);
+    --bench-panel-bg-raised: var(--t-raised);
+    --bench-line: var(--t-line-strong);
+    --bench-panel-text: var(--t-paper);
+    --bench-panel-text-secondary: var(--t-dim);
+    --bench-scan: color-mix(in srgb, var(--t-paper) 14%, transparent);
+    --bench-dot: color-mix(in srgb, var(--t-line) 55%, transparent);
 
-    /* The "analysis desk" (light) half of the same instrument, built from
-       the same phosphor hue rather than a second, unrelated palette: a warm
-       measurement-paper ground instead of pure white, and a dark, AA-safe
-       "ink" reading of the phosphor for text-sized use where the bright
-       version would fail contrast. */
-    --bench-paper-bg: oklch(96.5% 0.012 75);
-    --bench-paper-bg-raised: oklch(93% 0.015 75);
-    --bench-paper-line: oklch(45% 0.03 200 / 22%);
-    --bench-paper-text: oklch(26% 0.018 70);
-    --bench-paper-text-secondary: oklch(26% 0.018 70 / 68%);
-    --bench-phosphor-ink: oklch(40% 0.09 174);
+    /* The calmer "analysis desk" register: one step further into TONE's
+       dark scale than the bench panel, with a dimmer accent so it reads as
+       the quieter of the two rather than a second, unrelated palette. */
+    --bench-paper-bg: var(--t-deep);
+    --bench-paper-bg-raised: var(--t-surface);
+    --bench-paper-line: var(--t-line);
+    --bench-paper-text: var(--t-dim);
+    --bench-paper-text-secondary: var(--t-mute);
+    --bench-phosphor-ink: var(--t-signal-dim);
 
     /* Quiet section-background textures, distinct from --bench-paper-line/
        --bench-scan (which stay unchanged — modules, diagram axes and
        borders still read at their original strength). These are only for
        the full-bleed band background itself, which needed to get quieter
        without touching anything drawn on top of it. */
-    --bench-paper-dot: oklch(45% 0.03 200 / 13%);
-    --bench-scan-band: oklch(60% 0.03 200 / 9%);
+    --bench-paper-dot: color-mix(in srgb, var(--t-paper) 8%, transparent);
+    --bench-scan-band: color-mix(in srgb, var(--t-paper) 6%, transparent);
 
     /* Corrects the classic 100vw-breakout bug: 100vw includes the browser's
        vertical scrollbar, but the actual visible viewport (and any 100%-wide

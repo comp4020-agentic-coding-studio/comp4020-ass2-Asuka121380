@@ -1,18 +1,25 @@
 ---
+// Shared route for every week except week-03 (its own route — see that
+// file's comment). Each week's MDX opens with LectureIntro (the Editorial
+// register's dark overture) straight into BenchFrame/BenchBand (the
+// theory/bench register) — both now re-themed onto src/styles/tone.css's
+// own tokens (see BenchFrame.astro and home/EditorialFrame.astro), so
+// `data-tone` on <main> is what lets that composition run full-bleed
+// instead of being boxed into the theme's narrow ContentLayout column.
+// The date/slides/teaching-team/related-content block below is the same
+// "meta" footer week-03.astro uses, so both routes read as one page shape.
 import { render } from "astro:content";
 import { getPublishedCollection } from "astro-course-university/content";
 import RelatedContent from "astro-course-university/components/RelatedContent.astro";
-import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
+import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
 import { withBase } from "astro-theme-university/url";
 import TeachingTeam from "../../components/TeachingTeam.astro";
 import { formatCourseDate } from "../../lib/dates";
+import { courseMeta } from "../../course-config";
 import { graphCollections, siteConfig } from "../../site-config";
+import "../../styles/tone.css";
 
 export async function getStaticPaths() {
-  // week-03 gets its own route (../lectures/week-03.astro), which bypasses
-  // ContentLayout's generic <h1>/date/lead opener entirely so the page can
-  // open with its own MODULE 03/PICKUP composition instead — see that
-  // file's comment. Every other week keeps this shared route unchanged.
   const lectures = await getPublishedCollection("lectures", (lecture) => lecture.id !== "week-03");
   return lectures.map((lecture) => ({ params: { slug: lecture.id }, props: { lecture } }));
 }
@@ -26,10 +33,119 @@ const title = `Week ${lecture.data.week}: ${lecture.data.title}`;
 const teacherOverrides = (lecture.data as { teacherOverrides?: Record<string, string> }).teacherOverrides;
 ---
 
-<ContentLayout title={title} description={lecture.data.description} {...siteConfig}>
-  <p><strong>{formatCourseDate(lecture.data.date)}</strong></p>
-  {lecture.data.slides && <p><a href={withBase(lecture.data.slides)}>Open the slides</a></p>}
-  <Content />
-  <TeachingTeam teachers={lecture.data.teachers} nameOverrides={teacherOverrides} />
-  <RelatedContent entry={lecture} collections={graphCollections} />
-</ContentLayout>
+<BaseLayout
+  title={title}
+  description={lecture.data.description ?? undefined}
+  mainAttrs={{ "data-tone": true }}
+  {...siteConfig}
+  name={courseMeta.code}
+  logo={undefined}
+  logoDark={undefined}
+  logoCompact={undefined}
+  logoCompactDark={undefined}
+>
+  <style
+    slot="head"
+    is:inline
+    set:html={`body{--course-title:${JSON.stringify(courseMeta.title)}}`}
+  />
+
+  <div class="t-graticule" aria-hidden="true"></div>
+
+  <div class="t-layer">
+    <Content />
+
+    <div class="week-meta">
+      <div class="t-shell">
+        <dl class="week-meta-facts">
+          <div>
+            <dt class="t-label">Teaching date</dt>
+            <dd>{formatCourseDate(lecture.data.date)}</dd>
+          </div>
+          {
+            lecture.data.slides && (
+              <div>
+                <dt class="t-label">Slides</dt>
+                <dd>
+                  <a class="t-link" href={withBase(lecture.data.slides)}>
+                    Open the deck <span class="t-arrow" aria-hidden="true">&rarr;</span>
+                  </a>
+                </dd>
+              </div>
+            )
+          }
+        </dl>
+
+        <div class="week-meta-related">
+          <TeachingTeam teachers={lecture.data.teachers} nameOverrides={teacherOverrides} />
+          <RelatedContent entry={lecture} collections={graphCollections} />
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const nav = document.querySelector<HTMLElement>(".at-nav");
+  if (nav) {
+    const sync = () => {
+      if (window.scrollY > 24) nav.dataset.scrolled = "";
+      else delete nav.dataset.scrolled;
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    document.addEventListener("astro:before-swap", () =>
+      window.removeEventListener("scroll", sync),
+    );
+  }
+</script>
+
+<style>
+  .week-meta {
+    border-block-start: 1px solid var(--t-line);
+    padding-block: var(--t-band) clamp(3rem, 6vw, 5rem);
+  }
+
+  .week-meta-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin: 0 0 clamp(2rem, 4vw, 3rem);
+  }
+
+  .week-meta-facts dd {
+    margin: 0.4rem 0 0;
+    font-size: 1.05rem;
+    color: var(--t-paper);
+  }
+
+  .week-meta-related {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3rem);
+    color: var(--t-dim);
+  }
+
+  .week-meta-related :global(h2),
+  .week-meta-related :global(h3) {
+    font-size: var(--t-label);
+    font-family: var(--t-mono);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--t-mute);
+  }
+
+  .week-meta-related :global(a) {
+    color: var(--t-paper);
+  }
+
+  .week-meta-related :global(a:hover) {
+    color: var(--t-signal);
+  }
+
+  @media (min-width: 60rem) {
+    .week-meta-related {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

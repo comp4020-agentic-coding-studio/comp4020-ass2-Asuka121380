@@ -15,18 +15,26 @@
 
 <style is:global>
   .editorial-frame {
-    --editorial-ink: oklch(24% 0.02 55);
-    --editorial-ink-soft: oklch(24% 0.02 55 / 72%);
-    --editorial-paper: oklch(97% 0.014 80);
-    --editorial-paper-raised: oklch(93% 0.02 75);
-    --editorial-charcoal: oklch(19% 0.016 50);
-    --editorial-charcoal-raised: oklch(25% 0.02 50);
-    --editorial-on-charcoal: oklch(95% 0.01 70);
-    --editorial-on-charcoal-soft: oklch(95% 0.01 70 / 74%);
-    --editorial-line-on-paper: oklch(45% 0.03 60 / 22%);
-    --editorial-line-on-charcoal: oklch(85% 0.02 70 / 20%);
-    --editorial-accent: var(--at-primary);
-    --editorial-accent-soft: color-mix(in oklch, var(--at-primary) 16%, transparent);
+    /* This register's only remaining consumer is LectureIntro's opening
+       overture (see that file), which always uses the "dark" tone — so
+       these tokens now point at the TONE system rather than the homepage's
+       pre-redesign brand-gold palette, keeping the overture and the
+       Bench & Booth body it leads into reading as one instrument. TONE has
+       no light surface, so the "paper" half collapses into the same dark
+       scale as everything else (unused in practice while only the dark
+       tone is called, kept correct rather than deleted for the interface). */
+    --editorial-ink: var(--t-dim);
+    --editorial-ink-soft: var(--t-mute);
+    --editorial-paper: var(--t-deep);
+    --editorial-paper-raised: var(--t-surface);
+    --editorial-charcoal: var(--t-void);
+    --editorial-charcoal-raised: var(--t-surface);
+    --editorial-on-charcoal: var(--t-paper);
+    --editorial-on-charcoal-soft: var(--t-dim);
+    --editorial-line-on-paper: var(--t-line);
+    --editorial-line-on-charcoal: var(--t-line-strong);
+    --editorial-accent: var(--t-signal);
+    --editorial-accent-soft: var(--t-signal-glow);
 
     /* Same 100vw-scrollbar correction Bench & Booth uses for its own
        full-bleed bands (see BenchFrame.astro) — reproduced locally so this
