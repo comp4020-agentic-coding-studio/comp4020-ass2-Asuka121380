@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import cabinetSpeakersPhoto from "../../assets/images/week11-hero-cabinet-speakers.jpg";
 import WeekOpener from "../../components/tone/WeekOpener.astro";
 import WeekBand from "../../components/tone/WeekBand.astro";
 import WeekChain from "../../components/tone/WeekChain.astro";
@@ -27,6 +28,9 @@ import CabinetBench from "../../components/lab/CabinetBench.astro";
   input="An electrical voltage at the amplifier's power output"
   process="Mechanical motion at the voice coil and cone, reshaped by the cabinet and radiated into the air"
   output="Acoustic sound — and, when recorded, whatever a microphone's position captures"
+  image={cabinetSpeakersPhoto}
+  imageAlt="The inside of a guitar amp cabinet, viewed from behind, showing its speakers and magnets, the last physical stage before sound reaches the air."
+  credit="Photo: Ian Abbott · CC BY-SA 2.0"
 />
 
 <WeekBand index={1} label="Where we left off" heading="The last physical stage before sound reaches the air">

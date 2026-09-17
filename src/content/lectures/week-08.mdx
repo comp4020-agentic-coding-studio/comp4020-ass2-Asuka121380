@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import chorusPedalPhoto from "../../assets/images/week8-hero-chorus-pedal.jpg";
 import WeekOpener from "../../components/tone/WeekOpener.astro";
 import WeekBand from "../../components/tone/WeekBand.astro";
 import WeekChain from "../../components/tone/WeekChain.astro";
@@ -27,6 +28,9 @@ import ModulationLab from "../../components/lab/ModulationLab.astro";
   input="A static signal and a slow control oscillator"
   process="The LFO continuously varies a gain, delay, or corner frequency"
   output="A moving, time-varying effect: tremolo, vibrato, chorus, flanger, or phaser"
+  image={chorusPedalPhoto}
+  imageAlt="A chorus pedal, whose internal low-frequency oscillator continuously varies a short delay to create the sensation of motion."
+  credit="Photo: Guitar Chalk · CC BY 2.0"
 />
 
 <WeekBand index={1} label="Where we left off" heading="From static shaping to motion">

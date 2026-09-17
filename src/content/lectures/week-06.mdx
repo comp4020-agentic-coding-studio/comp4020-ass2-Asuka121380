@@ -12,6 +12,7 @@ teacherOverrides:
 slides: /decks/week-06/
 ---
 
+import fuzzCircuitPhoto from "../../assets/images/week6-hero-fuzz-circuit.jpg";
 import WeekOpener from "../../components/tone/WeekOpener.astro";
 import WeekBand from "../../components/tone/WeekBand.astro";
 import WeekChain from "../../components/tone/WeekChain.astro";
@@ -38,6 +39,9 @@ export const hardCurve = Array.from(buildClippingCurve("hard", 4));
   input="A signal driven into a real nonlinear element"
   process="Gain stage, then a clipping stage, in one of several arrangements"
   output="A distinct family of new harmonics per circuit"
+  image={fuzzCircuitPhoto}
+  imageAlt="A hand holding a small fuzz pedal's germanium-transistor clipping-stage circuit board, the physical nonlinear element this week studies."
+  credit="Photo: germanium · CC BY 2.0"
 />
 
 <WeekBand index={1} label="Where we left off" heading="From a mathematical curve to a real circuit">

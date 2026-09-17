@@ -9,6 +9,7 @@ teachers:
   - marisol-quaye
 ---
 
+import wahPedalPhoto from "../../assets/images/week7-hero-wah-pedal.jpg";
 import WeekOpener from "../../components/tone/WeekOpener.astro";
 import WeekBand from "../../components/tone/WeekBand.astro";
 import WeekChain from "../../components/tone/WeekChain.astro";
@@ -35,6 +36,9 @@ export const eqAfterStages = [
   input="A signal already containing many frequencies"
   process="Frequency-dependent gain: cutoff and resonance"
   output="A reshaped spectrum, a changed tonal balance"
+  image={wahPedalPhoto}
+  imageAlt="A vintage wah pedal, whose rocking treadle sweeps a filter's cutoff frequency across the spectrum in real time."
+  credit="Photo: GabeMc · CC BY-SA 3.0"
 />
 
 <WeekBand index={1} label="Where we left off" heading="From adding frequencies to reshaping them">

@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import ampTubesPhoto from "../../assets/images/week10-hero-amp-tubes.jpg";
 import WeekOpener from "../../components/tone/WeekOpener.astro";
 import WeekBand from "../../components/tone/WeekBand.astro";
 import WeekChain from "../../components/tone/WeekChain.astro";
@@ -40,6 +41,9 @@ export const amplifierStages = [
   input="A signal that has already been shaped by every earlier stage"
   process="A small signal chain of its own: repeated gain, filtering, and nonlinearity"
   output="A louder, further-shaped signal, still electrical rather than acoustic"
+  image={ampTubesPhoto}
+  imageAlt="Two glowing power tubes inside a guitar amplifier's chassis, one of the internal gain stages this week studies."
+  credit="Photo: Rob Robinette · CC BY-SA 4.0"
 />
 
 <WeekBand index={1} label="Where we left off" heading="The amplifier as a further signal chain">

@@ -9,6 +9,7 @@ teachers:
   - marisol-quaye
 ---
 
+import reverbPedalPhoto from "../../assets/images/week9-hero-reverb-pedal.jpg";
 import WeekOpener from "../../components/tone/WeekOpener.astro";
 import WeekBand from "../../components/tone/WeekBand.astro";
 import WeekChain from "../../components/tone/WeekChain.astro";
@@ -27,6 +28,9 @@ import DelayLab from "../../components/lab/DelayLab.astro";
   input="A signal and a delay line with a feedback loop"
   process="A fraction of the delayed output is recirculated into the delay's own input"
   output="A decaying series of echoes, or — at much higher density — the sense of a physical space"
+  image={reverbPedalPhoto}
+  imageAlt="A reverb pedal on a wood tabletop, its controls setting how densely a signal is fed back into a delay line to simulate a physical space."
+  credit="Photo: Guitar Chalk · CC BY 2.0"
 />
 
 <WeekBand index={1} label="Where we left off" heading="From one delayed copy to a feedback loop">

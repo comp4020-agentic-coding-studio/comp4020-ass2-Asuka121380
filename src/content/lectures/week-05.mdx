@@ -9,6 +9,7 @@ teachers:
   - idris-fenn
 ---
 
+import overdrivePhoto from "../../assets/images/week5-hero-tube-overdrive.jpg";
 import WeekOpener from "../../components/tone/WeekOpener.astro";
 import WeekBand from "../../components/tone/WeekBand.astro";
 import WeekChain from "../../components/tone/WeekChain.astro";
@@ -32,6 +33,9 @@ export const hardCurve = Array.from(buildClippingCurve("hard", 3));
   input="A signal driven past a stage's headroom"
   process="Clipping: hard or soft"
   output="New harmonic content that wasn't there before"
+  image={overdrivePhoto}
+  imageAlt="A tube-powered overdrive pedal with its drive knobs and a visibly glowing vacuum tube, the gain stage that pushes a signal past its headroom."
+  credit="Photo: Tim Patterson · CC BY-SA 2.0"
 />
 
 <WeekBand index={1} label="Where we left off" heading="From linear filtering to nonlinear transformation">

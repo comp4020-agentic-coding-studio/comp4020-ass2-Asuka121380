@@ -78,9 +78,8 @@ const trace = image
         Week {String(week).padStart(2, "0")} <span aria-hidden="true">·</span> Stage: {tag}
       </p>
       <h1 class="opener-title">{title}</h1>
+      {credit && <p class="t-label opener-credit">{credit}</p>}
     </div>
-
-    {credit && <p class="t-label opener-credit">{credit}</p>}
   </div>
 
   <div class="t-shell">
@@ -183,12 +182,12 @@ const trace = image
     margin-inline-start: -0.04em;
   }
 
-  /* Bottom-right, where the veil has already darkened the plate — top-right
-     put it over the brightest part of most photographs. */
+  /* Flows below the title rather than sitting at an independent absolute
+     offset, so a two-line title on a narrow viewport pushes the credit down
+     with it instead of the two colliding. */
   .opener-credit {
-    position: absolute;
-    inset-block-end: 0.7rem;
-    inset-inline-end: var(--t-gutter);
+    margin-block-start: clamp(0.5rem, 1.5vw, 0.85rem);
+    text-align: end;
     font-size: 0.5625rem;
     color: rgb(241 239 234 / 50%);
     text-shadow: 0 1px 4px rgb(0 0 0 / 70%);

@@ -9,6 +9,7 @@ teachers:
   - marisol-quaye
 ---
 
+import guitarPhoto from "../../assets/images/week1-hero-stratocaster.jpg";
 import WeekOpener from "../../components/tone/WeekOpener.astro";
 import WeekBand from "../../components/tone/WeekBand.astro";
 import WeekChain from "../../components/tone/WeekChain.astro";
@@ -36,6 +37,9 @@ export const chainStages = [
   input="A player's touch"
   process="An eight-stage signal chain"
   output="What we call tone"
+  image={guitarPhoto}
+  imageAlt="A sunburst electric guitar's full body and neck, lit against a dark studio background, showing the complete instrument before any signal chain begins."
+  credit="Photo: Lightburst · CC BY-SA 4.0"
 />
 
 <WeekBand index={1} label="No week before this one" heading="Tone as an engineering question">
