@@ -24,7 +24,7 @@ const topY = padding + 4;
 const bottomY = viewport.height - padding - 4;
 ---
 
-<div class="lfo-diagram bench-module">
+<div class="lfo-diagram">
   <figure class="lfo-trace">
     <svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} role="img" aria-label="The LFO: a plain sine wave used only as a control signal, never sent to the output.">
       <path d={tracePath} class="trace-line" fill="none" />
@@ -76,45 +76,45 @@ const bottomY = viewport.height - padding - 4;
 
   .lfo-trace figcaption {
     margin-top: 0.3rem;
-    font-size: var(--at-font-size-xs);
-    color: var(--at-text-secondary);
+    font-size: var(--t-label);
+    color: var(--t-mute);
     text-align: center;
   }
 
   .trace-line {
-    stroke: var(--bench-input-trace, var(--at-accent));
+    stroke: var(--t-signal-dim);
     stroke-width: 2;
   }
 
   .trace-driven {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-signal);
   }
 
   .bound-line {
-    stroke: var(--at-warning, var(--at-border));
+    stroke: var(--t-hot);
     stroke-width: 1;
     stroke-dasharray: 3 3;
   }
 
   .bound-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 6px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .lfo-arrow {
     width: 2.75rem;
     height: 1.1rem;
     flex: none;
-    stroke: var(--at-text-secondary);
+    stroke: var(--t-mute);
     stroke-width: 1.5;
     overflow: visible;
   }
 
   .lfo-arrow-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 5px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
     stroke: none;
     text-anchor: middle;
   }

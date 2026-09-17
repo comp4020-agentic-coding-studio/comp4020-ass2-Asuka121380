@@ -26,9 +26,9 @@ const effectOptions = [
 ];
 ---
 
-<div class="modulation-lab bench-module" id="modulation-lab">
+<div class="modulation-lab" id="modulation-lab">
   <div class="lab-header">
-    <span class="lab-name">SLOP2186 Modulation Bench</span>
+    <span class="t-label lab-name">Modulation simulator</span>
     <FootswitchGroup name="modulation-effect" legend="Effect" options={effectOptions} selected={DEFAULT_EFFECT} />
   </div>
 
@@ -49,7 +49,7 @@ const effectOptions = [
     </svg>
   </div>
 
-  <p class="bench-scope-note">Rate and Depth always mean the same thing — how fast and how far the LFO swings a parameter — but which parameter changes with the effect: output gain for Tremolo, delay time for Vibrato/Chorus/Flanger, and an allpass filter's corner frequency for Phaser.</p>
+  <p class="lab-note">Rate and Depth always mean the same thing — how fast and how far the LFO swings a parameter — but which parameter changes with the effect: output gain for Tremolo, delay time for Vibrato/Chorus/Flanger, and an allpass filter's corner frequency for Phaser.</p>
 </div>
 
 <script>
@@ -208,11 +208,7 @@ const effectOptions = [
   }
 
   .lab-name {
-    font-family: var(--bench-readout, var(--at-font-mono));
-    font-size: var(--at-font-size-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--at-text-secondary);
+    color: var(--t-mute);
   }
 
   .lab-controls {
@@ -229,29 +225,32 @@ const effectOptions = [
   }
 
   .target-label {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 8px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .target-track {
-    stroke: var(--bench-line, var(--at-border));
+    stroke: var(--t-line);
     stroke-width: 2;
   }
 
   .target-tick {
-    font-family: var(--bench-readout, var(--at-font-mono));
+    font-family: var(--t-mono);
     font-size: 7px;
-    fill: var(--at-text-secondary);
+    fill: var(--t-mute);
   }
 
   .target-marker {
-    fill: var(--bench-phosphor, var(--at-accent));
+    fill: var(--t-signal);
   }
 
-  .bench-scope-note {
+  .lab-note {
     margin: 0;
+    font-size: 0.9rem;
+    color: var(--t-dim);
+    max-width: var(--t-measure);
   }
 </style>

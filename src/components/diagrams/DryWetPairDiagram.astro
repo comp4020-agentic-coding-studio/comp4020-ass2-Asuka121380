@@ -22,7 +22,7 @@ const dryPath = waveformPath(dry, viewport);
 const wetPath = waveformPath(wet, viewport);
 ---
 
-<figure class="dry-wet bench-module">
+<figure class="dry-wet">
   <svg
     viewBox={`0 0 ${viewport.width} ${viewport.height}`}
     role="img"
@@ -49,11 +49,11 @@ const wetPath = waveformPath(wet, viewport);
   }
 
   .trace-dry {
-    stroke: var(--bench-input-trace, var(--at-accent));
+    stroke: var(--t-signal-dim);
   }
 
   .trace-wet {
-    stroke: var(--bench-phosphor, var(--at-accent));
+    stroke: var(--t-signal);
     stroke-dasharray: 3 2;
   }
 
@@ -68,8 +68,8 @@ const wetPath = waveformPath(wet, viewport);
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: var(--at-font-size-xs);
-    color: var(--at-text-secondary);
+    font-size: var(--t-label);
+    color: var(--t-mute);
   }
 
   .swatch {
@@ -79,10 +79,10 @@ const wetPath = waveformPath(wet, viewport);
   }
 
   .swatch-dry {
-    background: var(--bench-input-trace, var(--at-accent));
+    background: var(--t-signal-dim);
   }
 
   .swatch-wet {
-    background: var(--bench-phosphor, var(--at-accent));
+    background: var(--t-signal);
   }
 </style>
