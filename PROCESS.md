@@ -1732,6 +1732,24 @@ trimmed for the word count — that curation happens once, at submission time.
   rendered page verified with `HTTP 200` and no leftover `bench-*`
   classes.
 
+- **`307094a`** — migrated week 10 ("Inside the Guitar Amplifier") onto
+  `WeekOpener`/`WeekBand`/`WeekChain`/`WeekTakeaways`/`CausalChainStrip`,
+  preserving the amplifier-as-chain framing (Input → Preamp → Tone stack
+  → Power amp → Speaker), gain staging, tubes vs. transistors, negative
+  feedback, preamp vs. power-amp distortion, and the gain-staging try-it
+  lab. `CurveGallery`, `TransferCurveCard` and `SignalChainDiagram` were
+  already on `--t-*` tokens from earlier weeks and needed no changes.
+  Cleaned the bench chrome in `GainStagingDiagram` and `AmplifierBench` —
+  the only two remaining components this week's diagram/lab set uses —
+  remapping `--bench-*`/`--at-*` custom properties to `--t-*` (the
+  saturation-ceiling line and the saturated-bar fill map to `--t-hot`, a
+  genuine overload marker rather than decoration), renaming
+  `.bench-scope-note` to `.lab-note`, and de-branding `AmplifierBench`'s
+  header from "SLOP2186 Amplifier Bench" to "Gain-staging simulator".
+  Checked: `pnpm check` green (0 errors, the same 2 pre-existing hints),
+  rendered page verified with `HTTP 200` and no leftover `bench-*`
+  classes.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
