@@ -1803,6 +1803,31 @@ trimmed for the word count — that curation happens once, at submission time.
   rendered page verified with `HTTP 200` and no leftover `bench-*` or
   `SLOP2186`-branded classes.
 
+- **`672d8b3`** — deleted the seven components left over from the old
+  Bench/Booth register now that all twelve lecture weeks are on TONE:
+  `LectureIntro.astro`, `lab/BenchFrame.astro`, `lab/BenchBand.astro`,
+  `SignalChainStrip.astro`, and `TakeawaysList.astro`. Deleting
+  `LectureIntro` also orphaned two components it pulled in from an
+  earlier homepage iteration, `home/EditorialFrame.astro` and
+  `home/EditorialBand.astro` — neither is referenced by the current
+  TONE-based homepage (`src/pages/index.astro` never imports them).
+  Before deleting, grepped `src/` for all seven names and confirmed
+  every remaining hit was a mutual reference within this now-dead
+  cluster itself, not an external consumer. The one live component
+  sharing CSS custom-property *names* with the editorial pair,
+  `MarkingModel.astro` (used on the Assessments pages), reads them only
+  through safe fallbacks (`var(--editorial-accent, var(--at-accent))`
+  and similar), so it needed no change and does not depend on either
+  file existing. Checked: `pnpm check` green (0 errors, 0 warnings, the
+  same 2 pre-existing unrelated hints; 25 pages built; axe/link checks
+  clean; 5/5 vitest tests pass), and curl-verified the homepage, Week 1,
+  Week 12, Assessments and People pages all still return `HTTP 200`,
+  with `MarkingModel`'s weight bars (`marking-weights-*` classes) still
+  rendering correctly on the Assessments page and no leftover
+  `editorial-`/`bench-module` references anywhere. This closes out the
+  full Bench→TONE migration: all lecture weeks are migrated and all
+  superseded shared components are removed.
+
 ## Before you ship
 
 `pnpm check:evidence` verifies that this comment is gone, that your citations
