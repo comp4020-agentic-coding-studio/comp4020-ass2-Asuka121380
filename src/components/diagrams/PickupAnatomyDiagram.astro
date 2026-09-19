@@ -1,0 +1,119 @@
+---
+// A static cross-section for the deck's "pickup anatomy" slide: string, pole
+// piece, coil and magnet, each named with a leader line. Deliberately
+// simpler and larger-at-a-glance than the lecture page's InductionFigure,
+// which is built for reading distance and interaction; this is built to
+// read from the back of a room at one fixed size.
+interface Props {
+  ariaLabel?: string;
+}
+
+const { ariaLabel } = Astro.props;
+const label =
+  ariaLabel ??
+  "Cross-section of a magnetic pickup: a steel string runs above a cylindrical pole piece, wound with a coil of fine copper wire, standing on a permanent magnet with north and south poles, with leads running out to the rest of the circuit.";
+---
+
+<svg class="pa-diagram" viewBox="0 0 560 300" role="img" aria-label={label}>
+  <line x1="0" y1="36" x2="560" y2="36" class="pa-string" />
+  <text x="6" y="20" class="pa-caption">String</text>
+
+  <rect x="245" y="88" width="24" height="94" rx="2" class="pa-pole" />
+
+  <g class="pa-coil">
+    {
+      Array.from({ length: 10 }, (_, i) => (
+        <ellipse cx="257" cy={98 + i * 7.2} rx="40" ry="3.6" />
+      ))
+    }
+  </g>
+
+  <rect x="218" y="182" width="78" height="56" rx="2" class="pa-magnet" />
+  <line x1="218" y1="210" x2="296" y2="210" class="pa-hairline" />
+  <text x="257" y="204" class="pa-glyph">N</text>
+  <text x="257" y="232" class="pa-glyph">S</text>
+
+  <path class="pa-lead" d="M 296 194 C 336 194 336 208 384 208" fill="none" />
+  <path class="pa-lead" d="M 296 206 C 344 206 344 220 384 220" fill="none" />
+
+  <g class="pa-labels">
+    <line x1="269" y1="172" x2="330" y2="172" class="pa-leader" />
+    <text x="336" y="176" class="pa-caption">Pole piece</text>
+
+    <line x1="297" y1="122" x2="345" y2="122" class="pa-leader" />
+    <text x="351" y="126" class="pa-caption pa-caption--copper">Coil</text>
+
+    <line x1="296" y1="208" x2="345" y2="208" class="pa-leader" />
+    <text x="351" y="212" class="pa-caption">Magnet</text>
+
+    <text x="390" y="224" class="pa-caption">To circuit</text>
+  </g>
+</svg>
+
+<style>
+  .pa-diagram {
+    display: block;
+    width: 100%;
+    max-width: 34rem;
+    height: auto;
+    margin-inline: auto;
+  }
+
+  .pa-string {
+    stroke: var(--t-copper);
+    stroke-width: 3;
+  }
+
+  .pa-pole {
+    fill: #454b52;
+    stroke: rgb(241 239 234 / 22%);
+    stroke-width: 1;
+  }
+
+  .pa-coil ellipse {
+    fill: none;
+    stroke: var(--t-copper);
+    stroke-width: 1.6;
+    opacity: 0.9;
+  }
+
+  .pa-magnet {
+    fill: #32373d;
+  }
+
+  .pa-hairline {
+    stroke: rgb(241 239 234 / 30%);
+    stroke-width: 1;
+  }
+
+  .pa-glyph {
+    fill: var(--t-dim);
+    font-family: var(--t-mono);
+    font-size: 13px;
+    font-weight: 600;
+    text-anchor: middle;
+  }
+
+  .pa-lead {
+    stroke: var(--t-copper);
+    stroke-width: 1.4;
+    opacity: 0.65;
+  }
+
+  .pa-leader {
+    stroke: var(--t-line-strong);
+    stroke-width: 1;
+  }
+
+  .pa-caption {
+    fill: var(--t-mute);
+    font-family: var(--t-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .pa-caption--copper {
+    fill: var(--t-copper);
+  }
+</style>

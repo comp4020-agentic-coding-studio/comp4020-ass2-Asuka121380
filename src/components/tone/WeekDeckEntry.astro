@@ -1,0 +1,107 @@
+---
+// The one prominent way to reach this week's slide deck — placed directly
+// after WeekOpener, before the lecture body starts arguing its case, so a
+// reader (or the lecturer, mid-class) sees it before scrolling past it. The
+// small "Open the deck" link in the page footer (week-meta) stays as a
+// secondary fallback; it is not styled to compete with this.
+interface Props {
+  href: string;
+  slideCount: number;
+}
+
+const { href, slideCount } = Astro.props;
+---
+
+<div class="t-shell deck-entry">
+  <div class="deck-entry-inner">
+    <div class="deck-entry-text">
+      <p class="t-label deck-entry-kicker">Lecture deck</p>
+      <p class="deck-entry-heading">Present this lecture as slides</p>
+    </div>
+    <div class="deck-entry-action">
+      <a class="deck-entry-link" href={href}>
+        Open lecture deck <span class="t-arrow" aria-hidden="true">&rarr;</span>
+      </a>
+      <p class="t-label t-num deck-entry-meta">{slideCount} slides &middot; presentation mode</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .deck-entry {
+    padding-block: calc(var(--t-band) / 2);
+    border-block-end: 1px solid var(--t-line);
+  }
+
+  .deck-entry-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem 2.5rem;
+  }
+
+  .deck-entry-kicker {
+    color: var(--t-signal);
+    margin: 0 0 0.5rem;
+  }
+
+  .deck-entry-heading {
+    margin: 0;
+    max-width: 24ch;
+    font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  .deck-entry-action {
+    display: grid;
+    justify-items: end;
+    gap: 0.6rem;
+    text-align: end;
+  }
+
+  .deck-entry-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--t-signal);
+    text-decoration: none;
+    padding-block-end: 0.3rem;
+    border-block-end: 1px solid var(--t-signal-dim);
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .deck-entry-link:hover {
+    color: var(--t-paper);
+    border-block-end-color: var(--t-paper);
+  }
+
+  .deck-entry-link .t-arrow {
+    transition: transform 0.2s ease;
+  }
+
+  .deck-entry-link:hover .t-arrow {
+    transform: translateX(0.3rem);
+  }
+
+  .deck-entry-meta {
+    color: var(--t-mute);
+    margin: 0;
+  }
+
+  @media (width < 40rem) {
+    .deck-entry-inner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .deck-entry-action {
+      justify-items: start;
+      text-align: start;
+    }
+  }
+</style>

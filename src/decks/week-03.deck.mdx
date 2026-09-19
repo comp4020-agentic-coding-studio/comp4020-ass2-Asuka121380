@@ -1,0 +1,205 @@
+---
+title: "Week 3: From Vibration to Voltage"
+description: How a magnetic pickup turns string motion into an electrical signal
+---
+
+import PickupAnatomyDiagram from "../components/diagrams/PickupAnatomyDiagram.astro";
+import InductionDiagram from "../components/diagrams/InductionDiagram.astro";
+import SignalAnatomyDiagram from "../components/diagrams/SignalAnatomyDiagram.astro";
+import PickupPositionDiagram from "../components/diagrams/PickupPositionDiagram.astro";
+import HumCancellationDiagram from "../components/diagrams/HumCancellationDiagram.astro";
+import SignalChainDiagram from "../components/diagrams/SignalChainDiagram.astro";
+
+{/* _class: impact */}
+
+<p class="kicker">SLOP2186 &middot; Week 3</p>
+
+# From Vibration to Voltage
+
+How a magnetic pickup turns string motion into an electrical signal.
+
+<p class="deck-mark">Slop University &middot; SLOP2186</p>
+
+---
+
+{/* _class: centered */}
+
+<p class="kicker">The question</p>
+
+<p class="display-line">String moves.</p>
+<p class="display-line">Cable carries a voltage.</p>
+<p class="display-line">What happens in between?</p>
+
+---
+
+{/* _class: centered signal */}
+
+<p class="kicker">The missing link</p>
+
+<p class="display-line">STRING &rarr; ? &rarr; VOLTAGE</p>
+
+Something between the string and the cable has to turn motion into an
+electrical signal.
+
+---
+
+![bg right:45%](./assets/week3-hero-humbucker-sg.jpg)
+
+# Meet the pickup
+
+A magnetic pickup sits under the strings and does exactly one job: sense
+string motion and turn it into a voltage — no moving parts touch the string
+at all.
+
+<p class="image-credit">Photo: John Tuggle &middot; CC BY 2.0</p>
+
+---
+
+{/* _class: diagram */}
+
+# Pickup anatomy
+
+<PickupAnatomyDiagram />
+
+<p class="caption">Magnet, pole piece, coil &mdash; the three physical parts</p>
+
+---
+
+{/* _class: diagram */}
+
+# Motion changes flux
+
+<InductionDiagram />
+
+<p class="caption">A still string: constant flux, no output. A moving string: changing flux, a voltage appears.</p>
+
+---
+
+{/* _class: diagram signal */}
+
+# Faraday's law
+
+<InductionDiagram equation />
+
+<p class="caption">The induced voltage is proportional to how fast the flux changes, not the string's position</p>
+
+---
+
+{/* _class: diagram signal */}
+
+# What's in the voltage
+
+<SignalAnatomyDiagram />
+
+<p class="caption">Amplitude, period, and a harmonic series &mdash; not one pure tone</p>
+
+---
+
+{/* _class: diagram signal */}
+
+# Position is sampling
+
+A pickup only senses motion at the one point it sits at, so it samples the
+string's standing-wave modes at that location.
+
+<PickupPositionDiagram />
+
+---
+
+{/* _class: metric signal */}
+
+# Why bridge sounds brighter
+
+<p class="metric-value">&asymp; 1/5</p>
+
+<p class="metric-label">the fundamental's relative amplitude at a bridge-like position &mdash; weaker there, so upper harmonics dominate more of the balance</p>
+
+---
+
+![bg left:45%](./assets/week3-single-coil-bobbin.jpg)
+
+# The single coil
+
+One magnet, one coil, several thousand turns of fine copper wire — simple,
+and with nothing to reject interference it picks up along the way.
+
+<p class="image-credit">Photo: William Warby &middot; CC BY 2.0</p>
+
+---
+
+![bg left:45%](./assets/week3-humbucker-open.jpg)
+
+# The humbucker
+
+Two coils, wound and wired in opposition, sensing the same string from two
+adjacent points.
+
+<p class="image-credit">Photo: William Warby &middot; CC BY 2.0</p>
+
+---
+
+{/* _class: diagram signal */}
+
+# Noise cancellation
+
+<HumCancellationDiagram />
+
+<p class="caption">Interference arrives alike at both coils and cancels; the string arrives opposite and adds</p>
+
+---
+
+{/* _class: split */}
+
+<div>
+
+<p class="kicker">Recap</p>
+
+# Single-coil vs. humbucker
+
+</div>
+
+<div>
+
+**Single-coil** &mdash; one coil, senses interference along with the string,
+brighter and more position-sensitive.
+
+**Humbucker** &mdash; two opposed coils; common-mode interference cancels
+while the string's signal adds. Comparatively darker, higher output, and
+quiet.
+
+</div>
+
+---
+
+{/* _class: signal */}
+
+# Listening: try it
+
+Open this week's page and drag the pickup along the string in
+[PickupLab](../../lectures/week-03/#pickup-lab) — the sound moves with the
+curve, because the same expression drives both.
+
+---
+
+{/* _class: diagram */}
+
+# The full causal chain
+
+<SignalChainDiagram
+  stages={[
+    { label: "Vibration", caption: "the string moves" },
+    { label: "Flux change", caption: "the field through the coil rises and falls" },
+    { label: "Induced voltage", caption: "the signal leaving the pickup" },
+  ]}
+/>
+
+---
+
+{/* _class: banner */}
+
+<p class="kicker">Next</p>
+
+# The guitar is a circuit
+
+Resistance, capacitance, and the guitar's own volume and tone controls all
+shape this voltage before it ever reaches a cable.

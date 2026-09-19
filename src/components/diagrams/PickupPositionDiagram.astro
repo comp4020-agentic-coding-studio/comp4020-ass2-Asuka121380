@@ -1,0 +1,155 @@
+---
+// Why pickup position changes the harmonic balance, shown for two positions
+// at once rather than as two near-duplicate slides. Reuses
+// pickupHarmonicWeights — the exact function driving the lecture page's
+// PickupLab and ModeSampling figure — so the numbers here agree with the
+// rest of the week rather than being redrawn by eye. The default positions
+// (0.07, 0.24) are ModeSampling's own bridge-like/neck-like fractions.
+import { pickupHarmonicWeights } from "../../lib/audio/analysis";
+
+interface PositionSpec {
+  key: string;
+  label: string;
+  position: number;
+}
+
+interface Props {
+  positions?: PositionSpec[];
+  harmonics?: number;
+  ariaLabel?: string;
+}
+
+const defaultPositions: PositionSpec[] = [
+  { key: "bridge", label: "Bridge position", position: 0.07 },
+  { key: "neck", label: "Neck position", position: 0.24 },
+];
+
+const { positions = defaultPositions, harmonics = 4, ariaLabel } = Astro.props;
+
+const series = positions.map((spec) => ({
+  ...spec,
+  weights: pickupHarmonicWeights(spec.position, harmonics),
+}));
+
+const label =
+  ariaLabel ??
+  `A string from bridge to nut, marked at ${series
+    .map((s) => `${s.label.toLowerCase()}, ${Math.round(s.position * 100)} per cent along the string`)
+    .join(" and ")}. A bar chart at each position shows the relative strength a pickup there senses for each of the first ${harmonics} harmonics, computed from the pickup's actual sampling position.`;
+---
+
+<div class="pp-diagram" role="img" aria-label={label}>
+  <svg class="pp-string" viewBox="0 0 640 56" aria-hidden="true">
+    <line x1="10" y1="28" x2="630" y2="28" class="pp-line" />
+    <text x="10" y="14" class="pp-end">Bridge</text>
+    <text x="630" y="14" class="pp-end pp-end--right">Nut</text>
+    {
+      series.map((s) => (
+        <line x1={10 + s.position * 620} y1="4" x2={10 + s.position * 620} y2="52" class={`pp-cut pp-cut--${s.key}`} />
+      ))
+    }
+  </svg>
+
+  <div class="pp-charts">
+    {
+      series.map((s) => (
+        <div class="pp-chart">
+          <p class="pp-chart-label">{s.label}</p>
+          <div class="pp-bars">
+            {s.weights.map((w, i) => (
+              <div class="pp-bar-col">
+                <div class="pp-bar" style={`height:${Math.max(w * 100, 4)}%`} />
+                <span class="pp-bar-tick">{i + 1}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .pp-diagram {
+    display: grid;
+    gap: 2rem;
+    width: 100%;
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+
+  .pp-string {
+    width: 100%;
+    height: auto;
+  }
+
+  .pp-line {
+    stroke: var(--t-copper);
+    stroke-width: 2.5;
+  }
+
+  .pp-end {
+    fill: var(--t-mute);
+    font-family: var(--t-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .pp-end--right {
+    text-anchor: end;
+  }
+
+  .pp-cut {
+    stroke: var(--t-signal);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+
+  .pp-charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem;
+  }
+
+  .pp-chart-label {
+    margin: 0 0 0.75rem;
+    font-family: var(--t-mono);
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--t-signal);
+    text-align: center;
+  }
+
+  .pp-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.75rem;
+    height: 7rem;
+  }
+
+  .pp-bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    width: 2.5rem;
+    height: 100%;
+  }
+
+  .pp-bar {
+    width: 100%;
+    max-width: 1.4rem;
+    background: var(--t-signal);
+    border-radius: 1px;
+  }
+
+  .pp-bar-tick {
+    font-family: var(--t-mono);
+    font-size: 0.7rem;
+    color: var(--t-mute);
+  }
+</style>

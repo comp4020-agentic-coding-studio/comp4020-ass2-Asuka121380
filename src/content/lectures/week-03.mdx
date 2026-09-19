@@ -7,10 +7,13 @@ week: 3
 date: 2027-03-08
 teachers:
   - jimi-hendrix
+slides: /decks/week-03/
 ---
 
+import { withBase } from "astro-theme-university/url";
 import pickupPhoto from "../../assets/images/week3-hero-humbucker-sg.jpg";
 import WeekOpener from "../../components/tone/WeekOpener.astro";
+import WeekDeckEntry from "../../components/tone/WeekDeckEntry.astro";
 import WeekBand from "../../components/tone/WeekBand.astro";
 import WeekChain from "../../components/tone/WeekChain.astro";
 import WeekTakeaways from "../../components/tone/WeekTakeaways.astro";
@@ -31,6 +34,8 @@ import PickupLab from "../../components/tone/week3/PickupLab.astro";
   imageAlt="Two nickel-covered humbucking pickups mounted on the deep red mahogany body of an electric guitar, one close to the bridge and one close to the neck, with the strings running across their pole pieces."
   credit="Photo: John Tuggle · CC BY 2.0"
 />
+
+<WeekDeckEntry href={withBase("/decks/week-03/")} slideCount={17} />
 
 <WeekBand index={1} label="Where we left off" heading="A vibrating string is not yet a signal">
 
@@ -85,7 +90,7 @@ reaching for "warm" or "bright" on their own.
 
 </WeekBand>
 
-<WeekBand index={4} label="Try it" heading="Move the pickup, and listen" layout="wide" bleed>
+<WeekBand index={4} label="Try it" heading="Move the pickup, and listen" layout="wide" bleed id="pickup-lab">
 
 Drag the pickup along the string and the sensitivity curve moves with it.
 Press play and drag again: the sound moves too, because the filter processing

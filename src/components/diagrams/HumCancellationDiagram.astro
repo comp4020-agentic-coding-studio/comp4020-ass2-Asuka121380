@@ -1,0 +1,104 @@
+---
+// The one thing a photograph of a humbucker cannot show: what happens when
+// two coils' outputs are summed. Same schematic as CoilComparison's
+// coils-diagram (built for an article column next to two photos), rebuilt
+// standalone at deck scale rather than importing that component's photos
+// into a slide that doesn't have room for them.
+interface Props {
+  ariaLabel?: string;
+}
+
+const { ariaLabel } = Astro.props;
+const label =
+  ariaLabel ??
+  "Two coils wound in opposite directions. Interference arrives at both coils in the same sense and cancels when their outputs are summed, while the string's signal arrives in opposite senses and adds.";
+---
+
+<svg class="hc-diagram" viewBox="0 0 320 170" role="img" aria-label={label}>
+  <g class="hc-row">
+    <text x="0" y="12" class="hc-label">Interference (both coils alike)</text>
+    <path class="hc-wave hc-wave--noise" d="M 0 34 q 10 -12 20 0 t 20 0 t 20 0 t 20 0" fill="none" />
+    <path class="hc-wave hc-wave--noise" d="M 0 58 q 10 -12 20 0 t 20 0 t 20 0 t 20 0" fill="none" />
+    <text x="112" y="50" class="hc-op">+</text>
+    <line x1="132" y1="46" x2="176" y2="46" class="hc-arrow" />
+    <path class="hc-wave hc-wave--null" d="M 186 46 L 300 46" fill="none" />
+    <text x="243" y="30" class="hc-result hc-result--null">cancels</text>
+  </g>
+
+  <g class="hc-row" transform="translate(0,86)">
+    <text x="0" y="12" class="hc-label">String (coils wound opposite)</text>
+    <path class="hc-wave hc-wave--string" d="M 0 34 q 10 -12 20 0 t 20 0 t 20 0 t 20 0" fill="none" />
+    <path class="hc-wave hc-wave--string" d="M 0 58 q 10 12 20 0 t 20 0 t 20 0 t 20 0" fill="none" />
+    <text x="112" y="50" class="hc-op">+</text>
+    <line x1="132" y1="46" x2="176" y2="46" class="hc-arrow" />
+    <path class="hc-wave hc-wave--sum" d="M 186 46 q 14 -18 28 0 t 28 0 t 28 0 t 28 0" fill="none" />
+    <text x="243" y="22" class="hc-result">adds</text>
+  </g>
+</svg>
+
+<style>
+  .hc-diagram {
+    display: block;
+    width: 100%;
+    max-width: 36rem;
+    height: auto;
+    margin-inline: auto;
+  }
+
+  .hc-label {
+    fill: var(--t-mute);
+    font-family: var(--t-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hc-wave {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  .hc-wave--noise {
+    stroke: var(--t-hot);
+    opacity: 0.8;
+  }
+
+  .hc-wave--string {
+    stroke: var(--t-copper);
+  }
+
+  .hc-wave--null {
+    stroke: var(--t-mute);
+    stroke-dasharray: 3 4;
+  }
+
+  .hc-wave--sum {
+    stroke: var(--t-signal);
+    stroke-width: 2;
+  }
+
+  .hc-op {
+    fill: var(--t-mute);
+    font-family: var(--t-mono);
+    font-size: 13px;
+    text-anchor: middle;
+  }
+
+  .hc-arrow {
+    stroke: var(--t-line-strong);
+    stroke-width: 1;
+  }
+
+  .hc-result {
+    fill: var(--t-signal);
+    font-family: var(--t-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-anchor: middle;
+  }
+
+  .hc-result--null {
+    fill: var(--t-mute);
+  }
+</style>

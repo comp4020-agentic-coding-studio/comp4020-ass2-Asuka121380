@@ -1,13 +1,325 @@
-/* The deck stylesheet. It is one import on purpose.
+/* The deck stylesheet.
  *
- * astro-theme-university's deck.css derives every colour it uses from the
- * same --at-* brand tokens the site's own styles derive from, and
- * `brandCss: "astro-theme-slop/slop.css"` in astro.config.ts puts the Slop
- * palette behind those tokens. So a deck already matches the site, and
- * restating a colour here is how the two start to disagree.
+ * Decks are a separate dark surface with no [data-tone] ancestor to inherit
+ * from, so this file restates the TONE tokens it needs as literal values ---
+ * the same reasoning astro-theme-university's own deck.css gives for
+ * declaring its own --at-* palette rather than depending on the site's
+ * tokens. Reveal.js also scales the whole slide via a CSS transform, so
+ * viewport-relative units (vw/clamp) would be measured before that scale is
+ * applied; every size below is a fixed rem/px value tuned for the 1280x720
+ * slide canvas instead.
  *
- * Deck pages are dark surfaces and they don't load the site's stylesheets ---
- * only the brand CSS and this file. Add your own rules below the import: a
- * slide class you reach for (`_class: quote`), a code-heavy layout, a
- * background. */
+ * astro-theme-university's deck.css is still imported for its structural
+ * mechanics (slide padding, list/table resets, the hero scrim animation,
+ * print-view fixes, the Marp-style split-layout/split-image/split-content
+ * classes astromotion's background-image directive generates). Everything
+ * below it is unlayered CSS, which beats the import's @layer at.tokens
+ * regardless of source order --- the same cascade trick tone.css uses on the
+ * main site. Nothing in node_modules is edited.
+ */
 @import url("astro-theme-university/styles/deck.css");
+
+:root {
+  /* Ground + ink, identical values to tone.css's --t-void/--t-paper etc. */
+  --t-void: #0a0b0c;
+  --t-deep: #0f1113;
+  --t-surface: #15181b;
+  --t-raised: #1d2125;
+  --t-edge: #2a2f34;
+
+  --t-paper: #f1efea;
+  --t-dim: rgb(241 239 234 / 68%);
+  --t-mute: rgb(241 239 234 / 44%);
+
+  /* The two signal channels: copper = physical/mechanical, signal =
+     electrical/measured. Never decoration --- see CLAUDE.md. */
+  --t-copper: #e0a24a;
+  --t-copper-dim: rgb(224 162 74 / 40%);
+  --t-signal: #59ddd2;
+  --t-signal-dim: rgb(89 221 210 / 38%);
+  --t-hot: #ff6a45;
+
+  --t-line: rgb(241 239 234 / 11%);
+  --t-line-strong: rgb(241 239 234 / 20%);
+  --t-grid: rgb(241 239 234 / 4%);
+
+  --t-sans: var(--font-archivo, "Archivo"), "Helvetica Neue", arial, sans-serif;
+  --t-mono: var(--font-plex-mono, "IBM Plex Mono"), ui-monospace, "SFMono-Regular", menlo, monospace;
+
+  --t-small: 0.875rem;
+  --t-label: 0.6875rem;
+  --t-measure: 54ch;
+
+  /* Reveal's own hooks. */
+  --r-background-color: var(--t-void);
+  --r-main-color: var(--t-paper);
+  --r-main-font: var(--t-sans);
+  --r-main-font-size: 1.75rem;
+  --r-heading-color: var(--t-paper);
+  --r-heading-font: var(--t-sans);
+  --r-heading-font-weight: 800;
+  --r-link-color: var(--t-signal);
+  --r-link-color-hover: var(--t-copper);
+  --r-code-font: var(--t-mono);
+  --r-heading1-size: 3.4rem;
+  --r-heading2-size: 1.7rem;
+}
+
+:where(.reveal .slides) section {
+  /* Physical is the default channel; .signal switches it per-slide. */
+  --accent: var(--t-copper);
+
+  /* Replace deck.css's solid-fill h1 pill with a display headline and a
+     thin accent rule --- the single biggest "old university deck" tell. */
+  h1 {
+    background: none;
+    color: var(--t-paper);
+    text-transform: none;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+    padding: 0;
+    margin: 0 0 1.25rem;
+  }
+
+  h1::after {
+    content: "";
+    display: block;
+    inline-size: 3.5rem;
+    block-size: 3px;
+    margin-block-start: 1.1rem;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  h1 + h2 {
+    color: var(--t-dim);
+    font-weight: 400;
+    text-transform: none;
+    font-size: 1.5rem;
+  }
+
+  /* A quiet mono line above a heading: section tag, week number, or a
+     one-word "NEXT" cue on transition slides. */
+  .kicker {
+    display: block;
+    font-family: var(--t-mono);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1rem;
+  }
+
+  a {
+    color: var(--t-signal);
+  }
+
+  blockquote {
+    color: var(--t-dim);
+  }
+
+  blockquote::before {
+    border-block-start-color: var(--accent);
+  }
+
+  code {
+    background: var(--t-surface);
+    color: var(--t-signal);
+    border-color: var(--t-line-strong);
+  }
+
+  pre {
+    background: var(--t-surface);
+  }
+
+  table {
+    :is(thead, tbody) th {
+      background: rgb(224 162 74 / 12%);
+      color: var(--t-copper);
+    }
+
+    thead th {
+      border-block-end-color: rgb(224 162 74 / 45%);
+    }
+
+    tbody td {
+      border-block-end-color: var(--t-line);
+    }
+  }
+
+  .image-credit {
+    font-family: var(--t-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+    color: var(--t-mute);
+
+    a {
+      color: var(--t-mute);
+    }
+  }
+
+  .qr-code span {
+    color: var(--t-copper);
+  }
+
+  /* Electrical/measured channel: swaps the accent rule, kicker and any
+     .display-line/.metric-value colour from copper to signal. */
+  &.signal {
+    --accent: var(--t-signal);
+  }
+
+  /* .impact used to be a full-bleed flat brand-colour fill. Replaced with
+     the same near-black ground as every other slide plus a restrained
+     accent, rather than "the whole slide is one loud colour." */
+  &.impact {
+    background-color: var(--t-void);
+    background-image: none;
+    color: var(--t-paper);
+    place-content: center;
+    text-align: center;
+
+    :is(h1, h2, h3, h4, h5, h6) {
+      color: var(--t-paper);
+    }
+
+    h1::after {
+      margin-inline: auto;
+    }
+
+    .kicker {
+      text-align: center;
+    }
+
+    :is(p, li):not(.kicker, .deck-mark) {
+      font-size: 2rem;
+      line-height: 1.4;
+      color: var(--t-dim);
+    }
+
+    strong,
+    em {
+      color: var(--accent);
+      font-style: normal;
+    }
+  }
+
+  &.quote {
+    blockquote {
+      color: var(--t-paper);
+
+      cite {
+        color: var(--accent);
+      }
+    }
+  }
+
+  /* Layout mechanics only change for .centered; colour/type follow the
+     rules above automatically. Large staged/display lines used on
+     question-and-answer slides. */
+  &.centered {
+    text-align: center;
+
+    h1,
+    h1::after {
+      margin-inline: auto;
+    }
+
+    .display-line {
+      font-family: var(--t-mono);
+      font-size: 2.75rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: var(--accent);
+    }
+
+    p {
+      font-size: 2.25rem;
+      line-height: 1.4;
+      font-weight: 300;
+      color: var(--t-paper);
+    }
+  }
+
+  /* .banner had no built-in styling at all (a bare passthrough class) ---
+     defined fresh here so title and transition slides visually rhyme. */
+  &.banner {
+    place-content: center;
+
+    h1 {
+      font-size: 3.2rem;
+    }
+  }
+
+  /* A two-column, left-heavy (not 50/50) comparison layout for text-based
+     recap slides; the pure-photo split slides use astromotion's own
+     background-image directive and the split-layout/-image/-content
+     classes above instead. */
+  &.split {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  /* Centres a figure (an imported diagram component) with a small muted
+     caption underneath --- the standard wrapper for the deck's diagrams. */
+  &.diagram {
+    place-content: center;
+    text-align: center;
+
+    > :first-child {
+      margin-inline: auto;
+    }
+
+    .caption {
+      font-family: var(--t-mono);
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--t-mute);
+      margin-block-start: 1.25rem;
+    }
+  }
+
+  /* One big mono statistic plus a short label, for a single concrete
+     numeric claim (e.g. bridge-position amplitude). */
+  &.metric {
+    place-content: center;
+    text-align: center;
+
+    .metric-value {
+      font-family: var(--t-mono);
+      font-size: 6rem;
+      font-weight: 600;
+      line-height: 1;
+      color: var(--accent);
+    }
+
+    .metric-label {
+      margin-block-start: 1.25rem;
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: var(--t-dim);
+    }
+  }
+
+  /* Edge-to-edge for a diagram/photo that should run to the frame, mirroring
+     deck.css's own zero-padding treatment for .logo-slide. */
+  &.full-bleed {
+    padding: 0;
+  }
+
+  /* Quiet institutional line, used once on the title slide. */
+  .deck-mark {
+    position: absolute;
+    right: 2rem;
+    bottom: 1.5rem;
+    font-family: var(--t-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--t-mute);
+  }
+}

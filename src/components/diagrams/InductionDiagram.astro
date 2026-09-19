@@ -1,0 +1,156 @@
+---
+// The week's central claim, made as one static glance: a string held still
+// changes no flux and induces nothing, while a moving string crowds the
+// flux lines and induces a voltage. The lecture page's InductionFigure makes
+// this same point interactively (a switch the reader operates); this is the
+// same comparison frozen into two panels for a slide, with an optional
+// Faraday's-law caption so the same component serves both the "motion
+// changes flux" slide and the "Faraday's law" slide, rather than building a
+// near-duplicate component for the second one.
+interface Props {
+  equation?: boolean;
+  ariaLabel?: string;
+}
+
+const { equation = false, ariaLabel } = Astro.props;
+const label =
+  ariaLabel ??
+  "Two panels. In the first the string is held still, the magnetic flux through the coil is not changing, and the indicator is off. In the second the string is moving, the flux lines are pulled in with it, and the indicator lights: a changing flux induces a voltage.";
+---
+
+<div class="id-diagram" role="img" aria-label={label}>
+  <div class="id-panels">
+    <div class="id-panel">
+      <svg viewBox="0 0 260 220" aria-hidden="true">
+        <line x1="0" y1="40" x2="260" y2="40" class="id-string" />
+        <path d="M 130 40 Q 92 76 78 118" class="id-flux" fill="none" />
+        <path d="M 130 40 Q 168 76 182 118" class="id-flux" fill="none" />
+        <path d="M 130 40 Q 112 88 108 130" class="id-flux" fill="none" />
+        <path d="M 130 40 Q 148 88 152 130" class="id-flux" fill="none" />
+        <rect x="118" y="118" width="24" height="60" rx="2" class="id-pole" />
+        <rect x="100" y="178" width="60" height="34" rx="2" class="id-magnet" />
+        <circle cx="130" cy="196" r="5" class="id-lamp" />
+      </svg>
+      <p class="id-caption">
+        String held still<br />
+        <span class="id-state">Flux constant &middot; no output</span>
+      </p>
+    </div>
+
+    <div class="id-panel">
+      <svg viewBox="0 0 260 220" aria-hidden="true">
+        <line x1="0" y1="20" x2="260" y2="20" class="id-string" />
+        <path d="M 130 20 Q 82 66 72 118" class="id-flux id-flux--active" fill="none" />
+        <path d="M 130 20 Q 178 66 188 118" class="id-flux id-flux--active" fill="none" />
+        <path d="M 130 20 Q 102 82 104 130" class="id-flux id-flux--active" fill="none" />
+        <path d="M 130 20 Q 158 82 156 130" class="id-flux id-flux--active" fill="none" />
+        <rect x="118" y="118" width="24" height="60" rx="2" class="id-pole" />
+        <rect x="100" y="178" width="60" height="34" rx="2" class="id-magnet" />
+        <circle cx="130" cy="196" r="5" class="id-lamp id-lamp--on" />
+      </svg>
+      <p class="id-caption">
+        String moving<br />
+        <span class="id-state id-state--on">Flux changing &middot; voltage induced</span>
+      </p>
+    </div>
+  </div>
+
+  {equation && (
+    <p class="id-equation">
+      &epsilon; = &minus;N <span class="id-frac">d&Phi;/dt</span>
+    </p>
+  )}
+</div>
+
+<style>
+  .id-diagram {
+    display: grid;
+    gap: 1.5rem;
+    justify-items: center;
+  }
+
+  .id-panels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem;
+    width: 100%;
+    max-width: 40rem;
+  }
+
+  .id-panel {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: center;
+  }
+
+  .id-panel svg {
+    width: 100%;
+    max-width: 14rem;
+    height: auto;
+  }
+
+  .id-string {
+    stroke: var(--t-copper);
+    stroke-width: 3;
+  }
+
+  .id-flux {
+    stroke: var(--t-signal);
+    stroke-width: 1.4;
+    opacity: 0.3;
+  }
+
+  .id-flux--active {
+    opacity: 0.75;
+    stroke-width: 1.8;
+  }
+
+  .id-pole {
+    fill: #454b52;
+    stroke: rgb(241 239 234 / 22%);
+    stroke-width: 1;
+  }
+
+  .id-magnet {
+    fill: #32373d;
+  }
+
+  .id-lamp {
+    fill: var(--t-edge);
+    transition: fill 0.2s ease;
+  }
+
+  .id-lamp--on {
+    fill: var(--t-signal);
+  }
+
+  .id-caption {
+    margin: 0;
+    text-align: center;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: var(--t-paper);
+  }
+
+  .id-state {
+    font-family: var(--t-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    color: var(--t-mute);
+  }
+
+  .id-state--on {
+    color: var(--t-signal);
+  }
+
+  .id-equation {
+    margin: 0;
+    font-family: var(--t-mono);
+    font-size: 2.25rem;
+    color: var(--t-paper);
+  }
+
+  .id-frac {
+    color: var(--t-signal);
+  }
+</style>

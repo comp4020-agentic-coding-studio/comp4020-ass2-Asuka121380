@@ -68,7 +68,7 @@ export default defineConfig({
     // name.
     astromotion({
       theme: "./src/decks/theme.css",
-      fontVariables: ["--font-public-sans"],
+      fontVariables: ["--font-public-sans", "--font-archivo", "--font-plex-mono"],
     }),
   ],
 });
