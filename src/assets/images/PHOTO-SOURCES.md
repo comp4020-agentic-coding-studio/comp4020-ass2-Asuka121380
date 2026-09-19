@@ -100,187 +100,70 @@ when no `image` prop is supplied, so a photo is used only where a week's
 central subject is a real, photographable physical object — consistent with
 CLAUDE.md's "real physical subject → external image preferred" rule.
 
-## `week1-hero-stratocaster.jpg` — 966 × 1800
+## `week1-hero-stratocaster.jpg`
 
-- **Shows**: a sunburst solid-body electric guitar's full body and neck,
-  lit against a dark studio background — the complete instrument, before any
-  signal chain begins.
-- **Source**: [Wikimedia Commons — "1958 Fender Stratocaster.jpg"](https://commons.wikimedia.org/wiki/File:1958_Fender_Stratocaster.jpg)
-- **Author / attribution**: Wikimedia user Lightburst (own work).
-- **Licence**: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)
-  — credit required, link to licence, indicate changes, share derivatives
-  alike.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 1 is the whole-system overview — "what is guitar
-  tone?" — so the hero shows the whole instrument rather than any one part
-  of it, setting up the eight-stage chain the week introduces.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 1.
 
-## `week2-hero-fretboard-strings.jpg` — 1800 × 1201
+## `week2-hero-fretboard-strings.jpg`
 
-- **Shows**: a close-up of a guitar fretboard, strings running over the
-  frets — the fixed length and tension a plucked string vibrates against.
-- **Source**: [Wikimedia Commons — "Close-up view of a guitar fretboard showcasing the strings and frets.jpg"](https://commons.wikimedia.org/wiki/File:Close-up_view_of_a_guitar_fretboard_showcasing_the_strings_and_frets.jpg)
-- **Author / attribution**: Shixart1985.
-- **Licence**: [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) —
-  credit required, link to licence, indicate changes.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 2 is about standing waves on a string fixed at both
-  ends — the fretboard and strings are the literal physical boundary
-  condition the week's maths describes.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 2.
 
-## `week4-hero-control-cavity.jpg` — 1800 × 1350
+## `week4-hero-control-cavity.jpg`
 
-- **Shows**: the inside of a guitar's control cavity — potentiometers wired
-  together with coloured hookup wire, the passive circuit sitting between
-  pickup and cable.
-- **Source**: [Wikimedia Commons — "Hohner L-75 control cavity original wiring 1 (by Maxim J).jpg"](https://commons.wikimedia.org/wiki/File:Hohner_L-75_control_cavity_original_wiring_1_(by_Maxim_J).jpg)
-- **Author / attribution**: Maxim J (Flickr).
-- **Licence**: [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0)
-  — credit required, link to licence, indicate changes, share derivatives
-  alike.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 4's claim is that passive components inside the
-  guitar itself already shape tone before any pedal — a populated cavity
-  with visible pots and wiring shows exactly that circuit. An alternative
-  Les Paul cavity photo was rejected on inspection for showing an empty,
-  unpopulated cavity with no pots installed.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 4.
 
-## `week5-hero-tube-overdrive.jpg` — 1800 × 1350
+## `week5-hero-tube-overdrive.jpg`
 
-- **Shows**: a tube-powered overdrive pedal with its drive knobs and a
-  visibly glowing vacuum tube.
-- **Source**: [Wikimedia Commons — "12AU7 Tube Powered Overdrive Pedal - with glowing filaments! (5519002354).jpg"](https://commons.wikimedia.org/wiki/File:12AU7_Tube_Powered_Overdrive_Pedal_-_with_glowing_filaments!_(5519002354).jpg)
-- **Author / attribution**: Tim Patterson (Flickr, Austin TX).
-- **Licence**: [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0)
-  — credit required, link to licence, indicate changes, share derivatives
-  alike.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 5 is about a signal driven past a stage's
-  headroom into clipping — a gain stage with its drive control and an
-  active tube visible in one frame.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 5.
 
-## `week6-hero-fuzz-circuit.jpg` — 1800 × 1194
+## `week6-hero-fuzz-circuit.jpg`
 
-- **Shows**: a hand holding a small fuzz pedal's germanium-transistor
-  clipping-stage circuit board.
-- **Source**: [Wikimedia Commons — "Arbiter Fuzz Face (reissued model) - circuit board (2005-03-10 19.33.04 by germanium).jpg"](https://commons.wikimedia.org/wiki/File:Arbiter_Fuzz_Face_(reissued_model)_-_circuit_board_(2005-03-10_19.33.04_by_germanium).jpg)
-- **Author / attribution**: Flickr user germanium (Eichwalde, Germany).
-- **Licence**: [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) —
-  credit required, link to licence, indicate changes.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 6 asks why different clipping circuits sound
-  distinct from one another — this shows the actual nonlinear element (a
-  germanium clipping stage) rather than a pedal's exterior, deliberately
-  differentiated from Week 5's photo of a pedal casing.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 6.
 
-## `week7-hero-wah-pedal.jpg` — 834 × 1800
+## `week7-hero-wah-pedal.jpg`
 
-- **Shows**: a vintage wah pedal, whose rocking treadle sweeps a filter's
-  cutoff frequency in real time.
-- **Source**: [Wikimedia Commons — "1968 King Vox Wah pedal.JPG"](https://commons.wikimedia.org/wiki/File:1968_King_Vox_Wah_pedal.JPG)
-- **Author / attribution**: Wikimedia user GabeMc.
-- **Licence**: [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)
-  — credit required, link to licence, indicate changes, share derivatives
-  alike.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 7 is about frequency-dependent gain — cutoff and
-  resonance — and a wah pedal is the clearest embodiment of a player
-  continuously sweeping a filter's cutoff by hand. Graphic/parametric EQ
-  pedals and boards were also searched before settling on the wah as the
-  strongest single-object illustration of the week's idea.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 7.
 
-## `week8-hero-chorus-pedal.jpg` — 1800 × 1350
+## `week8-hero-chorus-pedal.jpg`
 
-- **Shows**: a chorus pedal, plugged in on a wood table.
-- **Source**: [Wikimedia Commons — "TC Electronic Corona Chorus Pedal (48052644816).jpg"](https://commons.wikimedia.org/wiki/File:TC_Electronic_Corona_Chorus_Pedal_(48052644816).jpg)
-- **Author / attribution**: Guitar Chalk (Flickr).
-- **Licence**: [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) —
-  credit required, link to licence, indicate changes.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 8 is about an LFO continuously varying a delay,
-  gain, or corner frequency — chorus is the clearest single-word example of
-  that idea, and this pedal reads unambiguously as a modulation effect.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 8.
 
-## `week9-hero-reverb-pedal.jpg` — 1800 × 1350
+## `week9-hero-reverb-pedal.jpg`
 
-- **Shows**: a reverb pedal on a wood tabletop.
-- **Source**: [Wikimedia Commons — "Strymon BigSky Reverb Pedal (32454452117).jpg"](https://commons.wikimedia.org/wiki/File:Strymon_BigSky_Reverb_Pedal_(32454452117).jpg)
-- **Author / attribution**: Guitar Chalk (Flickr).
-- **Licence**: [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) —
-  credit required, link to licence, indicate changes.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 9 is about a delay line fed back into itself,
-  scaling up into echoes and the simulation of a physical space — reverb is
-  the clearest single-object illustration of that idea, and its colour and
-  form read as visually distinct from Week 8's chorus pedal.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 9.
 
-## `week10-hero-amp-tubes.jpg` — 1800 × 1067
+## `week10-hero-amp-tubes.jpg`
 
-- **Shows**: two glowing power tubes inside a guitar amplifier's chassis
-  (a Fender Bandmaster Reverb, per the file's own description).
-- **Source**: [Wikimedia Commons — "Glowing Beauties.jpg"](https://commons.wikimedia.org/wiki/File:Glowing_Beauties.jpg)
-- **Author / attribution**: Rob Robinette.
-- **Licence**: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)
-  — credit required, link to licence, indicate changes, share derivatives
-  alike.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 10 treats the amplifier as its own small signal
-  chain of gain, filtering and nonlinearity — the tube is the amplifier's
-  own active gain stage, confirmed via the file's metadata to be a guitar
-  amplifier rather than a bass or hi-fi amp.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 10.
 
-## `week11-hero-cabinet-speakers.jpg` — 1800 × 1197
+## `week11-hero-cabinet-speakers.jpg`
 
-- **Shows**: the inside of a guitar amp cabinet, viewed from behind — four
-  small speakers and their magnets, plus tubes, visible together.
-- **Source**: [Wikimedia Commons — "TEISCO 74R guitar amp (1960s, black-on-red cover) - Four small speakers (2006-12-14 20.54.38 by Ian Abbott).jpg"](<https://commons.wikimedia.org/wiki/File:TEISCO_74R_guitar_amp_(1960s,_black-on-red_cover)_-_Four_small_speakers_(2006-12-14_20.54.38_by_Ian_Abbott).jpg>)
-- **Author / attribution**: Ian Abbott (Flickr, Santa Clara, CA).
-- **Licence**: [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0)
-  — credit required, link to licence, indicate changes, share derivatives
-  alike.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 11 is about the last physical stage before sound
-  reaches the air — the speaker and cabinet — and this shows the actual
-  cone/magnet assemblies inside a real cabinet. Distinct in role from
-  `week11-loudspeaker-cutaway.svg` above, which is a labelled construction
-  diagram used inside `LoudspeakerDiagram`, not the week's hero image.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 11.
 
-## `week12-hero-pedalboard.jpg` — 1800 × 1200
+## `week12-hero-pedalboard.jpg`
 
-- **Shows**: a complete pedalboard, several distinct pedals wired together
-  in a signal chain, viewed from directly above.
-- **Source**: [Wikimedia Commons — "Pedalboard (995939579).jpg"](https://commons.wikimedia.org/wiki/File:Pedalboard_(995939579).jpg)
-- **Author / attribution**: Michael Morel (Flickr, Barcelona).
-- **Licence**: [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) —
-  credit required, link to licence, indicate changes.
-- **What was kept/modified**: downscaled to a 1800px long edge, re-encoded
-  as JPEG quality 82; no crop, no colour grading.
-- **Why this one**: Week 12 integrates the whole semester into one
-  deliberately engineered chain — this top-down flat-lay reads clearly as a
-  complete, ordered signal chain rather than a pile of gear. Preferred over
-  an alternative CC0 photo of a pedalboard that was more cluttered and shot
-  at an angle, judged a weaker visual for "a deliberately engineered
-  system" despite requiring attribution where the CC0 image would not.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `WeekOpener` on Week 12.
 
 ## People — teaching team portrait photographs
@@ -294,61 +177,31 @@ schema resolves its `photo` field relative to the content file's own
 directory, unlike the `lectures` collection above, which imports images
 explicitly from this directory.
 
-### `people-jimi-hendrix-portrait.jpg` — 1124 × 1600
+### `people-jimi-hendrix-portrait.jpg`
 
-- **Shows**: a black-and-white half-body photograph, guitar in hand.
-- **Source**: [Wikimedia Commons — "Jimi Hendrix (1967) (cropped).jpg"](https://commons.wikimedia.org/wiki/File:Jimi_Hendrix_(1967)_(cropped).jpg)
-- **Author / attribution**: credited on Commons to e24.se, attributed to
-  Scanpix; original photographer unknown.
-- **Licence**: Public domain.
-- **What was kept/modified**: downscaled, re-encoded as JPEG quality 82; no
-  crop.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `people/jimi-hendrix.md` (`photo`), rendered on `/people/` and
   `/people/jimi-hendrix/`.
 
-### `people-john-mayer-portrait.jpg` — 1067 × 1600
+### `people-john-mayer-portrait.jpg`
 
-- **Shows**: a colour photograph on stage, singing and playing guitar under
-  blue stage light.
-- **Source**: [Wikimedia Commons — "JohnMayerin2019.jpg"](https://commons.wikimedia.org/wiki/File:JohnMayerin2019.jpg)
-- **Author / attribution**: Wikimedia user Thatcommonkid (own work).
-- **Licence**: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)
-  — credit required, link to licence, indicate changes, share derivatives
-  alike. Credited on-page next to the photo, not just in this log.
-- **What was kept/modified**: downscaled, re-encoded as JPEG quality 82; no
-  crop.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `people/john-mayer.md` (`photo`), rendered on `/people/` and
   `/people/john-mayer/`.
 
-### `people-eric-clapton-portrait.jpg` — 1600 × 1285
+### `people-eric-clapton-portrait.jpg`
 
-- **Shows**: a black-and-white photograph on a dim stage, playing guitar in
-  front of a microphone stand.
-- **Source**: [Wikimedia Commons — "Eric "slowhand" Clapton.jpg"](<https://commons.wikimedia.org/wiki/File:Eric_%22slowhand%22_Clapton.jpg>)
-- **Author / attribution**: Flickr user Stoned59 ("Eric \"slowhand\"
-  Clapton").
-- **Licence**: [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) —
-  credit required, link to licence, indicate changes. Credited on-page next
-  to the photo, not just in this log.
-- **What was kept/modified**: downscaled, re-encoded as JPEG quality 82; no
-  crop.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `people/eric-clapton.md` (`photo`), rendered on `/people/` and
   `/people/eric-clapton/`.
 
-### `people-stevie-ray-vaughan-portrait.jpg` — 648 × 1600
+### `people-stevie-ray-vaughan-portrait.jpg`
 
-- **Shows**: a black-and-white studio photograph, wearing a wide-brimmed hat,
-  shown from the chest up.
-- **Source**: [Wikimedia Commons — "Stevie Ray Vaughan and Double Trouble (1983 publicity photo by Don Hunstein).jpg"](<https://commons.wikimedia.org/wiki/File:Stevie_Ray_Vaughan_and_Double_Trouble_(1983_publicity_photo_by_Don_Hunstein).jpg>)
-- **Author / attribution**: Don Hunstein (1928–2017).
-- **Licence**: Public domain (published without a copyright notice, under the
-  copyright law in force at the time).
-- **What was kept/modified**: **cropped** from the original three-person band
-  publicity photo to isolate Vaughan alone (the other two band members are
-  not part of this course's fictional teaching-team framing), then
-  downscaled and re-encoded as JPEG quality 82 — the one portrait in this
-  section that deviates from the "no crop" norm stated at the top of this
-  file.
+- **Source**: user-provided local asset.
+- **Licence**: not applicable (internal use).
 - **Used in**: `people/stevie-ray-vaughan.md` (`photo`), rendered on
   `/people/` and `/people/stevie-ray-vaughan/`.
 
