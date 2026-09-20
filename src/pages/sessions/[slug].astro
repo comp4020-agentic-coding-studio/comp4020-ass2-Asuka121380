@@ -1,0 +1,99 @@
+---
+// Each published session uses the same content entry for its page and API node.
+import { render } from "astro:content";
+import { getPublishedCollection } from "astro-course-university/content";
+import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
+import { withBase } from "astro-theme-university/url";
+import TeachingTeam from "../../components/TeachingTeam.astro";
+import { courseMeta } from "../../course-config";
+import { formatCourseDate } from "../../lib/dates";
+import { siteConfig } from "../../site-config";
+import "../../styles/tone.css";
+
+export async function getStaticPaths() {
+  const sessions = await getPublishedCollection("sessions");
+  return sessions.map((session) => ({ params: { slug: session.id }, props: { session } }));
+}
+
+const { session } = Astro.props;
+const { Content } = await render(session);
+---
+
+<BaseLayout
+  title={`${session.data.title} — ${courseMeta.code}`}
+  description={session.data.description ?? undefined}
+  mainAttrs={{ "data-tone": true }}
+  {...siteConfig}
+  name={courseMeta.code}
+  logo={undefined}
+  logoDark={undefined}
+  logoCompact={undefined}
+  logoCompactDark={undefined}
+>
+  <style slot="head" is:inline set:html={`body{--course-title:${JSON.stringify(courseMeta.title)}}`} />
+
+  <div class="t-graticule" aria-hidden="true"></div>
+  <div class="t-layer">
+    <header class="session-hero t-band">
+      <div class="t-shell">
+        <a class="t-link session-back" href={withBase(`/lectures/week-${String(session.data.week).padStart(2, "0")}/`)}>
+          <span class="t-arrow" aria-hidden="true">&larr;</span> Week {session.data.week} lecture
+        </a>
+        <p class="t-label t-label--copper">Week {session.data.week} · Studio session</p>
+        <h1 class="t-h1 session-title">{session.data.title}</h1>
+        <p class="t-lede session-description">{session.data.description}</p>
+        <p class="session-date"><span class="t-label">Session date</span> {formatCourseDate(session.data.date)}</p>
+      </div>
+    </header>
+
+    <section class="session-body">
+      <div class="t-shell session-grid">
+        <div class="session-prose"><Content /></div>
+        <aside class="session-aside">
+          <TeachingTeam teachers={session.data.teachers} />
+          {session.data.spec.length > 0 && (
+            <div>
+              <h2 class="t-label">By the end of this session</h2>
+              <ul>{session.data.spec.map((goal) => <li>{goal}</li>)}</ul>
+            </div>
+          )}
+        </aside>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  const nav = document.querySelector<HTMLElement>(".at-nav");
+  if (nav) {
+    const sync = () => {
+      if (window.scrollY > 24) nav.dataset.scrolled = "";
+      else delete nav.dataset.scrolled;
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    document.addEventListener("astro:before-swap", () => window.removeEventListener("scroll", sync));
+  }
+</script>
+
+<style>
+  .session-back { margin-block-end: 2rem; }
+  .session-title { max-width: 24ch; margin: 0.75rem 0 1.25rem; }
+  .session-description { max-width: 60ch; margin: 0 0 1.75rem; }
+  .session-date { display: flex; align-items: baseline; gap: 1rem; color: var(--t-paper); }
+  .session-body { padding-block-end: clamp(4rem, 8vw, 6rem); }
+  .session-grid { display: grid; gap: clamp(2rem, 5vw, 5rem); }
+  .session-prose { max-width: var(--t-measure); color: var(--t-dim); }
+  .session-prose :global(h2) { color: var(--t-paper); font-size: var(--t-h3); margin: 2.25rem 0 0.8rem; }
+  .session-prose :global(h2:first-child) { margin-block-start: 0; }
+  .session-prose :global(p), .session-prose :global(li) { font-size: var(--t-body); line-height: 1.65; }
+  .session-prose :global(p) { margin: 0 0 1.25rem; }
+  .session-prose :global(a) { color: var(--t-signal); }
+  .session-aside { display: grid; align-content: start; gap: 2rem; border-block-start: 1px solid var(--t-line); padding-block-start: 1.5rem; }
+  .session-aside h2 { margin: 0 0 0.75rem; }
+  .session-aside ul { margin: 0; padding-inline-start: 1.25rem; color: var(--t-dim); line-height: 1.6; }
+  .session-aside li + li { margin-block-start: 0.65rem; }
+  @media (min-width: 55rem) {
+    .session-grid { grid-template-columns: minmax(0, 1.7fr) minmax(16rem, 1fr); }
+  }
+</style>

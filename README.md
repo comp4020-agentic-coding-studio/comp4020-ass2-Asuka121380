@@ -100,9 +100,9 @@ Content is Markdown with frontmatter under `src/content/`, in four collections
 declared in `src/content.config.ts`: `sessions`, `assessments`, `lectures` and
 `people`. Sessions and lectures carry dates and, optionally, structured teacher
 references; assessments carry due dates, weights and an optional marking model;
-people are the cast list. The ordinary Markdown page at
-`src/pages/policies/index.mdx` is also copied into the course API as a policy
-node.
+people are the cast list. The Markdown source at
+`src/policy-content/index.mdx`, rendered by `src/pages/policies/index.astro`,
+is also copied into the course API as a policy node.
 
 Those four stay, because the programs and courses page reads them. A collection
 of your own is declared the same way in `src/content.config.ts`, listed in

@@ -23,17 +23,36 @@ describe("assignment 2 spec", () => {
     );
   });
 
+  it("keeps the Policies page in the generated course API", () => {
+    expect(byType("policies").map((node) => node.id)).toEqual(["policies/index"]);
+    expect(existsSync(resolve("dist/policies/index.html"))).toBe(true);
+  });
+
+  it("keeps sessions in the API with matching detail pages", () => {
+    const sessions = byType("sessions");
+    expect(sessions.length, "the API must publish the existing session records").toBe(2);
+    for (const session of sessions) {
+      expect(
+        existsSync(resolve("dist", session.id, "index.html")),
+        `${session.id} has an API record but no page`,
+      ).toBe(true);
+    }
+  });
+
   it("gives every lecture its own week, within the twelve-week course", () => {
     // Sessions are used selectively (a genuinely separate studio activity),
     // not manufactured one per week, so lectures carry the teaching-week
     // invariant instead: each lecture is a distinct week from 1 to 12.
     const weeks = byType("lectures").map((node) => Number(node.meta?.week));
-    expect(weeks.length, "at least one lecture exists").toBeGreaterThan(0);
+    expect(weeks.length, "the course has exactly twelve lectures").toBe(12);
     for (const week of weeks) {
       expect(week, `lecture week ${week} is outside 1-12`).toBeGreaterThanOrEqual(1);
       expect(week, `lecture week ${week} is outside 1-12`).toBeLessThanOrEqual(12);
     }
     expect(new Set(weeks).size, "two lectures claim the same week").toBe(weeks.length);
+    expect([...weeks].sort((a, b) => a - b), "lecture weeks must be exactly 1–12").toEqual(
+      Array.from({ length: 12 }, (_, index) => index + 1),
+    );
   });
 
   it("has at least one lecture with a real deck linked from its page", () => {

@@ -2,18 +2,14 @@ import { defineSiteConfig } from "astro-theme-university/types";
 import { slopBranding } from "astro-theme-slop";
 import { courseMeta } from "./course-config";
 
-// The `sessions` collection and content still exist (real studio-session
-// prep notes, tied to specific weeks) but no longer have a standalone route:
-// the twelve-week signal chain on the homepage already communicates the
-// week-by-week progression, and a second parallel index of the same weeks
-// added a page without adding information. Kept out of `graphCollections` so
-// no page tries to render a related-content link to a route that no longer
-// exists.
+// Sessions have detail pages and API entries, but no redundant index or
+// navigation item. Related-content rendering uses the same routed collections.
 export const graphCollections = ["assessments", "lectures", "people"];
 
 export const courseApiCollections = [
+  { key: "sessions" },
   ...graphCollections.map((key) => ({ key })),
-  { key: "policies", dir: "pages/policies" },
+  { key: "policies", dir: "policy-content" },
 ];
 
 export const siteConfig = defineSiteConfig({

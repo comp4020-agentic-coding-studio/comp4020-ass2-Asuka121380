@@ -18,8 +18,8 @@ export default defineConfig({
   // 301 on GitHub Pages.
   trailingSlash: "always",
   // The course's own typeface pair, registered alongside (not instead of) the
-  // theme's Public Sans / Roboto Mono, which the pages still on the theme's
-  // register keep using. Archivo is an industrial grotesque with a full
+  // theme's Public Sans / Roboto Mono, retained by the fixed platform.
+  // Archivo is an industrial grotesque with a full
   // variable weight axis and tabular lining figures — it carries display
   // headlines at 700-800 and reads cleanly as body text at 400, so the TONE
   // pages need only one text family. IBM Plex Mono handles technical
